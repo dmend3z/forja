@@ -1,6 +1,6 @@
 {
   "name": "forja-cli",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Skills marketplace CLI for Claude Code",
   "license": "MIT",
   "repository": {
@@ -11,10 +11,10 @@
     "forja": "bin/forja"
   },
   "optionalDependencies": {
-    "forja-darwin-arm64": "0.1.1",
-    "forja-darwin-x64": "0.1.1",
-    "forja-linux-x64": "0.1.1",
-    "forja-linux-arm64": "0.1.1"
+    "forja-darwin-arm64": "0.2.0",
+    "forja-darwin-x64": "0.2.0",
+    "forja-linux-x64": "0.2.0",
+    "forja-linux-arm64": "0.2.0"
   },
   "files": ["bin/forja", "README.md", "LICENSE"]
 }

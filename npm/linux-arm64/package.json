@@ -1,6 +1,6 @@
 {
   "name": "forja-linux-arm64",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "forja CLI binary for Linux ARM64",
   "license": "MIT",
   "repository": {
