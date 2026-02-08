@@ -62,8 +62,8 @@ Model: sonnet
 Create a task list with dependencies:
 1. **Research** — explore codebase and produce a plan → no dependencies
 2. **Code** — implement feature → blocked by Research. Require plan approval before the Coder begins implementation.
-3. **Simplify** — refine code for clarity → blocked by Code
-4. **Test** — write and run tests → blocked by Simplify
+3. **Test** — write and run tests → blocked by Code
+4. **Simplify** — refine code for clarity → blocked by Test
 5. **Review** — review changes for quality and security → blocked by Simplify
 6. **Deploy** — commit and create PR → blocked by Test AND Review
 
