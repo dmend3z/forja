@@ -1,0 +1,13 @@
+{
+  "name": "forja-darwin-arm64",
+  "version": "0.1.0",
+  "description": "forja CLI binary for macOS ARM64 (Apple Silicon)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dmend3z/forja.git"
+  },
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "files": ["bin/forja"]
+}

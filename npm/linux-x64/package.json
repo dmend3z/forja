@@ -1,0 +1,13 @@
+{
+  "name": "forja-linux-x64",
+  "version": "0.1.0",
+  "description": "forja CLI binary for Linux x64",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dmend3z/forja.git"
+  },
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "files": ["bin/forja"]
+}

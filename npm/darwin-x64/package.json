@@ -1,0 +1,13 @@
+{
+  "name": "forja-darwin-x64",
+  "version": "0.1.0",
+  "description": "forja CLI binary for macOS x64 (Intel)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dmend3z/forja.git"
+  },
+  "os": ["darwin"],
+  "cpu": ["x64"],
+  "files": ["bin/forja"]
+}

@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            npm-pkg: darwin-arm64
+          - target: x86_64-apple-darwin
+            os: macos-13
+            npm-pkg: darwin-x64
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            npm-pkg: linux-x64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            npm-pkg: linux-arm64
+            cross: true
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.cross
+        run: cargo install cross --locked
+
+      - name: Build
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+          USE_CROSS: ${{ matrix.cross }}
+        run: |
+          if [ "$USE_CROSS" = "true" ]; then
+            cross build --release --target "$BUILD_TARGET"
+          else
+            cargo build --release --target "$BUILD_TARGET"
+          fi
+
+      - name: Package binary
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+          NPM_PKG: ${{ matrix.npm-pkg }}
+        run: |
+          mkdir -p "npm/$NPM_PKG/bin"
+          cp "target/$BUILD_TARGET/release/forja" "npm/$NPM_PKG/bin/forja"
+          chmod +x "npm/$NPM_PKG/bin/forja"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.npm-pkg }}
+          path: npm/${{ matrix.npm-pkg }}/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Prepare platform packages
+        run: |
+          for pkg in darwin-arm64 darwin-x64 linux-x64 linux-arm64; do
+            cp -r "artifacts/$pkg/"* "npm/$pkg/"
+            chmod +x "npm/$pkg/bin/forja"
+          done
+
+      - name: Publish platform packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for pkg in darwin-arm64 darwin-x64 linux-x64 linux-arm64; do
+            cd "npm/$pkg"
+            npm publish
+            cd ../..
+          done
+
+      - name: Publish CLI package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd npm/cli
+          npm publish
+
+  github-release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Create tarballs
+        run: |
+          mkdir -p release
+          for pkg in darwin-arm64 darwin-x64 linux-x64 linux-arm64; do
+            tar -czf "release/forja-${pkg}.tar.gz" -C "artifacts/$pkg/bin" forja
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release/*.tar.gz
