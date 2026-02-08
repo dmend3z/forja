@@ -8,7 +8,7 @@ Skills marketplace for [Claude Code](https://claude.com/claude-code). Install cu
 
 Claude Code supports plugins, agents, and skills — but managing them across projects is manual. forja gives you:
 
-- **25 curated skills** organized into 5 workflow phases
+- **24 curated skills** organized into 5 workflow phases
 - **Agent team configs** for multi-agent development (research → code → test → review → deploy)
 - **One CLI** to install, uninstall, search, and manage everything
 - **Symlink-based** — skills live in a central registry, installed via symlinks into `~/.claude/agents/`
@@ -41,12 +41,12 @@ forja organizes skills around the workflow phases that matter:
 
 | # | Phase | Skills | What it covers |
 |---|-------|--------|----------------|
-| 1 | **Research** | 3 | Codebase exploration, docs research, architecture planning |
+| 1 | **Research** | 4 | Codebase exploration, docs research, architecture planning, plan orchestration |
 | 2 | **Code** | 8 | Language-specific agents (TypeScript, Python, Go, Rust, Next.js, NestJS, database, general) |
 | 3 | **Test** | 4 | TDD workflow, test generation, E2E with Playwright, coverage analysis |
-| 4 | **Review** | 4 | Code quality, security audit, performance, PR workflow |
+| 4 | **Review** | 5 | Code quality, security audit, performance, PR workflow, code simplification |
 | 5 | **Deploy** | 3 | Git commits, PR creation, post-deploy verification |
-| + | **Teams** | 3 | Multi-agent team configurations |
+| + | **Teams** | 4 | Multi-agent team configurations |
 
 ## Skill Catalog
 
@@ -104,6 +104,7 @@ forja organizes skills around the workflow phases that matter:
 | Full Product | `teams/full-product/team` | researcher + coder + tester + reviewer + deployer |
 | Solo Sprint | `teams/solo-sprint/team` | coder-tester + quick-reviewer |
 | Quick Fix | `teams/quick-fix/team` | coder + deployer |
+| Refactor | `teams/refactor/team` | analyzer + refactorer + behavioral reviewer |
 
 > Agent teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in your Claude Code settings.
 
