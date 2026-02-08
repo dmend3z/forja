@@ -15,7 +15,9 @@ pub enum ForjaError {
     #[error("forja is not initialized. Run `forja init` first")]
     NotInitialized,
 
-    #[error("Skill not found: {0}. Run 'forja search <query>' or 'forja list --available' to browse")]
+    #[error(
+        "Skill not found: {0}. Run 'forja search <query>' or 'forja list --available' to browse"
+    )]
     SkillNotFound(String),
 
     #[error("Skill already installed: {0}")]

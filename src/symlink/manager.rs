@@ -210,7 +210,11 @@ mod tests {
 
         assert_eq!(created.len(), 1);
         assert!(created[0].is_symlink());
-        let name = created[0].file_name().unwrap().to_string_lossy().to_string();
+        let name = created[0]
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
         assert!(name.starts_with("forja--"));
         assert!(name.contains("code--general--feature"));
         assert!(name.ends_with("coder.md"));
