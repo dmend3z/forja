@@ -1,0 +1,150 @@
+name: Auto Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      github.event.pull_request.merged == true &&
+      !contains(github.event.pull_request.labels.*.name, 'no-release')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.RELEASE_PAT }}
+          fetch-depth: 0
+
+      - name: Determine version bump
+        id: bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Get all commit messages from the PR
+          COMMITS=$(gh pr view "$PR_NUMBER" --json commits --jq '.commits[].messageHeadline')
+
+          BUMP="none"
+
+          # Check for BREAKING CHANGE in commit bodies
+          BODIES=$(gh pr view "$PR_NUMBER" --json commits --jq '.commits[].messageBody')
+          if echo "$BODIES" | grep -qi "BREAKING CHANGE"; then
+            BUMP="major"
+          fi
+
+          # Check commit prefixes (major from body takes precedence)
+          if [ "$BUMP" = "none" ]; then
+            if echo "$COMMITS" | grep -qE "^feat(\(.+\))?(!)?:"; then
+              BUMP="minor"
+            elif echo "$COMMITS" | grep -qE "^fix(\(.+\))?(!)?:"; then
+              BUMP="patch"
+            fi
+          fi
+
+          # Check for ! (breaking) in commit headers
+          if echo "$COMMITS" | grep -qE "^(feat|fix|refactor|perf)(\(.+\))?!:"; then
+            BUMP="major"
+          fi
+
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+          echo "Detected bump: $BUMP"
+
+      - name: Skip if no release needed
+        if: steps.bump.outputs.bump == 'none'
+        run: |
+          echo "No release-worthy commits (only chore/docs/ci/style/test/refactor). Skipping."
+          exit 0
+
+      - name: Calculate next version
+        if: steps.bump.outputs.bump != 'none'
+        id: version
+        env:
+          BUMP: ${{ steps.bump.outputs.bump }}
+        run: |
+          # Get latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          LATEST_VERSION="${LATEST_TAG#v}"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_VERSION"
+
+          case "$BUMP" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Bumping $LATEST_TAG -> v$NEW_VERSION ($BUMP)"
+
+      - name: Bump version files
+        if: steps.bump.outputs.bump != 'none'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Cargo.toml — bump the package version (first occurrence)
+          sed -i "0,/^version = \".*\"/s//version = \"${VERSION}\"/" Cargo.toml
+
+          # All npm package.json files — bump version field
+          for pkg in cli darwin-arm64 darwin-x64 linux-x64 linux-arm64; do
+            sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" "npm/$pkg/package.json"
+          done
+
+          # npm/cli/package.json — bump optionalDependencies versions
+          for dep in darwin-arm64 darwin-x64 linux-x64 linux-arm64; do
+            sed -i "s/\"forja-${dep}\": \".*\"/\"forja-${dep}\": \"${VERSION}\"/" npm/cli/package.json
+          done
+
+          echo "Bumped files to $VERSION:"
+          echo "  Cargo.toml"
+          echo "  npm/cli/package.json"
+          echo "  npm/darwin-arm64/package.json"
+          echo "  npm/darwin-x64/package.json"
+          echo "  npm/linux-x64/package.json"
+          echo "  npm/linux-arm64/package.json"
+
+      - name: Install Rust toolchain
+        if: steps.bump.outputs.bump != 'none'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Sync Cargo.lock
+        if: steps.bump.outputs.bump != 'none'
+        run: cargo check --quiet
+
+      - name: Commit, tag, and push
+        if: steps.bump.outputs.bump != 'none'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            Cargo.toml Cargo.lock \
+            npm/cli/package.json \
+            npm/darwin-arm64/package.json \
+            npm/darwin-x64/package.json \
+            npm/linux-x64/package.json \
+            npm/linux-arm64/package.json
+
+          git commit -m "chore: release v${VERSION}"
+          git tag "v${VERSION}"
+          git push origin main --tags
+
+          echo "Pushed v${VERSION} — release.yml will handle the rest."
