@@ -1,0 +1,7 @@
+{
+  "name": "nextjs-coder",
+  "description": "Next.js specialist with App Router, Server Components, Server Actions, and Tailwind v4.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["code", "nextjs", "react", "app-router", "tailwind"]
+}

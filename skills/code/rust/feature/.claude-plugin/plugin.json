@@ -1,0 +1,7 @@
+{
+  "name": "rust-coder",
+  "description": "Rust specialist with thiserror/anyhow, idiomatic ownership patterns, and derive traits.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["code", "rust", "ownership", "type-safety"]
+}

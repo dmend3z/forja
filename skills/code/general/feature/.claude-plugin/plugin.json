@@ -1,0 +1,7 @@
+{
+  "name": "code-general",
+  "description": "General-purpose coding agent. Auto-detects project stack and writes code following existing conventions.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["code", "general", "implementation"]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "quick-fix-team",
+  "description": "Minimal 2-agent team for hotfixes: coder fixes the issue, deployer commits and creates PR.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["teams", "agents", "hotfix", "quick-fix"]
+}

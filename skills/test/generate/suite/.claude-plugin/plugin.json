@@ -1,0 +1,7 @@
+{
+  "name": "test-generator",
+  "description": "Generate unit and integration tests for existing code. Analyzes source to produce comprehensive test suites.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["test", "unit-test", "integration-test", "generation"]
+}

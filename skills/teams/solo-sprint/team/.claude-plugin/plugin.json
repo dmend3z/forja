@@ -1,0 +1,7 @@
+{
+  "name": "solo-sprint-team",
+  "description": "Lightweight 2-agent team: combined coder-tester and quick reviewer. For medium features that need tests and review.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["teams", "agents", "lightweight", "sprint"]
+}

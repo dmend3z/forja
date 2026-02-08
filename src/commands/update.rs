@@ -1,0 +1,57 @@
+use crate::error::Result;
+use crate::paths::ForjaPaths;
+use crate::registry::catalog;
+use crate::symlink::manager::{load_installed_ids, SymlinkManager};
+use colored::Colorize;
+
+pub fn run() -> Result<()> {
+    let paths = ForjaPaths::ensure_initialized()?;
+
+    // Check if local development mode (symlink, not cloned)
+    if paths.registry.is_symlink() {
+        println!(
+            "{}",
+            "Registry is a local symlink — no update needed.".yellow()
+        );
+        println!(
+            "  Source: {}",
+            std::fs::read_link(&paths.registry)
+                .unwrap_or_default()
+                .display()
+        );
+    } else {
+        println!("Updating registry...");
+        let output = crate::registry::git::pull(&paths.registry)?;
+        println!("{output}");
+    }
+
+    // Check symlink health
+    let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
+    let (healthy, broken) = manager.verify()?;
+
+    // Show catalog stats
+    let installed_ids = load_installed_ids(&paths.state);
+    let registry = catalog::scan(&paths.registry, &installed_ids)?;
+
+    println!();
+    println!(
+        "{} {} available, {} installed, {} symlinks healthy",
+        "Status:".bold(),
+        registry.skills.len().to_string().cyan(),
+        installed_ids.len().to_string().green(),
+        healthy.len().to_string().green(),
+    );
+
+    if !broken.is_empty() {
+        println!(
+            "  {} {} broken symlinks found",
+            "WARNING:".yellow().bold(),
+            broken.len()
+        );
+        for link in &broken {
+            println!("    {}", link.display().to_string().dimmed());
+        }
+    }
+
+    Ok(())
+}

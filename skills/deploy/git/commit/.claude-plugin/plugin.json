@@ -1,0 +1,7 @@
+{
+  "name": "git-commit",
+  "description": "Conventional commits with type, scope, and descriptive messages. Analyzes staged changes and creates well-formatted commits.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["deploy", "git", "commit"]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "nestjs-coder",
+  "description": "NestJS specialist with modules, services, controllers, Prisma integration, and class-validator DTOs.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["code", "nestjs", "prisma", "backend", "typescript"]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "git-pr",
+  "description": "Push branches and create Pull Requests via gh CLI with structured descriptions.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["deploy", "git", "pull-request", "gh"]
+}

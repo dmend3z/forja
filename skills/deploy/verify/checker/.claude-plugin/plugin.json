@@ -1,0 +1,7 @@
+{
+  "name": "deploy-checker",
+  "description": "Post-deploy verification: CI status checks, health endpoints, and smoke tests.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["deploy", "verify", "ci", "health-check", "smoke-test"]
+}

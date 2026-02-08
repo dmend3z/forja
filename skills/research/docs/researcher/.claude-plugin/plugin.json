@@ -1,0 +1,7 @@
+{
+  "name": "doc-researcher",
+  "description": "Research external documentation and APIs using web search and context fetching. Produces structured summaries with code examples.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["research", "docs", "api", "web-search"]
+}

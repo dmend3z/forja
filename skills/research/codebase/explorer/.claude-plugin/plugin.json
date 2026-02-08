@@ -1,0 +1,7 @@
+{
+  "name": "explore-codebase",
+  "description": "Deep codebase exploration before writing code. Maps structure, traces patterns, identifies conventions, outputs structured report.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["research", "codebase", "exploration"]
+}

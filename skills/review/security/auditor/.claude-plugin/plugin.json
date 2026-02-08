@@ -1,0 +1,7 @@
+{
+  "name": "security-auditor",
+  "description": "Security audit covering OWASP Top 10, hardcoded secrets, injection vulnerabilities, and auth issues.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["review", "security", "owasp", "audit"]
+}

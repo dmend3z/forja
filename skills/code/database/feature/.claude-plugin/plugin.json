@@ -1,0 +1,7 @@
+{
+  "name": "database-coder",
+  "description": "Database specialist for schemas, migrations, and queries. Supports Prisma, Drizzle, and raw SQL.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["code", "database", "prisma", "drizzle", "sql", "migrations"]
+}

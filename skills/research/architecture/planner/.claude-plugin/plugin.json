@@ -1,0 +1,7 @@
+{
+  "name": "architecture-planner",
+  "description": "Create implementation plans with phases, file lists, and dependency maps. Analyzes codebase before proposing changes.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["research", "architecture", "planning"]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "tdd-workflow",
+  "description": "TDD Red-Green-Refactor cycle. Write failing tests first, implement minimum code to pass, refactor.",
+  "version": "1.0.0",
+  "author": {
+    "name": "forja"
+  },
+  "keywords": ["test", "tdd", "testing"]
+}

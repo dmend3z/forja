@@ -1,0 +1,7 @@
+{
+  "name": "typescript-coder",
+  "description": "TypeScript specialist with strict types, no any, proper patterns. Follows existing conventions and prefers boring solutions.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["code", "typescript", "strict-types"]
+}

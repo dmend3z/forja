@@ -1,0 +1,7 @@
+{
+  "name": "golang-coder",
+  "description": "Go specialist with standard project layout, interface-first design, and proper error wrapping.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["code", "golang", "go", "interfaces"]
+}

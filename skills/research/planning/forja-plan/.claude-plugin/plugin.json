@@ -1,0 +1,7 @@
+{
+  "name": "forja-plan",
+  "description": "Planning pipeline: interview, research, auto-detect agents, auto-size team, save executable plan to ~/.forja/plans/",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["planning", "research", "orchestration", "pipeline"]
+}
