@@ -37,12 +37,45 @@ curl -fsSL https://raw.githubusercontent.com/dmend3z/forja/main/install.sh | sh
 That's it. All 25 agents are installed and ready to use:
 
 ```bash
-forja task "add user authentication with JWT"
+forja plan "add user authentication with JWT"
+# reviews your codebase, interviews you, builds a phased plan
+
+forja execute
+# runs the plan with the right agents, in the right order
 ```
 
-### With Teams (optional)
+## Two Ways to Work
 
-Run complex tasks with coordinated multi-agent teams:
+### `forja plan` + `forja execute` (recommended)
+
+The plan workflow gives you structured, multi-phase execution. When you run `forja plan`, it:
+
+1. **Interviews you** — project type, goals, exclusions, depth
+2. **Researches your codebase** — detects stack, finds relevant files, maps architecture
+3. **Selects the right agents** — picks agents based on your stack (Next.js, Rust, Python, etc.)
+4. **Sizes the team** — `quick-fix`, `solo-sprint`, or `full-product` based on complexity
+5. **Builds phased steps** — each phase has files to create/modify, dependencies, and specific instructions
+6. **Saves the plan** — JSON (machine-readable) + Markdown (human-readable) in `~/.forja/plans/`
+
+Then `forja execute` picks up the latest plan and runs it — agents work in order, passing context between phases, with quality gates verified at the end.
+
+```bash
+forja plan "refactor auth to use OAuth2"
+# answer a few questions, review the plan
+
+forja execute
+# agents handle research → code → test → review → deploy
+```
+
+### `forja task` (quick mode)
+
+For simple fixes where planning is overkill:
+
+```bash
+forja task "fix the typo in the login page"
+```
+
+Add `--team` for team execution without a plan:
 
 ```bash
 forja task "build user dashboard" --team full-product
@@ -85,10 +118,11 @@ Run `forja list --available` to see all agents with descriptions.
 ```
 forja                              # Status dashboard (or welcome if not initialized)
 forja init                         # Initialize + install all agents
-forja task <task>                  # Run a task in Claude Code
-forja task <task> --team <name>    # Run with a specific team
-forja plan <task>                  # Create an implementation plan
+forja plan <task>                  # Create an implementation plan (recommended)
 forja execute                      # Execute the latest plan
+forja execute <plan-id>            # Execute a specific plan
+forja task <task>                  # Run a task directly (quick mode)
+forja task <task> --team <name>    # Run with a specific team
 forja list                         # Show installed agents
 forja list --available             # Show all available agents
 forja search <query>               # Search agents
