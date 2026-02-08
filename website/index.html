@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>forja - Skills Marketplace for Claude Code</title>
+  <meta name="description" content="forja is a skills marketplace for Claude Code. Install curated skills, agents, and team configs organized around a 5-phase development workflow.">
+  <meta name="keywords" content="forja, claude code, skills, agents, plugins, CLI, developer tools, AI development">
+  <meta name="author" content="Daniel Mendes">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="forja - Skills Marketplace for Claude Code">
+  <meta property="og:description" content="Forge your Claude Code setup with curated skills, agents, and team configs organized around a 5-phase development workflow.">
+  <meta property="og:url" content="https://github.com/dmend3z/forja">
+  <meta property="og:site_name" content="forja">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="forja - Skills Marketplace for Claude Code">
+  <meta name="twitter:description" content="Forge your Claude Code setup with curated skills, agents, and team configs organized around a 5-phase development workflow.">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav">
+      <a href="#" class="nav-brand" aria-label="forja home">
+        <span class="forge-icon" aria-hidden="true">&#9876;</span>
+        forja
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+      <ul class="nav-links" role="list">
+        <li><a href="#phases">Phases</a></li>
+        <li><a href="#catalog">Catalog</a></li>
+        <li><a href="#commands">CLI</a></li>
+        <li><a href="#teams">Teams</a></li>
+        <li><a href="#quickstart">Quick Start</a></li>
+        <li><a href="https://github.com/dmend3z/forja" class="nav-cta">GitHub &#8599;</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+      <div class="container">
+        <span class="hero-badge">v0.1.0 &mdash; Open Source &middot; MIT</span>
+        <h1>
+          Forge your <span class="highlight">Claude Code</span> setup
+        </h1>
+        <p class="hero-tagline">
+          A skills marketplace for Claude Code. Install curated skills, agents, and team configs organized around a 5-phase development workflow.
+        </p>
+        <div class="hero-install">
+          <code><span class="prompt">$ </span>npm install -g forja-cli</code>
+          <button class="copy-btn" data-copy="npm install -g forja-cli" aria-label="Copy install command">
+            &#128203;
+          </button>
+        </div>
+        <div class="hero-links">
+          <a href="https://github.com/dmend3z/forja">Source Code &#8599;</a>
+          <a href="https://github.com/forja-dev/forja-skills">Skills Registry &#8599;</a>
+          <a href="#quickstart">Get Started &#8595;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why forja -->
+    <section class="section why" id="why">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Why forja?</span>
+          <h2 class="section-title">Everything you need, nothing you don't</h2>
+          <p class="section-subtitle">
+            Claude Code supports plugins, agents, and skills &mdash; but managing them across projects is manual. forja gives you a single CLI for all of it.
+          </p>
+        </div>
+        <div class="why-grid">
+          <div class="why-card">
+            <div class="why-card-icon">&#9881;</div>
+            <h3>28 Curated Skills</h3>
+            <p>Organized into 5 workflow phases. Research, code, test, review, and deploy with purpose-built agents for each step.</p>
+          </div>
+          <div class="why-card">
+            <div class="why-card-icon">&#9875;</div>
+            <h3>Agent Team Configs</h3>
+            <p>Multi-agent development pipelines. From full 5-agent product teams to quick 2-agent hotfix crews.</p>
+          </div>
+          <div class="why-card">
+            <div class="why-card-icon">&#9000;</div>
+            <h3>One CLI</h3>
+            <p>Install, uninstall, search, and manage everything with a single command. No manual file copying or configuration.</p>
+          </div>
+          <div class="why-card">
+            <div class="why-card-icon">&#128279;</div>
+            <h3>Symlink-Based</h3>
+            <p>Skills live in a central registry, installed via symlinks into <code>~/.claude/agents/</code>. Clean, reversible, zero duplication.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5-Phase Workflow -->
+    <section class="section" id="phases">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">The 5-Phase Workflow</span>
+          <h2 class="section-title">Skills for every stage of development</h2>
+          <p class="section-subtitle">
+            forja organizes skills around the workflow phases that matter &mdash; from initial research to production deploy.
+          </p>
+        </div>
+        <div class="phases-track">
+          <div class="phase-card">
+            <div class="phase-number">1</div>
+            <h3>Research</h3>
+            <div class="phase-count">4 skills</div>
+            <p>Codebase exploration, docs research, architecture planning, plan orchestration</p>
+          </div>
+          <div class="phase-card">
+            <div class="phase-number">2</div>
+            <h3>Code</h3>
+            <div class="phase-count">8 skills</div>
+            <p>Language-specific agents for TypeScript, Python, Go, Rust, Next.js, NestJS, database, general</p>
+          </div>
+          <div class="phase-card">
+            <div class="phase-number">3</div>
+            <h3>Test</h3>
+            <div class="phase-count">4 skills</div>
+            <p>TDD workflow, test generation, E2E with Playwright, coverage analysis</p>
+          </div>
+          <div class="phase-card">
+            <div class="phase-number">4</div>
+            <h3>Review</h3>
+            <div class="phase-count">5 skills</div>
+            <p>Code quality, security audit, performance analysis, PR workflow, code simplification</p>
+          </div>
+          <div class="phase-card">
+            <div class="phase-number">5</div>
+            <h3>Deploy</h3>
+            <div class="phase-count">3 skills</div>
+            <p>Conventional git commits, PR creation via gh CLI, post-deploy verification</p>
+          </div>
+          <div class="phase-card">
+            <div class="phase-number">+</div>
+            <h3>Teams</h3>
+            <div class="phase-count">4 configs</div>
+            <p>Multi-agent team configurations for full product, solo sprint, quick fix, and refactoring</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skill Catalog Summary -->
+    <section class="section catalog" id="catalog">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Skill Catalog</span>
+          <h2 class="section-title">28 skills, ready to install</h2>
+          <p class="section-subtitle">
+            Purpose-built agents for every language and every phase. Browse the full catalog or search by keyword.
+          </p>
+        </div>
+        <div class="catalog-stats">
+          <div class="catalog-stat">
+            <div class="stat-number">28</div>
+            <div class="stat-label">Total Skills</div>
+          </div>
+          <div class="catalog-stat">
+            <div class="stat-number">5</div>
+            <div class="stat-label">Phases</div>
+          </div>
+          <div class="catalog-stat">
+            <div class="stat-number">8</div>
+            <div class="stat-label">Stacks</div>
+          </div>
+          <div class="catalog-stat">
+            <div class="stat-number">4</div>
+            <div class="stat-label">Team Configs</div>
+          </div>
+        </div>
+        <div class="catalog-highlights">
+          <div class="catalog-item">
+            <div class="catalog-item-icon">&#128269;</div>
+            <div>
+              <h3>Codebase Explorer</h3>
+              <div class="catalog-item-id">research/codebase/explorer</div>
+            </div>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-item-icon">&#128220;</div>
+            <div>
+              <h3>Architecture Planner</h3>
+              <div class="catalog-item-id">research/architecture/planner</div>
+            </div>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-item-icon">&#9874;</div>
+            <div>
+              <h3>Rust Feature Agent</h3>
+              <div class="catalog-item-id">code/rust/feature</div>
+            </div>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-item-icon">&#128736;</div>
+            <div>
+              <h3>TypeScript Feature Agent</h3>
+              <div class="catalog-item-id">code/typescript/feature</div>
+            </div>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-item-icon">&#9989;</div>
+            <div>
+              <h3>TDD Workflow</h3>
+              <div class="catalog-item-id">test/tdd/workflow</div>
+            </div>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-item-icon">&#128274;</div>
+            <div>
+              <h3>Security Auditor</h3>
+              <div class="catalog-item-id">review/security/auditor</div>
+            </div>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-item-icon">&#128200;</div>
+            <div>
+              <h3>Performance Analyzer</h3>
+              <div class="catalog-item-id">review/performance/analyzer</div>
+            </div>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-item-icon">&#128640;</div>
+            <div>
+              <h3>Deploy Verify</h3>
+              <div class="catalog-item-id">deploy/verify/checker</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLI Commands -->
+    <section class="section" id="commands">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">CLI Commands</span>
+          <h2 class="section-title">Simple, powerful commands</h2>
+          <p class="section-subtitle">
+            Manage your entire skills setup from the terminal. Install, search, plan, and deploy with one tool.
+          </p>
+        </div>
+        <div class="commands-block">
+          <div class="commands-header">
+            <div class="commands-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <span class="commands-title">Terminal</span>
+          </div>
+          <div class="commands-body">
+            <pre><span class="comment"># Setup</span>
+<span class="cmd">forja</span> <span class="arg">init</span>                          <span class="comment"># Initialize registry</span>
+<span class="cmd">forja</span> <span class="arg">doctor</span>                        <span class="comment"># Health check</span>
+
+<span class="comment"># Browse</span>
+<span class="cmd">forja</span> <span class="arg">phases</span>                        <span class="comment"># Show the 5 workflow phases</span>
+<span class="cmd">forja</span> <span class="arg">list</span> <span class="flag">--available</span>              <span class="comment"># Show all available skills</span>
+<span class="cmd">forja</span> <span class="arg">search</span> <span class="arg">typescript</span>             <span class="comment"># Search by keyword</span>
+<span class="cmd">forja</span> <span class="arg">info</span> <span class="arg">code/rust/feature</span>        <span class="comment"># Skill details</span>
+
+<span class="comment"># Install &amp; Manage</span>
+<span class="cmd">forja</span> <span class="arg">install</span> <span class="arg">test/tdd/workflow</span>    <span class="comment"># Install a skill</span>
+<span class="cmd">forja</span> <span class="arg">install</span> <span class="flag">--all</span>                <span class="comment"># Install everything</span>
+<span class="cmd">forja</span> <span class="arg">uninstall</span> <span class="arg">test/tdd/workflow</span>  <span class="comment"># Remove a skill</span>
+<span class="cmd">forja</span> <span class="arg">update</span>                        <span class="comment"># Update the registry</span>
+
+<span class="comment"># Plan &amp; Execute</span>
+<span class="cmd">forja</span> <span class="arg">plan</span> <span class="arg">"add auth to the API"</span>    <span class="comment"># Create implementation plan</span>
+<span class="cmd">forja</span> <span class="arg">execute</span>                       <span class="comment"># Execute the latest plan</span>
+<span class="cmd">forja</span> <span class="arg">task</span> <span class="arg">"fix login bug"</span>          <span class="comment"># Run task directly</span>
+
+<span class="comment"># Teams</span>
+<span class="cmd">forja</span> <span class="arg">team</span> <span class="arg">preset</span> <span class="arg">full-product</span>    <span class="comment"># Create team from preset</span>
+<span class="cmd">forja</span> <span class="arg">team</span> <span class="arg">list</span>                    <span class="comment"># List configured teams</span></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profiles -->
+    <section class="section profiles" id="profiles">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Profiles</span>
+          <h2 class="section-title">Control model allocation</h2>
+          <p class="section-subtitle">
+            Profiles let you balance cost and quality. Assign stronger models to thinking phases and faster models to execution.
+          </p>
+        </div>
+        <div class="profiles-table-wrap">
+          <table class="profiles-table">
+            <thead>
+              <tr>
+                <th>Profile</th>
+                <th>Thinking (Research, Review)</th>
+                <th>Execution (Code, Test, Deploy)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="profile-name">fast</span></td>
+                <td><span class="model-tag">sonnet</span></td>
+                <td><span class="model-tag">sonnet</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="profile-name">balanced</span>
+                  <span class="badge-default">default</span>
+                </td>
+                <td><span class="model-tag">opus</span></td>
+                <td><span class="model-tag">sonnet</span></td>
+              </tr>
+              <tr>
+                <td><span class="profile-name">max</span></td>
+                <td><span class="model-tag">opus</span></td>
+                <td><span class="model-tag">opus</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Teams -->
+    <section class="section" id="teams">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Agent Teams</span>
+          <h2 class="section-title">Multi-agent configurations</h2>
+          <p class="section-subtitle">
+            Pre-built team configurations for common workflows. Each team assigns specialized agents to coordinate through the pipeline.
+          </p>
+        </div>
+        <div class="teams-grid">
+          <div class="team-card">
+            <h3>Full Product</h3>
+            <div class="team-agents">
+              <span class="agent-tag">researcher</span>
+              <span class="team-arrow">&rarr;</span>
+              <span class="agent-tag">coder</span>
+              <span class="team-arrow">&rarr;</span>
+              <span class="agent-tag">tester</span>
+              <span class="team-arrow">&rarr;</span>
+              <span class="agent-tag">reviewer</span>
+              <span class="team-arrow">&rarr;</span>
+              <span class="agent-tag">deployer</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <h3>Solo Sprint</h3>
+            <div class="team-agents">
+              <span class="agent-tag">coder-tester</span>
+              <span class="team-arrow">&rarr;</span>
+              <span class="agent-tag">quick-reviewer</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <h3>Quick Fix</h3>
+            <div class="team-agents">
+              <span class="agent-tag">coder</span>
+              <span class="team-arrow">&rarr;</span>
+              <span class="agent-tag">deployer</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <h3>Refactor</h3>
+            <div class="team-agents">
+              <span class="agent-tag">analyzer</span>
+              <span class="team-arrow">&rarr;</span>
+              <span class="agent-tag">refactorer</span>
+              <span class="team-arrow">&rarr;</span>
+              <span class="agent-tag">reviewer</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="section quickstart" id="quickstart">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Quick Start</span>
+          <h2 class="section-title">Up and running in 60 seconds</h2>
+        </div>
+        <div class="quickstart-steps">
+          <div class="quickstart-step">
+            <div class="step-marker">1</div>
+            <div class="step-content">
+              <h3>Install the CLI</h3>
+              <div class="step-code">
+                <code>npm install -g forja-cli</code>
+                <button class="copy-btn" data-copy="npm install -g forja-cli" aria-label="Copy command">&#128203;</button>
+              </div>
+            </div>
+          </div>
+          <div class="quickstart-step">
+            <div class="step-marker">2</div>
+            <div class="step-content">
+              <h3>Initialize the registry</h3>
+              <div class="step-code">
+                <code>forja init</code>
+                <button class="copy-btn" data-copy="forja init" aria-label="Copy command">&#128203;</button>
+              </div>
+            </div>
+          </div>
+          <div class="quickstart-step">
+            <div class="step-marker">3</div>
+            <div class="step-content">
+              <h3>Browse available skills</h3>
+              <div class="step-code">
+                <code>forja list --available</code>
+                <button class="copy-btn" data-copy="forja list --available" aria-label="Copy command">&#128203;</button>
+              </div>
+            </div>
+          </div>
+          <div class="quickstart-step">
+            <div class="step-marker">4</div>
+            <div class="step-content">
+              <h3>Install your first skill</h3>
+              <div class="step-code">
+                <code>forja install test/tdd/workflow</code>
+                <button class="copy-btn" data-copy="forja install test/tdd/workflow" aria-label="Copy command">&#128203;</button>
+              </div>
+            </div>
+          </div>
+          <div class="quickstart-step">
+            <div class="step-marker">5</div>
+            <div class="step-content">
+              <h3>Verify everything works</h3>
+              <div class="step-code">
+                <code>forja doctor</code>
+                <button class="copy-btn" data-copy="forja doctor" aria-label="Copy command">&#128203;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section" id="how">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">How It Works</span>
+          <h2 class="section-title">Simple symlink architecture</h2>
+          <p class="section-subtitle">
+            No magic. forja clones a skills registry and creates symlinks. Claude Code picks up the agents automatically.
+          </p>
+        </div>
+        <div class="how-grid">
+          <div class="how-step">
+            <div class="how-step-number">1</div>
+            <h3>Clone Registry</h3>
+            <p><code>forja init</code> clones the skills repo into <code>~/.forja/registry/</code></p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-number">2</div>
+            <h3>Create Symlinks</h3>
+            <p><code>forja install</code> symlinks agent files into <code>~/.claude/agents/</code></p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-number">3</div>
+            <h3>Auto-Detected</h3>
+            <p>Claude Code discovers the new agents automatically. No restart needed.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-number">4</div>
+            <h3>Clean Uninstall</h3>
+            <p><code>forja uninstall</code> removes symlinks and updates state. No leftover files.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        forja <span>Skills marketplace for Claude Code</span>
+      </div>
+      <ul class="footer-links" role="list">
+        <li><a href="https://github.com/dmend3z/forja">GitHub</a></li>
+        <li><a href="https://github.com/forja-dev/forja-skills">Registry</a></li>
+        <li><a href="https://github.com/dmend3z/forja/blob/main/LICENSE">MIT License</a></li>
+      </ul>
+      <div class="footer-copy">
+        Built by <a href="https://github.com/dmend3z">Daniel Mendes</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Copy-to-clipboard -->
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var text = this.getAttribute('data-copy');
+        if (!text) return;
+
+        var currentBtn = this;
+        navigator.clipboard.writeText(text).then(function () {
+          currentBtn.classList.add('copied');
+          currentBtn.textContent = '\u2713';
+          setTimeout(function () {
+            currentBtn.classList.remove('copied');
+            currentBtn.textContent = '\uD83D\uDCCB';
+          }, 1500);
+        }).catch(function () {
+          currentBtn.textContent = 'Failed';
+          setTimeout(function () {
+            currentBtn.textContent = '\uD83D\uDCCB';
+          }, 1500);
+        });
+      });
+    });
+
+    // Mobile nav toggle
+    document.querySelector('.nav-toggle').addEventListener('click', function () {
+      var links = document.querySelector('.nav-links');
+      var expanded = this.getAttribute('aria-expanded') === 'true';
+      this.setAttribute('aria-expanded', String(!expanded));
+      links.classList.toggle('open');
+    });
+
+    // Close mobile nav on link click
+    document.querySelectorAll('.nav-links a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        document.querySelector('.nav-links').classList.remove('open');
+        document.querySelector('.nav-toggle').setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Close mobile nav on Escape key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var links = document.querySelector('.nav-links');
+        var toggle = document.querySelector('.nav-toggle');
+        if (links.classList.contains('open')) {
+          links.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.focus();
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
