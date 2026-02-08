@@ -42,6 +42,14 @@ pub fn run() -> Result<()> {
         healthy.len().to_string().green(),
     );
 
+    if registry.skills.len() > installed_ids.len() {
+        println!(
+            "  {} {} to install all",
+            "Tip:".dimmed(),
+            "forja install --all".cyan()
+        );
+    }
+
     if !broken.is_empty() {
         println!(
             "  {} {} broken symlinks found",

@@ -52,6 +52,9 @@ fn print_status(paths: &ForjaPaths) -> Result<()> {
     println!();
     println!("  Skills:  {}/{} installed", installed, total);
     println!("  Health:  {}", health);
+    if installed < total {
+        println!("  Tip:     {}", "forja install --all".cyan());
+    }
     println!();
     println!("  Next: {}", "forja task \"describe your task\"".cyan());
     println!();
