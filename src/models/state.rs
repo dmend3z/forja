@@ -5,6 +5,7 @@ use std::path::Path;
 
 use crate::error::Result;
 
+/// Persistent state stored in `~/.forja/state.json`. Tracks installed skills and team configs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ForjaState {
     pub version: u32,
@@ -15,12 +16,14 @@ pub struct ForjaState {
     pub active_profile: Option<String>,
 }
 
+/// A configured multi-agent team with its member list and model profile.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TeamEntry {
     pub members: Vec<TeamMember>,
     pub profile: String,
 }
 
+/// A single agent in a team, linking a skill to an agent name and model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TeamMember {
     pub skill_id: String,

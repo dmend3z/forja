@@ -8,6 +8,7 @@ use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::load_installed_ids;
 
+/// Display detailed information about a skill (description, phase, content types, files).
 pub fn run(skill_path: &str) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
 

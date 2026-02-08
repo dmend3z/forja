@@ -1,3 +1,10 @@
+//! forja — Skills marketplace CLI for Claude Code.
+//!
+//! Manages a catalog of agent skills organized into five workflow phases
+//! (Research, Code, Test, Review, Deploy). Skills are installed as symlinks
+//! into `~/.claude/agents/` and `~/.claude/commands/`, and can be composed
+//! into multi-agent teams.
+
 mod cli;
 mod commands;
 mod error;
@@ -30,7 +37,7 @@ fn dispatch(command: Commands) -> error::Result<()> {
                 commands::install::run(&skill.unwrap())
             }
         }
-        Commands::Uninstall { ref skill } => commands::uninstall::run(skill),
+        Commands::Uninstall { ref skill, yes } => commands::uninstall::run(skill, yes),
         Commands::Search { ref query } => commands::search::run(query),
         Commands::List { available } => commands::list::run(available),
         Commands::Update => commands::update::run(),
@@ -53,7 +60,7 @@ fn dispatch(command: Commands) -> error::Result<()> {
             TeamCommands::Preset { name, ref profile } => commands::team::preset(&name, profile),
             TeamCommands::List => commands::team::list(),
             TeamCommands::Info { ref name } => commands::team::info(name),
-            TeamCommands::Delete { ref name } => commands::team::delete(name),
+            TeamCommands::Delete { ref name, yes } => commands::team::delete(name, yes),
         },
     }
 }

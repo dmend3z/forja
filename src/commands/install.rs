@@ -49,6 +49,7 @@ fn install_all_skills(paths: &ForjaPaths, verbose: bool) -> Result<InstallCounts
     Ok(counts)
 }
 
+/// Install all available skills by creating symlinks for their agents and commands.
 pub fn run_all() -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
     let counts = install_all_skills(&paths, true)?;
@@ -71,6 +72,7 @@ pub fn install_all_quiet(paths: &ForjaPaths) -> Result<(usize, usize)> {
     Ok((counts.installed, counts.skipped))
 }
 
+/// Install a single skill by creating symlinks for its agents and commands.
 pub fn run(skill_path: &str) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
 

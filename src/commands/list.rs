@@ -5,6 +5,7 @@ use crate::registry::catalog;
 use crate::symlink::manager::load_installed_ids;
 use colored::Colorize;
 
+/// List installed skills, or all available skills with `--available`.
 pub fn run(available: bool) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
 

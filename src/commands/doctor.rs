@@ -6,6 +6,7 @@ use crate::settings;
 use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 use colored::Colorize;
 
+/// Verify installation health: check paths, symlinks, env vars, and teams.
 pub fn run() -> Result<()> {
     let paths = ForjaPaths::new()?;
 

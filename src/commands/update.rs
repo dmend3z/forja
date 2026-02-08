@@ -4,6 +4,7 @@ use crate::registry::catalog;
 use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 use colored::Colorize;
 
+/// Update the registry via `git pull` and re-verify installed symlinks.
 pub fn run() -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
 

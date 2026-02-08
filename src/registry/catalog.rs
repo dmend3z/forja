@@ -94,3 +94,155 @@ fn file_name(path: &Path) -> String {
         .to_string_lossy()
         .to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    /// Helper: create the minimum directory structure for a valid skill.
+    /// skills/<phase>/<tech>/<name>/.claude-plugin/plugin.json
+    fn create_skill(root: &Path, phase: &str, tech: &str, name: &str, description: &str) {
+        let skill_dir = root.join("skills").join(phase).join(tech).join(name);
+        let plugin_dir = skill_dir.join(".claude-plugin");
+        fs::create_dir_all(&plugin_dir).unwrap();
+
+        let plugin = format!(
+            r#"{{ "name": "{}", "description": "{}" }}"#,
+            name, description
+        );
+        fs::write(plugin_dir.join("plugin.json"), plugin).unwrap();
+
+        // Create agents/ so content_types includes Agent
+        fs::create_dir_all(skill_dir.join("agents")).unwrap();
+    }
+
+    #[test]
+    fn scan_valid_skill_structure() {
+        let dir = TempDir::new().unwrap();
+        create_skill(dir.path(), "code", "general", "feature", "Writes features");
+
+        let registry = scan(dir.path(), &[]).unwrap();
+
+        assert_eq!(registry.skills.len(), 1);
+        let skill = &registry.skills[0];
+        assert_eq!(skill.id, "code/general/feature");
+        assert_eq!(skill.name, "feature");
+        assert_eq!(skill.description, "Writes features");
+        assert_eq!(skill.phase, Phase::Code);
+        assert_eq!(skill.tech, "general");
+        assert!(!skill.installed);
+        assert!(skill.content_types.contains(&ContentType::Agent));
+    }
+
+    #[test]
+    fn scan_marks_installed_skill() {
+        let dir = TempDir::new().unwrap();
+        create_skill(dir.path(), "code", "general", "feature", "Writes features");
+
+        let installed = vec!["code/general/feature".to_string()];
+        let registry = scan(dir.path(), &installed).unwrap();
+
+        assert_eq!(registry.skills.len(), 1);
+        assert!(registry.skills[0].installed);
+    }
+
+    #[test]
+    fn scan_missing_plugin_json_skips_skill() {
+        let dir = TempDir::new().unwrap();
+        // Create dir structure but no plugin.json
+        let skill_dir = dir.path().join("skills/code/general/broken");
+        fs::create_dir_all(&skill_dir).unwrap();
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert!(registry.skills.is_empty());
+    }
+
+    #[test]
+    fn scan_invalid_plugin_json_skips_skill() {
+        let dir = TempDir::new().unwrap();
+        let skill_dir = dir.path().join("skills/code/general/broken");
+        let plugin_dir = skill_dir.join(".claude-plugin");
+        fs::create_dir_all(&plugin_dir).unwrap();
+        fs::write(plugin_dir.join("plugin.json"), "not valid json").unwrap();
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert!(registry.skills.is_empty());
+    }
+
+    #[test]
+    fn scan_empty_registry_returns_empty() {
+        let dir = TempDir::new().unwrap();
+        // No skills/ directory at all
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert!(registry.skills.is_empty());
+    }
+
+    #[test]
+    fn scan_unknown_phase_is_skipped() {
+        let dir = TempDir::new().unwrap();
+        let skill_dir = dir.path().join("skills/unknown_phase/general/thing");
+        let plugin_dir = skill_dir.join(".claude-plugin");
+        fs::create_dir_all(&plugin_dir).unwrap();
+        fs::write(
+            plugin_dir.join("plugin.json"),
+            r#"{ "name": "thing", "description": "test" }"#,
+        )
+        .unwrap();
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert!(registry.skills.is_empty());
+    }
+
+    #[test]
+    fn scan_multiple_skills_across_phases() {
+        let dir = TempDir::new().unwrap();
+        create_skill(dir.path(), "code", "general", "feature", "Code feature");
+        create_skill(dir.path(), "test", "tdd", "workflow", "TDD workflow");
+        create_skill(dir.path(), "review", "quality", "reviewer", "Code reviewer");
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert_eq!(registry.skills.len(), 3);
+
+        let ids: Vec<&str> = registry.skills.iter().map(|s| s.id.as_str()).collect();
+        assert!(ids.contains(&"code/general/feature"));
+        assert!(ids.contains(&"test/tdd/workflow"));
+        assert!(ids.contains(&"review/quality/reviewer"));
+    }
+
+    #[test]
+    fn scan_hidden_directories_are_ignored() {
+        let dir = TempDir::new().unwrap();
+        create_skill(dir.path(), "code", "general", "feature", "Visible");
+
+        // Create a hidden directory at phase level
+        let hidden = dir.path().join("skills/.hidden/general/secret");
+        let plugin_dir = hidden.join(".claude-plugin");
+        fs::create_dir_all(&plugin_dir).unwrap();
+        fs::write(
+            plugin_dir.join("plugin.json"),
+            r#"{ "name": "secret", "description": "hidden" }"#,
+        )
+        .unwrap();
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert_eq!(registry.skills.len(), 1);
+        assert_eq!(registry.skills[0].id, "code/general/feature");
+    }
+
+    #[test]
+    fn scan_detects_content_types() {
+        let dir = TempDir::new().unwrap();
+        create_skill(dir.path(), "code", "general", "full", "Full skill");
+        let skill_dir = dir.path().join("skills/code/general/full");
+        fs::create_dir_all(skill_dir.join("skills")).unwrap();
+        fs::create_dir_all(skill_dir.join("commands")).unwrap();
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        let skill = &registry.skills[0];
+        assert!(skill.content_types.contains(&ContentType::Agent));
+        assert!(skill.content_types.contains(&ContentType::Skill));
+        assert!(skill.content_types.contains(&ContentType::Command));
+    }
+}

@@ -6,6 +6,7 @@ use colored::Colorize;
 use crate::error::{ForjaError, Result};
 use crate::paths::ForjaPaths;
 
+/// Launch an interactive Claude Code session to create an implementation plan.
 pub fn run(task: &str) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
 

@@ -8,9 +8,8 @@ use crate::error::{ForjaError, Result};
 use crate::models::profile::Profile;
 use crate::models::state::{TeamEntry, TeamMember, load_state};
 use crate::paths::ForjaPaths;
-use crate::registry::catalog;
 use crate::settings;
-use crate::symlink::manager::{SymlinkManager, load_installed_ids};
+use crate::symlink::auto_install;
 
 const PRESET_TEAMS: &[(&str, &str)] = &[
     ("quick-fix", "coder + deployer"),
@@ -18,6 +17,7 @@ const PRESET_TEAMS: &[(&str, &str)] = &[
     ("full-product", "5 agents"),
 ];
 
+/// Run a task directly in Claude Code, optionally with a multi-agent team.
 pub fn run(task: &str, print: bool, team: Option<&str>, profile: Option<&str>) -> Result<()> {
     if Command::new("claude").arg("--version").output().is_err() {
         return Err(ForjaError::ClaudeCliNotFound);
@@ -191,52 +191,8 @@ fn run_team(
 }
 
 fn auto_install_agents(paths: &ForjaPaths, members: &[TeamMember]) -> Result<()> {
-    let installed_ids = load_installed_ids(&paths.state);
-    let missing: Vec<&str> = members
-        .iter()
-        .map(|m| m.skill_id.as_str())
-        .filter(|id| !installed_ids.contains(&id.to_string()))
-        .collect();
-
-    if missing.is_empty() {
-        return Ok(());
-    }
-
-    println!(
-        "{} Installing {} missing agent(s)...",
-        "AUTO-INSTALL:".yellow().bold(),
-        missing.len()
-    );
-
-    let mut current_ids = installed_ids;
-    let registry = catalog::scan(&paths.registry, &current_ids)?;
-    let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
-
-    for skill_id in &missing {
-        match registry.find_by_id(skill_id) {
-            Some(skill) => match manager.install(skill) {
-                Ok(_) => {
-                    current_ids.push(skill_id.to_string());
-                    println!("  {} {}", "installed".green(), skill_id);
-                }
-                Err(e) => {
-                    eprintln!("  {} {} — {}", "failed".red(), skill_id, e);
-                }
-            },
-            None => {
-                eprintln!(
-                    "  {} {} — not found in catalog",
-                    "skipped".yellow(),
-                    skill_id
-                );
-            }
-        }
-    }
-
-    crate::symlink::manager::save_installed_ids(&paths.state, &current_ids)?;
-    println!();
-
-    Ok(())
+    let skill_ids: Vec<&str> = members.iter().map(|m| m.skill_id.as_str()).collect();
+    auto_install::auto_install_missing(paths, &skill_ids)
 }
 
 fn build_team_prompt(task: &str, team_name: &str, profile: &str, members: &[TeamMember]) -> String {

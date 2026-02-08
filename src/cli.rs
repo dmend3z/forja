@@ -31,6 +31,10 @@ pub enum Commands {
     Uninstall {
         /// Skill name or full path
         skill: String,
+
+        /// Skip confirmation prompt
+        #[arg(long, short = 'y')]
+        yes: bool,
     },
 
     /// Search the catalog
@@ -134,5 +138,9 @@ pub enum TeamCommands {
     Delete {
         /// Team name
         name: String,
+
+        /// Skip confirmation prompt
+        #[arg(long, short = 'y')]
+        yes: bool,
     },
 }

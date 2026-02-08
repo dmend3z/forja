@@ -5,6 +5,7 @@ use crate::registry::catalog;
 use crate::symlink::manager::load_installed_ids;
 use colored::Colorize;
 
+/// Display the 5 workflow phases and their available skills.
 pub fn run() -> Result<()> {
     println!("{}", "forja workflow phases".bold());
     println!();

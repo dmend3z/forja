@@ -4,6 +4,7 @@ use crate::registry::catalog;
 use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 use colored::Colorize;
 
+/// Show installation status or welcome message (default command when no subcommand given).
 pub fn run() -> Result<()> {
     let paths = ForjaPaths::new()?;
 
