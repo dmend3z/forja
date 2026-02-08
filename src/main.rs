@@ -9,10 +9,13 @@ mod cli;
 mod commands;
 mod error;
 mod models;
+mod output;
 mod paths;
 mod registry;
 mod settings;
 mod symlink;
+mod tips;
+mod wizard;
 
 use clap::Parser;
 use cli::{Cli, Commands, TeamCommands};
@@ -28,7 +31,7 @@ fn run() -> error::Result<()> {
 
 fn dispatch(command: Commands) -> error::Result<()> {
     match command {
-        Commands::Init { registry_url } => commands::init::run(registry_url),
+        Commands::Init { registry_url, global } => commands::init::run(registry_url, global),
         Commands::Install { skill, all } => {
             if all {
                 commands::install::run_all()
@@ -44,6 +47,7 @@ fn dispatch(command: Commands) -> error::Result<()> {
         Commands::Info { ref skill } => commands::info::run(skill),
         Commands::Phases => commands::phases::run(),
         Commands::Doctor => commands::doctor::run(),
+        Commands::Guide { ref phase } => commands::guide::run(phase.as_deref()),
         Commands::Plan { ref task } => commands::plan::run(task),
         Commands::Task {
             ref task,
@@ -67,7 +71,7 @@ fn dispatch(command: Commands) -> error::Result<()> {
 
 fn main() {
     if let Err(e) = run() {
-        eprintln!("Error: {e}");
-        std::process::exit(1);
+        output::print_error_with_hint(&e.to_string(), e.hint());
+        std::process::exit(e.exit_code());
     }
 }

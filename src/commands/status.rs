@@ -1,7 +1,9 @@
 use crate::error::Result;
+use crate::models::state::load_state;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::{SymlinkManager, load_installed_ids};
+use crate::tips;
 use colored::Colorize;
 
 /// Show installation status or welcome message (default command when no subcommand given).
@@ -48,16 +50,30 @@ fn print_status(paths: &ForjaPaths) -> Result<()> {
             .to_string()
     };
 
+    let state = load_state(&paths.state);
+
+    let mode_label = match paths.mode {
+        crate::paths::ForjaMode::Project => {
+            format!("project ({})", paths.display_name())
+        }
+        crate::paths::ForjaMode::Global => "global".to_string(),
+    };
+
     println!();
     println!("  {}", "forja".bold());
     println!();
+    println!("  Mode:    {}", mode_label.cyan());
     println!("  Skills:  {}/{} installed", installed, total);
     println!("  Health:  {}", health);
-    if installed < total {
-        println!("  Tip:     {}", "forja install --all".cyan());
-    }
     println!();
-    println!("  Next: {}", "forja task \"describe your task\"".cyan());
+
+    let ctx = tips::TipContext {
+        installed_count: installed,
+        total_skills: total,
+        has_teams: !state.teams.is_empty(),
+        is_initialized: true,
+    };
+    tips::print_random_tip(&ctx);
     println!();
 
     Ok(())

@@ -1,4 +1,5 @@
 use crate::error::Result;
+use crate::output;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::load_installed_ids;
@@ -15,10 +16,7 @@ pub fn run(query: &str) -> Result<()> {
     if results.is_empty() {
         println!("No skills matching \"{}\"", query.yellow());
         println!();
-        println!(
-            "  {} Try 'forja list --available' to browse all skills",
-            "Tip:".cyan().bold()
-        );
+        output::print_tip("Try 'forja list --available' to browse all skills");
         return Ok(());
     }
 
@@ -43,6 +41,9 @@ pub fn run(query: &str) -> Result<()> {
             status
         );
     }
+
+    println!();
+    output::print_tip("Install a skill: forja install <skill-id>");
 
     Ok(())
 }

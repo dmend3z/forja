@@ -23,15 +23,15 @@ impl SymlinkManager {
     pub fn install(&self, skill: &Skill) -> Result<Vec<PathBuf>> {
         let mut created = Vec::new();
 
-        // Symlink agents/*.md → ~/.claude/agents/
+        // Symlink agents/*.md -> ~/.claude/agents/
         let agents_dir = skill.path.join("agents");
         if agents_dir.exists() {
             fs::create_dir_all(&self.claude_agents_dir)?;
             created.extend(self.symlink_dir(&agents_dir, &self.claude_agents_dir, &skill.id)?);
         }
 
-        // Symlink commands/*.md → ~/.claude/commands/
-        // (skip Teams-phase skills — their commands are managed by `forja team`)
+        // Symlink commands/*.md -> ~/.claude/commands/
+        // (skip Teams-phase skills -- their commands are managed by `forja team`)
         if skill.phase != crate::models::phase::Phase::Teams {
             let commands_dir = skill.path.join("commands");
             if commands_dir.exists() {
@@ -55,6 +55,14 @@ impl SymlinkManager {
         removed.extend(self.remove_matching_symlinks(&self.claude_agents_dir, &prefix)?);
         removed.extend(self.remove_matching_symlinks(&self.claude_commands_dir, &prefix)?);
 
+        Ok(removed)
+    }
+
+    /// Remove all `forja--` prefixed symlinks from both agents/ and commands/.
+    pub fn remove_all_forja_symlinks(&self) -> Result<Vec<PathBuf>> {
+        let mut removed = Vec::new();
+        removed.extend(self.remove_matching_symlinks(&self.claude_agents_dir, SYMLINK_PREFIX)?);
+        removed.extend(self.remove_matching_symlinks(&self.claude_commands_dir, SYMLINK_PREFIX)?);
         Ok(removed)
     }
 
@@ -269,7 +277,7 @@ mod tests {
         let skill = make_skill(&source, "code/general/feature", Phase::Code);
         let manager = SymlinkManager::new(agents_dir.clone(), commands_dir);
 
-        // Install twice — should not error
+        // Install twice -- should not error
         manager.install(&skill).unwrap();
         let created = manager.install(&skill).unwrap();
 
@@ -304,6 +312,26 @@ mod tests {
         let manager = SymlinkManager::new(agents_dir, commands_dir);
         let removed = manager.uninstall("code/general/feature").unwrap();
         assert!(removed.is_empty());
+    }
+
+    #[test]
+    fn remove_all_forja_symlinks_clears_all() {
+        let source = TempDir::new().unwrap();
+        let target = TempDir::new().unwrap();
+        let agents_dir = target.path().join("agents");
+        let commands_dir = target.path().join("commands");
+
+        let skill1 = make_skill(&source, "code/general/feature", Phase::Code);
+        let skill2 = make_skill(&source, "test/general/tester", Phase::Test);
+        let manager = SymlinkManager::new(agents_dir.clone(), commands_dir.clone());
+
+        manager.install(&skill1).unwrap();
+        manager.install(&skill2).unwrap();
+        assert_eq!(fs::read_dir(&agents_dir).unwrap().count(), 2);
+
+        let removed = manager.remove_all_forja_symlinks().unwrap();
+        assert_eq!(removed.len(), 2);
+        assert_eq!(fs::read_dir(&agents_dir).unwrap().count(), 0);
     }
 
     #[test]
