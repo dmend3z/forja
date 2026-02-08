@@ -68,6 +68,7 @@ Use agent teams for complex tasks:
 - `full-product` — 5 agents: researcher, coder, tester, reviewer, deployer
 - `solo-sprint` — 2 agents: coder-tester + reviewer (medium features)
 - `quick-fix` — 2 agents: coder + deployer (hotfixes)
+- `refactor` — 3 agents: analyzer + refactorer + behavioral reviewer (structural changes)
 
 Requires: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json
 
