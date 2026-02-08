@@ -1,5 +1,6 @@
 pub mod doctor;
 pub mod execute;
+pub mod guide;
 pub mod info;
 pub mod init;
 pub mod install;

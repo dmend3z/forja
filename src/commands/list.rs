@@ -1,5 +1,6 @@
 use crate::error::Result;
 use crate::models::phase::Phase;
+use crate::output;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::load_installed_ids;
@@ -48,6 +49,8 @@ pub fn run(available: bool) -> Result<()> {
             }
             println!();
         }
+
+        output::print_tip("Install a skill: forja install <skill-id>");
     } else if installed_ids.is_empty() {
         println!("{}", "No skills installed.".dimmed());
         println!(

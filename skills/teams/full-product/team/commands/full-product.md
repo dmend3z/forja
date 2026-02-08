@@ -59,13 +59,30 @@ Model: sonnet
 
 ## Orchestration
 
-1. Start the **Researcher** first — they explore the codebase and produce a plan
-2. Once research is done, start the **Coder** with the research findings
-3. Once code is written, start the **Code-Simplifier** to refine the code
-4. After simplification, start the **Tester** and **Reviewer** in parallel
-5. Once Tester and Reviewer both approve, start the **Deployer** to commit and create PR
+Create a task list with dependencies:
+1. **Research** — explore codebase and produce a plan → no dependencies
+2. **Code** — implement feature → blocked by Research. Require plan approval before the Coder begins implementation.
+3. **Test** — write and run tests → blocked by Code
+4. **Simplify** — refine code for clarity → blocked by Test
+5. **Review** — review changes for quality and security → blocked by Simplify
+6. **Deploy** — commit and create PR → blocked by Test AND Review
+
+Start tasks in dependency order. Teammates self-claim unblocked tasks.
 
 Use delegate mode (Shift+Tab) to keep the lead focused on orchestration.
+
+## Shutdown
+
+When the task is complete:
+1. Ask the lead to shut down all teammates gracefully
+2. The lead sends shutdown requests and waits for confirmation
+3. The lead cleans up the team (TeamDelete)
+
+## Best Practices
+
+- **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
+- **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
+- **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
 
 ## When to Use
 

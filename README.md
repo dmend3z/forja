@@ -1,16 +1,26 @@
-# forja
+<p align="center">
+  <img src="images/banner.png" alt="forja — forge your Claude Code setup" width="600">
+</p>
 
-[![CI](https://github.com/dmend3z/forja/actions/workflows/ci.yml/badge.svg)](https://github.com/dmend3z/forja/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![npm](https://img.shields.io/npm/v/forja-cli)](https://www.npmjs.com/package/forja-cli)
+<p align="center">
+  <a href="https://github.com/dmend3z/forja/actions/workflows/ci.yml"><img src="https://github.com/dmend3z/forja/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://www.npmjs.com/package/forja-cli"><img src="https://img.shields.io/npm/v/forja-cli" alt="npm"></a>
+</p>
 
-**Agent manager for [Claude Code](https://claude.com/claude-code).** Stop configuring, start shipping.
+<h3 align="center">Forge once. Reuse forever.</h3>
 
-Anthropic shipped [agent teams](https://code.claude.com/docs/en/agent-teams) in Claude Code — multiple AI sessions working in parallel, coordinated through a shared task list. It's powerful. It's also a lot of setup: enabling feature flags, writing detailed prompts for each agent, figuring out which agents cover which workflow phase, configuring team structures every time.
+<p align="center">
+  Agent manager for <a href="https://claude.com/claude-code">Claude Code</a>. Stop configuring, start shipping.
+</p>
 
-**forja gives you all of that in one command.** 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy — plus pre-built team configurations, ready to go.
+---
 
-> **forja** (Portuguese: *forge*) — forge your Claude Code setup in seconds.
+Anthropic shipped [agent teams](https://code.claude.com/docs/en/agent-teams) in Claude Code — multiple AI sessions working in parallel, coordinated through a shared task list. Powerful, but a lot of setup: feature flags, per-agent prompts, team structures, workflow orchestration.
+
+**forja gives you all of that in one command.** 23 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy — plus pre-built team configs, ready to go.
+
+> **forja** (Portuguese: *forge*)
 
 ## Quick Start
 
@@ -34,7 +44,7 @@ forja init
 curl -fsSL https://raw.githubusercontent.com/dmend3z/forja/main/install.sh | sh
 ```
 
-That's it. All 25 agents are installed and ready to use:
+That's it. All 23 agents are installed and ready to use:
 
 ```bash
 forja plan "add user authentication with JWT"
@@ -48,16 +58,16 @@ forja execute
 
 ### `forja plan` + `forja execute` (recommended)
 
-The plan workflow gives you structured, multi-phase execution. When you run `forja plan`, it:
+Structured, multi-phase execution. When you run `forja plan`, it:
 
-1. **Interviews you** — project type, goals, exclusions, depth
-2. **Researches your codebase** — detects stack, finds relevant files, maps architecture
-3. **Selects the right agents** — picks agents based on your stack (Next.js, Rust, Python, etc.)
+1. **Interviews you** — project type, goals, exclusions
+2. **Researches your codebase** — detects stack, maps architecture
+3. **Selects agents** — picks agents based on your stack (Next.js, Rust, Python, etc.)
 4. **Sizes the team** — `quick-fix`, `solo-sprint`, or `full-product` based on complexity
-5. **Builds phased steps** — each phase has files to create/modify, dependencies, and specific instructions
-6. **Saves the plan** — JSON (machine-readable) + Markdown (human-readable) in `~/.forja/plans/`
+5. **Builds phased steps** — files to create/modify, dependencies, instructions
+6. **Saves the plan** — JSON + Markdown in `~/.forja/plans/`
 
-Then `forja execute` picks up the latest plan and runs it — agents work in order, passing context between phases, with quality gates verified at the end.
+Then `forja execute` runs the plan — agents work in order, passing context between phases.
 
 ```bash
 forja plan "refactor auth to use OAuth2"
@@ -81,7 +91,7 @@ Add `--team` for team execution without a plan:
 forja task "build user dashboard" --team full-product
 ```
 
-Teams auto-configure on first use. Presets: `full-product`, `solo-sprint`, `quick-fix`, `refactor`.
+Teams auto-configure on first use. Presets: `full-product`, `solo-sprint`, `quick-fix`.
 
 ## Why forja?
 
@@ -98,18 +108,18 @@ Configure each one → Figure out which phase needs what → Start coding
 forja init → Start coding
 ```
 
-forja auto-installs agents for every phase of development. You get specialized agents for your stack, TDD workflows, security audits, and team configs — all wired up and ready.
+Specialized agents for your stack, TDD workflows, security audits, and team configs — all wired up and ready.
 
 ## What You Get
 
 | Phase | Agents | What it covers |
 |-------|--------|----------------|
-| **Research** | 4 | Codebase exploration, docs research, architecture planning |
+| **Research** | 3 | Codebase exploration, docs research, architecture planning |
 | **Code** | 8 | TypeScript, Python, Go, Rust, Next.js, NestJS, database, general |
 | **Test** | 4 | TDD workflow, test generation, E2E Playwright, coverage analysis |
 | **Review** | 5 | Code quality, security audit, performance, PR workflow, simplification |
 | **Deploy** | 3 | Git commits, PR creation, post-deploy verification |
-| **+Teams** | 4 configs | Multi-agent team configurations |
+| **+Teams** | 3 configs | Multi-agent team presets |
 
 Run `forja list --available` to see all agents with descriptions.
 
@@ -132,6 +142,12 @@ forja uninstall <skill-id>         # Remove an agent
 forja update                       # Update the registry
 forja doctor                       # Verify installation health
 forja phases                       # Show the 5 workflow phases
+forja guide                        # Getting started guide
+forja team preset <name>           # Create team from preset
+forja team create <name>           # Create custom team (wizard)
+forja team list                    # List configured teams
+forja team info <name>             # Show team details
+forja team delete <name>           # Delete a team
 ```
 
 ## Agent Teams
@@ -143,7 +159,6 @@ Run complex tasks with coordinated multi-agent teams:
 | **full-product** | researcher + coder + tester + reviewer + deployer | Full features |
 | **solo-sprint** | coder-tester + quick-reviewer | Medium features |
 | **quick-fix** | coder + deployer | Hotfixes |
-| **refactor** | analyzer + refactorer + behavioral reviewer | Structural changes |
 
 ```bash
 forja team preset full-product
@@ -161,12 +176,12 @@ forja task "build user dashboard" --team full-product
 └── state.json    # Installed agent IDs
 
 ~/.claude/agents/
-├── forja--research--codebase--explorer--researcher.md  → registry
-├── forja--test--tdd--workflow--tdd-guide.md            → registry
+├── forja--research--codebase--explorer--researcher.md  -> registry
+├── forja--test--tdd--workflow--tdd-guide.md            -> registry
 └── ...
 ```
 
-`forja init` clones the agent registry and symlinks all agents into `~/.claude/agents/`. Claude Code picks them up automatically — no restart needed. The `forja--` prefix prevents name collisions with other agents.
+`forja init` clones the agent registry and symlinks agents into `~/.claude/agents/`. Claude Code picks them up automatically — no restart needed. The `forja--` prefix prevents name collisions.
 
 ## Profiles
 

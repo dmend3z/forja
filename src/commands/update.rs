@@ -2,6 +2,7 @@ use crate::error::Result;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::{SymlinkManager, load_installed_ids};
+use crate::symlink::sync;
 use colored::Colorize;
 
 /// Update the registry via `git pull` and re-verify installed symlinks.
@@ -25,6 +26,9 @@ pub fn run() -> Result<()> {
         let output = crate::registry::git::pull(&paths.registry)?;
         println!("{output}");
     }
+
+    // Sync symlinks after update to refresh any changed skill files
+    sync::sync_symlinks(&paths)?;
 
     // Check symlink health
     let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());

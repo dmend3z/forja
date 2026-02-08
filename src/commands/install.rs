@@ -1,4 +1,5 @@
 use crate::error::{ForjaError, Result};
+use crate::output;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::{SymlinkManager, load_installed_ids, save_installed_ids};
@@ -62,14 +63,47 @@ pub fn run_all() -> Result<()> {
         counts.skipped
     );
 
+    output::print_tip(
+        "Run 'forja doctor' to verify your setup, or 'forja guide' for a walkthrough",
+    );
+
     Ok(())
 }
 
-/// Install all skills without per-skill output. Returns (installed, skipped) counts.
-/// Used by `forja init` to auto-install everything in one go.
-pub fn install_all_quiet(paths: &ForjaPaths) -> Result<(usize, usize)> {
-    let counts = install_all_skills(paths, false)?;
-    Ok((counts.installed, counts.skipped))
+/// Install skills filtered by workflow phases. Used by `forja init` with the wizard.
+pub fn install_by_phases(
+    paths: &ForjaPaths,
+    phases: &[crate::models::phase::Phase],
+) -> Result<(usize, usize)> {
+    let mut installed_ids = load_installed_ids(&paths.state);
+    let registry = catalog::scan(&paths.registry, &installed_ids)?;
+    let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
+
+    let mut installed = 0;
+    let mut skipped = 0;
+
+    for skill in &registry.skills {
+        if !phases.contains(&skill.phase) {
+            skipped += 1;
+            continue;
+        }
+        if installed_ids.contains(&skill.id) {
+            skipped += 1;
+            continue;
+        }
+        match manager.install(skill) {
+            Ok(_) => {
+                installed_ids.push(skill.id.clone());
+                installed += 1;
+            }
+            Err(_) => {
+                skipped += 1;
+            }
+        }
+    }
+
+    save_installed_ids(&paths.state, &installed_ids)?;
+    Ok((installed, skipped))
 }
 
 /// Install a single skill by creating symlinks for its agents and commands.
@@ -109,6 +143,9 @@ pub fn run(skill_path: &str) -> Result<()> {
     if !types.is_empty() {
         println!("  Content: {}", types.join(", "));
     }
+
+    println!();
+    output::print_tip("Use 'forja task \"your task\"' to run a task with this skill");
 
     Ok(())
 }

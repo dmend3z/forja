@@ -35,13 +35,30 @@ Model: sonnet
 
 ## Orchestration
 
-1. Start the **Analyzer** — they map the target code and produce a refactoring plan
-2. Lead reviews the plan: if test coverage is too low or risks too high → stop and report to user
-3. Once plan is approved, start the **Refactorer** with the plan
-4. After refactoring, start the **Reviewer** to verify behavioral equivalence
-5. If Reviewer finds REGRESSION or API BREAK → send back to Refactorer (max 2 rounds)
-6. After 2 failed rounds → escalate to user with findings
-7. Report completion — user commits when ready (no deployer)
+Create a task list with dependencies:
+1. **Analyze** — map dependencies, API surface, test coverage → no dependencies
+2. **Review plan** — lead evaluates the plan: if test coverage is too low or risks too high → stop and report to user
+3. **Refactor** — execute plan step-by-step, run tests after each change → blocked by Review plan. Require plan approval before making changes.
+4. **Behavioral review** — verify no regressions via diff + test analysis → blocked by Refactor
+
+If Reviewer finds REGRESSION or API BREAK → send back to Refactorer (max 2 rounds).
+After 2 failed rounds → escalate to user with findings.
+Report completion — user commits when ready (no deployer).
+
+Start tasks in dependency order. Teammates self-claim unblocked tasks.
+
+## Shutdown
+
+When the task is complete:
+1. Ask the lead to shut down all teammates gracefully
+2. The lead sends shutdown requests and waits for confirmation
+3. The lead cleans up the team (TeamDelete)
+
+## Best Practices
+
+- **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
+- **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
+- **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
 
 ## When to Use
 

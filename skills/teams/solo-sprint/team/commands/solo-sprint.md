@@ -35,11 +35,27 @@ Model: sonnet
 
 ## Orchestration
 
-1. Start the **Coder-Tester** — they implement and test in one pass
-2. Once code + tests are complete, start the **Code-Simplifier** to refine the code
-3. After simplification, start the **Reviewer**
-4. If reviewer requests changes, send findings back to Coder-Tester (max 2 rounds)
-5. Report completion to user
+Create a task list with dependencies:
+1. **Code + Test** → Coder-Tester — implement and test in one pass
+2. **Simplify** → Code-Simplifier — refine code for clarity (blocked by Code + Test)
+3. **Review** → Reviewer — quick code review (blocked by Simplify)
+
+If reviewer requests changes, send findings back to Coder-Tester (max 2 rounds).
+
+Assign tasks by role. Each agent works on its designated task when unblocked.
+
+## Shutdown
+
+When the task is complete:
+1. Ask the lead to shut down all teammates gracefully
+2. The lead sends shutdown requests and waits for confirmation
+3. The lead cleans up the team (TeamDelete)
+
+## Best Practices
+
+- **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
+- **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
+- **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
 
 ## When to Use
 
