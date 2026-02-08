@@ -45,10 +45,10 @@ pub fn run(task: &str) -> Result<()> {
 }
 
 fn strip_frontmatter(content: &str) -> &str {
-    if content.starts_with("---") {
-        if let Some(end) = content[3..].find("---") {
-            return content[3 + end + 3..].trim_start();
-        }
+    if let Some(stripped) = content.strip_prefix("---")
+        && let Some(end) = stripped.find("---")
+    {
+        return stripped[end + 3..].trim_start();
     }
     content
 }

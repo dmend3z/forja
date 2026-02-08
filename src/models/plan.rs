@@ -85,10 +85,8 @@ pub fn find_latest_pending(plans_dir: &Path) -> Result<PlanMetadata> {
 
     // Iterate from newest to oldest, find first pending
     for path in json_files.into_iter().rev() {
-        if let Ok(plan) = load_plan(&path) {
-            if plan.status == PlanStatus::Pending {
-                return Ok(plan);
-            }
+        if let Ok(plan) = load_plan(&path) && plan.status == PlanStatus::Pending {
+            return Ok(plan);
         }
     }
 

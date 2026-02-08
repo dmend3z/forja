@@ -44,6 +44,13 @@ if git -C "$ROOT" rev-parse "$TAG" &>/dev/null; then
   exit 1
 fi
 
+# Ensure we're on main
+CURRENT_BRANCH="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)"
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  echo "Error: releases must be run from the main branch (currently on '$CURRENT_BRANCH')"
+  exit 1
+fi
+
 echo "Releasing forja $TAG"
 echo ""
 

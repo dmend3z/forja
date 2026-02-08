@@ -183,7 +183,7 @@ fn build_execution_prompt(plan: &PlanMetadata, plan_md: &str) -> String {
         for gate in &plan.quality_gates {
             prompt.push_str(&format!("- [ ] {gate}\n"));
         }
-        prompt.push_str("\n");
+        prompt.push('\n');
     }
 
     // Team configuration
