@@ -111,6 +111,12 @@ fn run_simple(task: &str, print: bool) -> Result<()> {
     Ok(())
 }
 
+fn parse_profile(s: &str) -> Result<Profile> {
+    s.parse().map_err(|_| {
+        ForjaError::Dialoguer(format!("Unknown profile '{}'. Use: fast, balanced, max", s))
+    })
+}
+
 fn run_team(
     task: &str,
     print: bool,
@@ -120,38 +126,15 @@ fn run_team(
     let paths = ForjaPaths::ensure_initialized()?;
     let state = load_state(&paths.state);
 
-    // Resolve team members: check state first, then try preset fallback
-    let (members, profile_str) = if let Some(entry) = state.teams.get(team_name) {
-        (entry.members.clone(), entry.profile.clone())
+    // Resolve team members and profile: check state first, then try preset fallback
+    let (members, profile) = if let Some(entry) = state.teams.get(team_name) {
+        let profile_str = profile_override.unwrap_or(&entry.profile);
+        (entry.members.clone(), parse_profile(profile_str)?)
     } else {
-        // Preset fallback: resolve in-memory, no persistence
-        let fallback_profile: Profile =
-            profile_override
-                .unwrap_or("balanced")
-                .parse()
-                .map_err(|_| {
-                    ForjaError::Dialoguer(format!(
-                        "Unknown profile '{}'. Use: fast, balanced, max",
-                        profile_override.unwrap_or("balanced")
-                    ))
-                })?;
-
-        let members = crate::commands::team::resolve_preset_members(team_name, &fallback_profile)?;
-        (members, fallback_profile.as_str().to_string())
+        let profile = parse_profile(profile_override.unwrap_or("balanced"))?;
+        let members = crate::commands::team::resolve_preset_members(team_name, &profile)?;
+        (members, profile)
     };
-
-    // Resolve final profile: --profile flag > team's configured profile
-    let profile_str = match profile_override {
-        Some(p) => p.to_string(),
-        None => profile_str,
-    };
-
-    let profile: Profile = profile_str.parse().map_err(|_| {
-        ForjaError::Dialoguer(format!(
-            "Unknown profile '{}'. Use: fast, balanced, max",
-            profile_str
-        ))
-    })?;
 
     println!("{}", "forja task (team mode)".bold());
     println!();
