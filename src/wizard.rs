@@ -1,5 +1,6 @@
 use crate::error::{ForjaError, Result};
 use crate::models::phase::Phase;
+use crate::output;
 use crate::paths::ForjaMode;
 use dialoguer::{MultiSelect, Select};
 
@@ -11,8 +12,15 @@ pub struct WizardResult {
 
 /// Run the 3-step interactive init wizard.
 pub fn run_wizard() -> Result<WizardResult> {
+    output::print_banner();
+
+    output::print_step(1, 3, "Setup mode");
     let mode = prompt_mode()?;
+
+    output::print_step(2, 3, "Workflow phases");
     let selected_phases = prompt_skill_phases()?;
+
+    output::print_step(3, 3, "Model profile");
     let profile = prompt_profile()?;
 
     Ok(WizardResult {
@@ -24,8 +32,8 @@ pub fn run_wizard() -> Result<WizardResult> {
 
 fn prompt_mode() -> Result<ForjaMode> {
     let items = vec![
-        "Project (local .forja/ — skills scoped to this repo)",
-        "Global (~/.forja/ — shared across all projects)",
+        "Project — skills scoped to this repo (.forja/)",
+        "Global  — shared across all projects (~/.forja/)",
     ];
 
     let selection = Select::new()
@@ -51,7 +59,7 @@ fn prompt_skill_phases() -> Result<Vec<Phase>> {
     ];
     let labels: Vec<String> = phases
         .iter()
-        .map(|p| format!("{:<10} {}", p.as_str(), p.description()))
+        .map(|p| format!("{:<10}— {}", p.as_str(), p.description()))
         .collect();
 
     // All selected by default
@@ -59,7 +67,7 @@ fn prompt_skill_phases() -> Result<Vec<Phase>> {
 
     loop {
         let selections = MultiSelect::new()
-            .with_prompt("Which workflow phases? (space to toggle, enter to confirm)")
+            .with_prompt("Select phases (space to toggle, enter to confirm)")
             .items(&labels)
             .defaults(&defaults)
             .interact()

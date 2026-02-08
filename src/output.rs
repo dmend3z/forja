@@ -86,6 +86,33 @@ pub fn print_command_hint(cmd: &str, description: &str) {
     println!("  {}  {}", cmd.cyan(), description.dimmed());
 }
 
+/// Print the forja banner with version and tagline.
+pub fn print_banner() {
+    println!();
+    println!(
+        "  {}",
+        format!("forja v{}", env!("CARGO_PKG_VERSION")).bold()
+    );
+    println!("  {}", "Skills marketplace for Claude Code".dimmed());
+    print_divider();
+}
+
+/// Print a dimmed double-line divider.
+pub fn print_divider() {
+    println!("  {}", "══════════════════════════════════════".dimmed());
+}
+
+/// Print a step indicator like `[1/3] Setup mode`.
+pub fn print_step(current: usize, total: usize, label: &str) {
+    println!();
+    println!(
+        "  {} {}",
+        format!("[{}/{}]", current, total).cyan().bold(),
+        label.bold()
+    );
+    println!();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -152,5 +179,22 @@ mod tests {
         // Verify the function doesn't panic — output goes to stdout
         // so we just test it runs without error
         print_command_hint("forja install", "Install a skill");
+    }
+
+    #[test]
+    fn print_banner_does_not_panic() {
+        print_banner();
+    }
+
+    #[test]
+    fn print_divider_does_not_panic() {
+        print_divider();
+    }
+
+    #[test]
+    fn print_step_does_not_panic() {
+        print_step(1, 3, "Setup mode");
+        print_step(2, 3, "Workflow phases");
+        print_step(3, 3, "Model profile");
     }
 }

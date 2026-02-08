@@ -1,16 +1,26 @@
-# forja
+<p align="center">
+  <img src="images/banner.png" alt="forja — forge your Claude Code setup" width="600">
+</p>
 
-[![CI](https://github.com/dmend3z/forja/actions/workflows/ci.yml/badge.svg)](https://github.com/dmend3z/forja/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![npm](https://img.shields.io/npm/v/forja-cli)](https://www.npmjs.com/package/forja-cli)
+<p align="center">
+  <a href="https://github.com/dmend3z/forja/actions/workflows/ci.yml"><img src="https://github.com/dmend3z/forja/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://www.npmjs.com/package/forja-cli"><img src="https://img.shields.io/npm/v/forja-cli" alt="npm"></a>
+</p>
 
-**Agent manager for [Claude Code](https://claude.com/claude-code).** Stop configuring, start shipping.
+<h3 align="center">Forge once. Reuse forever.</h3>
 
-Anthropic shipped [agent teams](https://code.claude.com/docs/en/agent-teams) in Claude Code — multiple AI sessions working in parallel, coordinated through a shared task list. It's powerful. It's also a lot of setup: enabling feature flags, writing detailed prompts for each agent, figuring out which agents cover which workflow phase, configuring team structures every time.
+<p align="center">
+  Agent manager for <a href="https://claude.com/claude-code">Claude Code</a>. Stop configuring, start shipping.
+</p>
+
+---
+
+Anthropic shipped [agent teams](https://code.claude.com/docs/en/agent-teams) in Claude Code — multiple AI sessions working in parallel, coordinated through a shared task list. It's powerful, but it's a lot of setup: feature flags, per-agent prompts, team structures, workflow orchestration.
 
 **forja gives you all of that in one command.** 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy — plus pre-built team configurations, ready to go.
 
-> **forja** (Portuguese: *forge*) — forge your Claude Code setup in seconds.
+> **forja** (Portuguese: *forge*)
 
 ## Quick Start
 
@@ -64,7 +74,7 @@ forja plan "refactor auth to use OAuth2"
 # answer a few questions, review the plan
 
 forja execute
-# agents handle research → code → test → review → deploy
+# agents handle research -> code -> test -> review -> deploy
 ```
 
 ### `forja task` (quick mode)
@@ -88,14 +98,14 @@ Teams auto-configure on first use. Presets: `full-product`, `solo-sprint`, `quic
 **Without forja** — manual setup, 10+ minutes:
 
 ```
-Search for Claude Code agents → Read docs → Download individually →
-Configure each one → Figure out which phase needs what → Start coding
+Search for Claude Code agents -> Read docs -> Download individually ->
+Configure each one -> Figure out which phase needs what -> Start coding
 ```
 
 **With forja** — one command, 30 seconds:
 
 ```
-forja init → Start coding
+forja init -> Start coding
 ```
 
 forja auto-installs agents for every phase of development. You get specialized agents for your stack, TDD workflows, security audits, and team configs — all wired up and ready.
@@ -161,8 +171,8 @@ forja task "build user dashboard" --team full-product
 └── state.json    # Installed agent IDs
 
 ~/.claude/agents/
-├── forja--research--codebase--explorer--researcher.md  → registry
-├── forja--test--tdd--workflow--tdd-guide.md            → registry
+├── forja--research--codebase--explorer--researcher.md  -> registry
+├── forja--test--tdd--workflow--tdd-guide.md            -> registry
 └── ...
 ```
 

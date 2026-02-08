@@ -20,7 +20,7 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
     }
 
     // Decide mode: --global flag skips wizard
-    let (mode, selected_phases, _profile) = if force_global {
+    let (mode, selected_phases, profile) = if force_global {
         (ForjaMode::Global, all_phases(), "balanced".to_string())
     } else {
         let result = wizard::run_wizard()?;
@@ -89,7 +89,9 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
     let stack = detect_stack(&cwd);
 
     // Output
-    println!();
+    output::print_divider();
+
+    output::print_section_header("Results");
     output::print_success(&format!("forja initialized ({})", mode_label(mode)));
     output::print_success(&format!(
         "{} skills installed ({})",
@@ -101,39 +103,48 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
             .join(", ")
     ));
 
-    if mode == ForjaMode::Project {
-        println!(
-            "  {} .forja/ created — commit config.json and state.json to git",
-            "Tip:".cyan().bold()
-        );
-    }
-
-    println!();
+    output::print_section_header("Setup");
+    println!(
+        "  {}  {}",
+        "Mode:".cyan().bold(),
+        mode_label(mode)
+    );
     if let Some(ref detected) = stack {
-        println!("  Detected: {}", detected.bold());
+        println!("  {}  {}", "Stack:".cyan().bold(), detected);
     }
     println!(
-        "  Try: {}",
-        "forja task \"describe your task here\"".cyan()
+        "  {}  {}",
+        "Profile:".cyan().bold(),
+        profile
     );
-    println!();
+    if mode == ForjaMode::Project {
+        println!("  {}  .forja/", "Location:".cyan().bold());
+    }
 
-    output::print_tip(
-        "Run 'forja doctor' to verify your setup, or 'forja guide' for a walkthrough",
-    );
+    output::print_section_header("Next Steps");
+    output::print_command_hint("forja task \"your task\"", "Run a task with AI skills");
+    output::print_command_hint("forja doctor", "Verify your setup");
+    output::print_command_hint("forja guide", "Learn the 5-phase workflow");
+
+    if mode == ForjaMode::Project {
+        println!();
+        output::print_tip(".forja/ created — commit config.json and state.json to git");
+    }
+
     Ok(())
 }
 
 fn restore_flow(cwd: &Path, registry_url: Option<String>) -> Result<()> {
-    println!(
-        "  {} Existing .forja/ detected in this directory",
-        "Found:".cyan().bold()
-    );
-
     let config = config::load_config(&cwd.join(".forja").join("config.json"));
+
+    output::print_divider();
+
+    output::print_section_header("Found");
+    output::print_success("Existing .forja/ detected in this directory");
     if let Some(ref cfg) = config {
         println!(
-            "  Mode: {}, local: {}",
+            "  {}  {}, local: {}",
+            "Mode:".cyan().bold(),
             if cfg.mode == ForjaMode::Project {
                 "project"
             } else {
@@ -162,8 +173,14 @@ fn restore_flow(cwd: &Path, registry_url: Option<String>) -> Result<()> {
     // Sync symlinks
     sync::sync_symlinks(&paths)?;
 
-    println!();
+    output::print_section_header("Results");
     output::print_success("Restored — symlinks synced to ~/.claude/");
+
+    output::print_section_header("Next Steps");
+    output::print_command_hint("forja doctor", "Verify your setup");
+    output::print_command_hint("forja status", "Check current state");
+
+    println!();
     output::print_tip("Run 'forja doctor' to verify your setup");
 
     Ok(())
