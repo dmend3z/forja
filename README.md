@@ -4,11 +4,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/forja-cli)](https://www.npmjs.com/package/forja-cli)
 
-**Agent manager for [Claude Code](https://claude.com/claude-code).** Stop configuring, start shipping. 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy.
+**Agent manager for [Claude Code](https://claude.com/claude-code).** Stop configuring, start shipping.
+
+Anthropic shipped [agent teams](https://code.claude.com/docs/en/agent-teams) in Claude Code — multiple AI sessions working in parallel, coordinated through a shared task list. It's powerful. It's also a lot of setup: enabling feature flags, writing detailed prompts for each agent, figuring out which agents cover which workflow phase, configuring team structures every time.
+
+**forja gives you all of that in one command.** 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy — plus pre-built team configurations, ready to go.
 
 > **forja** (Portuguese: *forge*) — forge your Claude Code setup in seconds.
-
-<!-- TODO: Add demo GIF showing `forja init` → immediate usage -->
 
 ## Quick Start
 

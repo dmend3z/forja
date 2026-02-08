@@ -21,6 +21,7 @@
   <meta name="twitter:description" content="Stop configuring, start shipping. 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy.">
 
   <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 </head>
 <body>
 
@@ -28,17 +29,19 @@
   <header class="site-header">
     <nav class="nav">
       <a href="#" class="nav-brand" aria-label="forja home">
-        <span class="forge-icon" aria-hidden="true">&#9876;</span>
+        <i data-lucide="hammer" class="forge-icon" aria-hidden="true" width="22" height="22"></i>
         forja
       </a>
-      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <i data-lucide="menu" width="24" height="24"></i>
+      </button>
       <ul class="nav-links" role="list">
         <li><a href="#phases">Phases</a></li>
         <li><a href="#catalog">Catalog</a></li>
         <li><a href="#commands">CLI</a></li>
         <li><a href="#teams">Teams</a></li>
         <li><a href="#quickstart">Quick Start</a></li>
-        <li><a href="https://github.com/dmend3z/forja" class="nav-cta">GitHub &#8599;</a></li>
+        <li><a href="https://github.com/dmend3z/forja" class="nav-cta">GitHub <i data-lucide="external-link" width="14" height="14"></i></a></li>
       </ul>
     </nav>
   </header>
@@ -58,13 +61,63 @@
         <div class="hero-install">
           <code><span class="prompt">$ </span>npm install -g forja-cli</code>
           <button class="copy-btn" data-copy="npm install -g forja-cli" aria-label="Copy install command">
-            &#128203;
+            <i data-lucide="clipboard" width="16" height="16"></i>
           </button>
         </div>
         <div class="hero-links">
-          <a href="https://github.com/dmend3z/forja">Source Code &#8599;</a>
-          <a href="https://github.com/dmend3z/forja">Skills Registry &#8599;</a>
-          <a href="#quickstart">Get Started &#8595;</a>
+          <a href="https://github.com/dmend3z/forja">Source Code <i data-lucide="external-link" width="14" height="14"></i></a>
+          <a href="https://github.com/dmend3z/forja">Skills Registry <i data-lucide="external-link" width="14" height="14"></i></a>
+          <a href="#quickstart">Get Started <i data-lucide="arrow-down" width="14" height="14"></i></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start (moved after hero) -->
+    <section class="section quickstart" id="quickstart">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Quick Start</span>
+          <h2 class="section-title">Up and running in 60 seconds</h2>
+        </div>
+        <div class="quickstart-steps">
+          <div class="quickstart-step">
+            <div class="step-marker">1</div>
+            <div class="step-content">
+              <h3>Install the CLI</h3>
+              <div class="step-code">
+                <code>npm install -g forja-cli</code>
+                <button class="copy-btn" data-copy="npm install -g forja-cli" aria-label="Copy command">
+                  <i data-lucide="clipboard" width="16" height="16"></i>
+                </button>
+              </div>
+              <p class="step-alt">Or: <code>brew install dmend3z/forja/forja</code></p>
+            </div>
+          </div>
+          <div class="quickstart-step">
+            <div class="step-marker">2</div>
+            <div class="step-content">
+              <h3>Initialize &mdash; all 25 agents installed</h3>
+              <div class="step-code">
+                <code>forja init</code>
+                <button class="copy-btn" data-copy="forja init" aria-label="Copy command">
+                  <i data-lucide="clipboard" width="16" height="16"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="quickstart-step">
+            <div class="step-marker"><i data-lucide="check" width="18" height="18"></i></div>
+            <div class="step-content">
+              <h3>Start building</h3>
+              <div class="step-code">
+                <code>forja plan "add user auth with JWT"</code>
+                <button class="copy-btn" data-copy='forja task "add user auth with JWT"' aria-label="Copy command">
+                  <i data-lucide="clipboard" width="16" height="16"></i>
+                </button>
+              </div>
+              <p class="step-alt">With a team: <code>forja task "..." --team full-product</code></p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -81,22 +134,22 @@
         </div>
         <div class="why-grid">
           <div class="why-card">
-            <div class="why-card-icon">&#9881;</div>
+            <div class="why-card-icon"><i data-lucide="boxes"></i></div>
             <h3>25 Curated Agents</h3>
             <p>Organized into 5 dev phases. Research, code, test, review, and deploy with purpose-built agents for each step.</p>
           </div>
           <div class="why-card">
-            <div class="why-card-icon">&#9875;</div>
+            <div class="why-card-icon"><i data-lucide="users"></i></div>
             <h3>Agent Team Configs</h3>
             <p>Multi-agent development pipelines. From full 5-agent product teams to quick 2-agent hotfix crews.</p>
           </div>
           <div class="why-card">
-            <div class="why-card-icon">&#9000;</div>
+            <div class="why-card-icon"><i data-lucide="terminal"></i></div>
             <h3>One CLI</h3>
             <p>Install, uninstall, search, and manage everything with a single command. No manual file copying or configuration.</p>
           </div>
           <div class="why-card">
-            <div class="why-card-icon">&#128279;</div>
+            <div class="why-card-icon"><i data-lucide="link"></i></div>
             <h3>Symlink-Based</h3>
             <p>Skills live in a central registry, installed via symlinks into <code>~/.claude/agents/</code>. Clean, reversible, zero duplication.</p>
           </div>
@@ -185,56 +238,56 @@
         </div>
         <div class="catalog-highlights">
           <div class="catalog-item">
-            <div class="catalog-item-icon">&#128269;</div>
+            <div class="catalog-item-icon"><i data-lucide="search"></i></div>
             <div>
               <h3>Codebase Explorer</h3>
               <div class="catalog-item-id">research/codebase/explorer</div>
             </div>
           </div>
           <div class="catalog-item">
-            <div class="catalog-item-icon">&#128220;</div>
+            <div class="catalog-item-icon"><i data-lucide="compass"></i></div>
             <div>
               <h3>Architecture Planner</h3>
               <div class="catalog-item-id">research/architecture/planner</div>
             </div>
           </div>
           <div class="catalog-item">
-            <div class="catalog-item-icon">&#9874;</div>
+            <div class="catalog-item-icon"><i data-lucide="settings"></i></div>
             <div>
               <h3>Rust Feature Agent</h3>
               <div class="catalog-item-id">code/rust/feature</div>
             </div>
           </div>
           <div class="catalog-item">
-            <div class="catalog-item-icon">&#128736;</div>
+            <div class="catalog-item-icon"><i data-lucide="wrench"></i></div>
             <div>
               <h3>TypeScript Feature Agent</h3>
               <div class="catalog-item-id">code/typescript/feature</div>
             </div>
           </div>
           <div class="catalog-item">
-            <div class="catalog-item-icon">&#9989;</div>
+            <div class="catalog-item-icon"><i data-lucide="check-circle"></i></div>
             <div>
               <h3>TDD Workflow</h3>
               <div class="catalog-item-id">test/tdd/workflow</div>
             </div>
           </div>
           <div class="catalog-item">
-            <div class="catalog-item-icon">&#128274;</div>
+            <div class="catalog-item-icon"><i data-lucide="shield"></i></div>
             <div>
               <h3>Security Auditor</h3>
               <div class="catalog-item-id">review/security/auditor</div>
             </div>
           </div>
           <div class="catalog-item">
-            <div class="catalog-item-icon">&#128200;</div>
+            <div class="catalog-item-icon"><i data-lucide="bar-chart-2"></i></div>
             <div>
               <h3>Performance Analyzer</h3>
               <div class="catalog-item-id">review/performance/analyzer</div>
             </div>
           </div>
           <div class="catalog-item">
-            <div class="catalog-item-icon">&#128640;</div>
+            <div class="catalog-item-icon"><i data-lucide="rocket"></i></div>
             <div>
               <h3>Deploy Verify</h3>
               <div class="catalog-item-id">deploy/verify/checker</div>
@@ -392,50 +445,6 @@
       </div>
     </section>
 
-    <!-- Quick Start -->
-    <section class="section quickstart" id="quickstart">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-label">Quick Start</span>
-          <h2 class="section-title">Up and running in 60 seconds</h2>
-        </div>
-        <div class="quickstart-steps">
-          <div class="quickstart-step">
-            <div class="step-marker">1</div>
-            <div class="step-content">
-              <h3>Install the CLI</h3>
-              <div class="step-code">
-                <code>npm install -g forja-cli</code>
-                <button class="copy-btn" data-copy="npm install -g forja-cli" aria-label="Copy command">&#128203;</button>
-              </div>
-              <p class="step-alt">Or: <code>brew install dmend3z/forja/forja</code></p>
-            </div>
-          </div>
-          <div class="quickstart-step">
-            <div class="step-marker">2</div>
-            <div class="step-content">
-              <h3>Initialize &mdash; all 25 agents installed</h3>
-              <div class="step-code">
-                <code>forja init</code>
-                <button class="copy-btn" data-copy="forja init" aria-label="Copy command">&#128203;</button>
-              </div>
-            </div>
-          </div>
-          <div class="quickstart-step">
-            <div class="step-marker">&#10003;</div>
-            <div class="step-content">
-              <h3>Start building</h3>
-              <div class="step-code">
-                <code>forja task "add user auth with JWT"</code>
-                <button class="copy-btn" data-copy='forja task "add user auth with JWT"' aria-label="Copy command">&#128203;</button>
-              </div>
-              <p class="step-alt">With a team: <code>forja task "..." --team full-product</code></p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- How It Works -->
     <section class="section" id="how">
       <div class="container">
@@ -490,57 +499,70 @@
     </div>
   </footer>
 
-  <!-- Copy-to-clipboard -->
+  <!-- Copy-to-clipboard & Lucide init -->
   <script>
-    document.querySelectorAll('.copy-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var text = this.getAttribute('data-copy');
-        if (!text) return;
+    function setButtonIcon(btn, iconName) {
+      while (btn.firstChild) btn.removeChild(btn.firstChild);
+      var icon = document.createElement('i');
+      icon.setAttribute('data-lucide', iconName);
+      icon.setAttribute('width', '16');
+      icon.setAttribute('height', '16');
+      btn.appendChild(icon);
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
 
-        var currentBtn = this;
-        navigator.clipboard.writeText(text).then(function () {
-          currentBtn.classList.add('copied');
-          currentBtn.textContent = '\u2713';
-          setTimeout(function () {
-            currentBtn.classList.remove('copied');
-            currentBtn.textContent = '\uD83D\uDCCB';
-          }, 1500);
-        }).catch(function () {
-          currentBtn.textContent = 'Failed';
-          setTimeout(function () {
-            currentBtn.textContent = '\uD83D\uDCCB';
-          }, 1500);
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+
+      document.querySelectorAll('.copy-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var text = this.getAttribute('data-copy');
+          if (!text) return;
+
+          var currentBtn = this;
+          navigator.clipboard.writeText(text).then(function () {
+            currentBtn.classList.add('copied');
+            setButtonIcon(currentBtn, 'check');
+            setTimeout(function () {
+              currentBtn.classList.remove('copied');
+              setButtonIcon(currentBtn, 'clipboard');
+            }, 1500);
+          }).catch(function () {
+            currentBtn.textContent = 'Failed';
+            setTimeout(function () {
+              setButtonIcon(currentBtn, 'clipboard');
+            }, 1500);
+          });
         });
       });
-    });
 
-    // Mobile nav toggle
-    document.querySelector('.nav-toggle').addEventListener('click', function () {
-      var links = document.querySelector('.nav-links');
-      var expanded = this.getAttribute('aria-expanded') === 'true';
-      this.setAttribute('aria-expanded', String(!expanded));
-      links.classList.toggle('open');
-    });
-
-    // Close mobile nav on link click
-    document.querySelectorAll('.nav-links a').forEach(function (link) {
-      link.addEventListener('click', function () {
-        document.querySelector('.nav-links').classList.remove('open');
-        document.querySelector('.nav-toggle').setAttribute('aria-expanded', 'false');
-      });
-    });
-
-    // Close mobile nav on Escape key
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
+      document.querySelector('.nav-toggle').addEventListener('click', function () {
         var links = document.querySelector('.nav-links');
-        var toggle = document.querySelector('.nav-toggle');
-        if (links.classList.contains('open')) {
-          links.classList.remove('open');
-          toggle.setAttribute('aria-expanded', 'false');
-          toggle.focus();
+        var expanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', String(!expanded));
+        links.classList.toggle('open');
+      });
+
+      document.querySelectorAll('.nav-links a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          document.querySelector('.nav-links').classList.remove('open');
+          document.querySelector('.nav-toggle').setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          var links = document.querySelector('.nav-links');
+          var toggle = document.querySelector('.nav-toggle');
+          if (links.classList.contains('open')) {
+            links.classList.remove('open');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.focus();
+          }
         }
-      }
+      });
     });
   </script>
 

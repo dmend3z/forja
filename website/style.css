@@ -2,6 +2,35 @@
    forja — Neo-Brutalist Landing Page
    ============================================ */
 
+/* --- Lucide Icons --- */
+
+.lucide {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.nav-brand .lucide,
+.nav-cta .lucide {
+  vertical-align: -0.1em;
+}
+
+.hero-links .lucide {
+  vertical-align: -0.1em;
+}
+
+.why-card-icon .lucide,
+.catalog-item-icon .lucide {
+  stroke-width: 2.5;
+}
+
+.copy-btn .lucide {
+  vertical-align: middle;
+}
+
+.step-marker .lucide {
+  vertical-align: middle;
+}
+
 /* --- Reset & Base --- */
 
 *,
