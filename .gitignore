@@ -9,3 +9,5 @@ npm/*/bin/
 .idea/
 .vscode/
 *.log
+node_modules/
+website/dist/

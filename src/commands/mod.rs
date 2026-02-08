@@ -7,6 +7,7 @@ pub mod install;
 pub mod list;
 pub mod phases;
 pub mod search;
+pub mod status;
 pub mod task;
 pub mod team;
 pub mod uninstall;

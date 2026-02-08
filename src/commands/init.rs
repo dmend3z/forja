@@ -4,6 +4,7 @@ use crate::symlink::manager::save_installed_ids;
 use colored::Colorize;
 use serde_json::json;
 use std::fs;
+use std::path::Path;
 
 pub fn run(registry_url: Option<String>) -> Result<()> {
     let paths = ForjaPaths::new()?;
@@ -17,29 +18,19 @@ pub fn run(registry_url: Option<String>) -> Result<()> {
     }
 
     let url =
-        registry_url.unwrap_or_else(|| "https://github.com/forja-dev/forja-skills.git".to_string());
-
-    println!("{}", "Initializing forja...".bold());
+        registry_url.unwrap_or_else(|| "https://github.com/dmend3z/forja.git".to_string());
 
     // Create ~/.forja/
     fs::create_dir_all(&paths.forja_root)?;
-    println!("  Created {}", paths.forja_root.display());
 
-    // For local development: symlink to the monorepo instead of cloning
-    // If the current directory has a skills/ folder, link to it
+    // Link or clone registry
     let cwd = std::env::current_dir()?;
     let local_skills = cwd.join("skills");
 
     if local_skills.exists() {
         std::os::unix::fs::symlink(&cwd, &paths.registry)?;
-        println!(
-            "  Linked registry to local: {}",
-            cwd.display().to_string().cyan()
-        );
     } else {
-        println!("  Cloning registry from {url}...");
         crate::registry::git::clone(&url, &paths.registry)?;
-        println!("  Cloned registry to {}", paths.registry.display());
     }
 
     // Write config
@@ -48,27 +39,94 @@ pub fn run(registry_url: Option<String>) -> Result<()> {
         "local": local_skills.exists(),
     });
     fs::write(&paths.config, serde_json::to_string_pretty(&config)?)?;
-    println!("  Created config: {}", paths.config.display());
 
     // Create plans directory
     fs::create_dir_all(&paths.plans)?;
-    println!("  Created {}", paths.plans.display());
 
     // Write empty state
     save_installed_ids(&paths.state, &[])?;
-    println!("  Created state: {}", paths.state.display());
 
     // Ensure ~/.claude/agents/ exists
     fs::create_dir_all(&paths.claude_agents)?;
-    println!("  Ensured {}", paths.claude_agents.display());
+
+    // Auto-install all skills
+    let (installed, _skipped) = super::install::install_all_quiet(&paths)?;
+
+    // Detect project stack
+    let stack = detect_stack(&cwd);
+
+    // Minimal output
+    println!();
+    println!("  {} forja initialized", "✓".green());
+    println!(
+        "  {} {} skills installed (research, code, test, review, deploy)",
+        "✓".green(),
+        installed
+    );
 
     println!();
-    println!("{}", "forja initialized successfully!".green().bold());
+    if let Some(ref detected) = stack {
+        println!("  Detected: {}", detected.bold());
+    }
+    println!(
+        "  Try: {}",
+        "forja task \"describe your task here\"".cyan()
+    );
     println!();
-    println!("Next steps:");
-    println!("  forja phases          Show available workflow phases");
-    println!("  forja list --available List all skills");
-    println!("  forja install <skill> Install a skill");
 
     Ok(())
+}
+
+fn detect_stack(cwd: &Path) -> Option<String> {
+    let mut components = Vec::new();
+
+    // Framework detection (order: most specific first)
+    if has_file(cwd, "next.config.js")
+        || has_file(cwd, "next.config.ts")
+        || has_file(cwd, "next.config.mjs")
+    {
+        components.push("Next.js");
+    } else if has_file(cwd, "nuxt.config.ts") || has_file(cwd, "nuxt.config.js") {
+        components.push("Nuxt");
+    } else if has_file(cwd, "svelte.config.js") {
+        components.push("SvelteKit");
+    } else if has_file(cwd, "angular.json") {
+        components.push("Angular");
+    } else if has_file(cwd, "nest-cli.json") {
+        components.push("NestJS");
+    }
+
+    // Language / runtime detection
+    if has_file(cwd, "Cargo.toml") {
+        components.push("Rust");
+    } else if has_file(cwd, "go.mod") {
+        components.push("Go");
+    } else if has_file(cwd, "tsconfig.json") {
+        components.push("TypeScript");
+    } else if has_file(cwd, "package.json") {
+        components.push("JavaScript");
+    } else if has_file(cwd, "pyproject.toml") || has_file(cwd, "setup.py") {
+        // Python framework detection
+        if has_file(cwd, "manage.py") {
+            components.push("Python + Django");
+        } else {
+            components.push("Python");
+        }
+    } else if has_file(cwd, "requirements.txt") {
+        if has_file(cwd, "manage.py") {
+            components.push("Python + Django");
+        } else {
+            components.push("Python");
+        }
+    }
+
+    if components.is_empty() {
+        None
+    } else {
+        Some(components.join(" + "))
+    }
+}
+
+fn has_file(dir: &Path, name: &str) -> bool {
+    dir.join(name).exists()
 }

@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 #[command(name = "forja", about = "Skills marketplace for Claude Code", version)]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Option<Commands>,
 }
 
 #[derive(Subcommand)]

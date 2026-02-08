@@ -54,6 +54,33 @@ pub fn run_all() -> Result<()> {
     Ok(())
 }
 
+/// Install all skills without per-skill output. Returns (installed, skipped) counts.
+/// Used by `forja init` to auto-install everything in one go.
+pub fn install_all_quiet(paths: &ForjaPaths) -> Result<(usize, usize)> {
+    let mut installed_ids = load_installed_ids(&paths.state);
+    let registry = catalog::scan(&paths.registry, &installed_ids)?;
+    let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
+
+    let mut installed_count = 0;
+    let mut skipped_count = 0;
+
+    for skill in &registry.skills {
+        if installed_ids.contains(&skill.id) {
+            skipped_count += 1;
+            continue;
+        }
+
+        if manager.install(skill).is_ok() {
+            installed_ids.push(skill.id.clone());
+            installed_count += 1;
+        }
+    }
+
+    save_installed_ids(&paths.state, &installed_ids)?;
+
+    Ok((installed_count, skipped_count))
+}
+
 pub fn run(skill_path: &str) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
 
