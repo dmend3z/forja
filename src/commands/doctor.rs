@@ -139,7 +139,9 @@ pub fn run() -> Result<()> {
         results.push(CheckResult {
             label: "state.json is valid JSON".into(),
             passed: state_valid,
-            remediation: Some("Delete and reinitialize: rm ~/.forja/state.json && forja init".into()),
+            remediation: Some(
+                "Delete and reinitialize: rm ~/.forja/state.json && forja init".into(),
+            ),
         });
     }
 
@@ -203,10 +205,7 @@ pub fn run() -> Result<()> {
     if fail_count == 0 {
         output::print_success(&format!("All {} checks passed", pass_count));
     } else {
-        output::print_warning(&format!(
-            "{} passed, {} failed",
-            pass_count, fail_count
-        ));
+        output::print_warning(&format!("{} passed, {} failed", pass_count, fail_count));
     }
     println!();
 

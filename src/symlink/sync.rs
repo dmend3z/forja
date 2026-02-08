@@ -1,10 +1,10 @@
 use crate::error::Result;
 use crate::models::active_project::{
-    clear_active_project, load_active_project, save_active_project, ActiveProject,
+    ActiveProject, clear_active_project, load_active_project, save_active_project,
 };
 use crate::paths::{ForjaMode, ForjaPaths};
 use crate::registry::catalog;
-use crate::symlink::manager::{load_installed_ids, SymlinkManager};
+use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 use colored::Colorize;
 
 /// Rebuild all `forja--` symlinks in `~/.claude/` from the current context's state.
@@ -32,9 +32,9 @@ pub fn sync_symlinks(paths: &ForjaPaths) -> Result<bool> {
         }
     }
 
-    // Remove all existing forja symlinks
+    // Remove only this project's symlinks (preserves other projects' symlinks)
     let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
-    manager.remove_all_forja_symlinks()?;
+    manager.remove_project_symlinks(&paths.registry)?;
 
     // Recreate symlinks from current state
     let installed_ids = load_installed_ids(&paths.state);

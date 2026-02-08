@@ -20,8 +20,14 @@ const PHASES: &[PhaseGuide] = &[
             Research skills help you understand existing patterns, architecture, \
             and external documentation.",
         commands: &[
-            ("forja task \"explore the auth module\"", "Research a specific area"),
-            ("forja plan \"add user roles\"", "Create an implementation plan"),
+            (
+                "forja task \"explore the auth module\"",
+                "Research a specific area",
+            ),
+            (
+                "forja plan \"add user roles\"",
+                "Create an implementation plan",
+            ),
         ],
         example: "forja task \"how does the API layer handle errors?\"",
     },
@@ -33,8 +39,14 @@ const PHASES: &[PhaseGuide] = &[
             Code skills are organized by language and framework — Rust, TypeScript, \
             Python, Go, Next.js, NestJS, and more.",
         commands: &[
-            ("forja task \"implement the login endpoint\"", "Code a feature"),
-            ("forja task \"fix the null check bug\" --team quick-fix", "Quick fix with a team"),
+            (
+                "forja task \"implement the login endpoint\"",
+                "Code a feature",
+            ),
+            (
+                "forja task \"fix the null check bug\" --team quick-fix",
+                "Quick fix with a team",
+            ),
         ],
         example: "forja task \"add a REST endpoint for user profiles\"",
     },
@@ -46,8 +58,14 @@ const PHASES: &[PhaseGuide] = &[
             Test skills generate comprehensive test suites with edge cases \
             and target 80%+ coverage.",
         commands: &[
-            ("forja task \"write tests for the auth module\"", "Generate tests"),
-            ("forja task \"add integration tests\"", "Integration testing"),
+            (
+                "forja task \"write tests for the auth module\"",
+                "Generate tests",
+            ),
+            (
+                "forja task \"add integration tests\"",
+                "Integration testing",
+            ),
         ],
         example: "forja task \"write unit tests for the user service\"",
     },
@@ -59,7 +77,10 @@ const PHASES: &[PhaseGuide] = &[
             Review skills check for OWASP Top 10, N+1 queries, bundle size, \
             and provide specific fix examples.",
         commands: &[
-            ("forja task \"review the latest changes\"", "Code quality review"),
+            (
+                "forja task \"review the latest changes\"",
+                "Code quality review",
+            ),
             ("forja task \"security audit the API\"", "Security audit"),
         ],
         example: "forja task \"review PR #42 for security issues\"",
@@ -96,11 +117,7 @@ pub fn run(phase: Option<&str>) -> Result<()> {
     }
 
     println!();
-    println!(
-        "  {} {}",
-        "forja".bold(),
-        "Getting Started Guide".dimmed()
-    );
+    println!("  {} {}", "forja".bold(), "Getting Started Guide".dimmed());
     println!();
     println!(
         "  forja organizes your development into {} workflow phases.",

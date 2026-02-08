@@ -52,7 +52,6 @@ pub enum ForjaError {
 
     #[error("Claude Code CLI not found. Install it from https://claude.ai/download")]
     ClaudeCliNotFound,
-
 }
 
 impl ForjaError {
@@ -60,7 +59,9 @@ impl ForjaError {
     pub fn hint(&self) -> &str {
         match self {
             Self::Io(_) => "Check file permissions and disk space",
-            Self::Json(_) => "Verify the JSON file is valid (try: cat <file> | python3 -m json.tool)",
+            Self::Json(_) => {
+                "Verify the JSON file is valid (try: cat <file> | python3 -m json.tool)"
+            }
             Self::NoHomeDir => "Set the $HOME environment variable",
             Self::NotInitialized => "Run: forja init",
             Self::SkillNotFound(_) => "Try: forja search <query> or forja list --available",
@@ -68,7 +69,9 @@ impl ForjaError {
             Self::NotInstalled(_) => "Install it first: forja install <skill>",
             Self::Git(_) => "Check your network connection and git installation",
             Self::TeamNotFound(_) => "List available teams: forja team list",
-            Self::TeamAlreadyExists(_) => "Delete the existing team first: forja team delete <name>",
+            Self::TeamAlreadyExists(_) => {
+                "Delete the existing team first: forja team delete <name>"
+            }
             Self::InvalidSettings(_) => "Check ~/.claude/settings.json for syntax errors",
             Self::PromptCancelled => "Re-run the command to try again",
             Self::Dialoguer(_) => "Try running in a standard terminal emulator",
@@ -124,10 +127,22 @@ mod tests {
 
     #[test]
     fn hints_contain_relevant_commands() {
-        assert!(ForjaError::SkillNotFound("x".into()).hint().contains("forja search"));
+        assert!(
+            ForjaError::SkillNotFound("x".into())
+                .hint()
+                .contains("forja search")
+        );
         assert!(ForjaError::NotInitialized.hint().contains("forja init"));
-        assert!(ForjaError::NotInstalled("x".into()).hint().contains("forja install"));
-        assert!(ForjaError::TeamNotFound("x".into()).hint().contains("forja team list"));
+        assert!(
+            ForjaError::NotInstalled("x".into())
+                .hint()
+                .contains("forja install")
+        );
+        assert!(
+            ForjaError::TeamNotFound("x".into())
+                .hint()
+                .contains("forja team list")
+        );
         assert!(ForjaError::NoPlansFound.hint().contains("forja plan"));
     }
 

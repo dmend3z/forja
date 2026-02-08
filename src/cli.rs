@@ -112,10 +112,8 @@ EXAMPLES:
     },
 
     /// Update the registry (git pull)
-    #[command(
-        long_about = "Pull the latest skill definitions from the registry. \
-            In dev mode (symlinked registry), this is a no-op."
-    )]
+    #[command(long_about = "Pull the latest skill definitions from the registry. \
+            In dev mode (symlinked registry), this is a no-op.")]
     Update,
 
     /// Show skill details

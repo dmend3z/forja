@@ -18,7 +18,7 @@
 
 Anthropic shipped [agent teams](https://code.claude.com/docs/en/agent-teams) in Claude Code — multiple AI sessions working in parallel, coordinated through a shared task list. Powerful, but a lot of setup: feature flags, per-agent prompts, team structures, workflow orchestration.
 
-**forja gives you all of that in one command.** 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy — plus pre-built team configs, ready to go.
+**forja gives you all of that in one command.** 23 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy — plus pre-built team configs, ready to go.
 
 > **forja** (Portuguese: *forge*)
 
@@ -44,7 +44,7 @@ forja init
 curl -fsSL https://raw.githubusercontent.com/dmend3z/forja/main/install.sh | sh
 ```
 
-That's it. All 25 agents are installed and ready to use:
+That's it. All 23 agents are installed and ready to use:
 
 ```bash
 forja plan "add user authentication with JWT"
@@ -91,7 +91,7 @@ Add `--team` for team execution without a plan:
 forja task "build user dashboard" --team full-product
 ```
 
-Teams auto-configure on first use. Presets: `full-product`, `solo-sprint`, `quick-fix`, `refactor`.
+Teams auto-configure on first use. Presets: `full-product`, `solo-sprint`, `quick-fix`.
 
 ## Why forja?
 
@@ -114,12 +114,12 @@ Specialized agents for your stack, TDD workflows, security audits, and team conf
 
 | Phase | Agents | What it covers |
 |-------|--------|----------------|
-| **Research** | 4 | Codebase exploration, docs research, architecture planning |
+| **Research** | 3 | Codebase exploration, docs research, architecture planning |
 | **Code** | 8 | TypeScript, Python, Go, Rust, Next.js, NestJS, database, general |
 | **Test** | 4 | TDD workflow, test generation, E2E Playwright, coverage analysis |
 | **Review** | 5 | Code quality, security audit, performance, PR workflow, simplification |
 | **Deploy** | 3 | Git commits, PR creation, post-deploy verification |
-| **+Teams** | 4 configs | Multi-agent team presets |
+| **+Teams** | 3 configs | Multi-agent team presets |
 
 Run `forja list --available` to see all agents with descriptions.
 
@@ -142,6 +142,12 @@ forja uninstall <skill-id>         # Remove an agent
 forja update                       # Update the registry
 forja doctor                       # Verify installation health
 forja phases                       # Show the 5 workflow phases
+forja guide                        # Getting started guide
+forja team preset <name>           # Create team from preset
+forja team create <name>           # Create custom team (wizard)
+forja team list                    # List configured teams
+forja team info <name>             # Show team details
+forja team delete <name>           # Delete a team
 ```
 
 ## Agent Teams
@@ -153,7 +159,6 @@ Run complex tasks with coordinated multi-agent teams:
 | **full-product** | researcher + coder + tester + reviewer + deployer | Full features |
 | **solo-sprint** | coder-tester + quick-reviewer | Medium features |
 | **quick-fix** | coder + deployer | Hotfixes |
-| **refactor** | analyzer + refactorer + behavioral reviewer | Structural changes |
 
 ```bash
 forja team preset full-product

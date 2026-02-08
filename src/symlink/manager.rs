@@ -66,6 +66,15 @@ impl SymlinkManager {
         Ok(removed)
     }
 
+    /// Remove `forja--` symlinks whose target is under `registry_path`.
+    /// Symlinks belonging to other projects are preserved.
+    pub fn remove_project_symlinks(&self, registry_path: &Path) -> Result<Vec<PathBuf>> {
+        let mut removed = Vec::new();
+        removed.extend(self.remove_symlinks_under(&self.claude_agents_dir, registry_path)?);
+        removed.extend(self.remove_symlinks_under(&self.claude_commands_dir, registry_path)?);
+        Ok(removed)
+    }
+
     /// Verify all forja symlinks in both agents/ and commands/
     pub fn verify(&self) -> Result<(Vec<PathBuf>, Vec<PathBuf>)> {
         let mut healthy = Vec::new();
@@ -109,6 +118,26 @@ impl SymlinkManager {
         }
 
         Ok(created)
+    }
+
+    fn remove_symlinks_under(&self, dir: &Path, registry_path: &Path) -> Result<Vec<PathBuf>> {
+        let mut removed = Vec::new();
+        if !dir.exists() {
+            return Ok(removed);
+        }
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with(SYMLINK_PREFIX) && entry.path().is_symlink() {
+                if let Ok(target) = fs::read_link(entry.path()) {
+                    if target.starts_with(registry_path) {
+                        fs::remove_file(entry.path())?;
+                        removed.push(entry.path());
+                    }
+                }
+            }
+        }
+        Ok(removed)
     }
 
     fn remove_matching_symlinks(&self, dir: &Path, prefix: &str) -> Result<Vec<PathBuf>> {
@@ -394,5 +423,58 @@ mod tests {
         let (healthy, broken) = manager.verify().unwrap();
         assert!(healthy.is_empty());
         assert!(broken.is_empty());
+    }
+
+    #[test]
+    fn remove_project_symlinks_preserves_other_project() {
+        // Two "projects" with separate registries
+        let registry_a = TempDir::new().unwrap();
+        let registry_b = TempDir::new().unwrap();
+        let target = TempDir::new().unwrap();
+        let agents_dir = target.path().join("agents");
+        fs::create_dir_all(&agents_dir).unwrap();
+        let commands_dir = target.path().join("commands");
+
+        // Create source files in each registry
+        let agent_a = registry_a.path().join("code/general/feature/agents");
+        fs::create_dir_all(&agent_a).unwrap();
+        fs::write(agent_a.join("coder.md"), "# Project A agent").unwrap();
+
+        let agent_b = registry_b.path().join("test/general/tester/agents");
+        fs::create_dir_all(&agent_b).unwrap();
+        fs::write(agent_b.join("tester.md"), "# Project B agent").unwrap();
+
+        // Symlink both into the same agents dir (simulating two projects' installs)
+        let link_a = agents_dir.join("forja--code--general--feature--coder.md");
+        unix_fs::symlink(agent_a.join("coder.md"), &link_a).unwrap();
+
+        let link_b = agents_dir.join("forja--test--general--tester--tester.md");
+        unix_fs::symlink(agent_b.join("tester.md"), &link_b).unwrap();
+
+        assert_eq!(fs::read_dir(&agents_dir).unwrap().count(), 2);
+
+        // Remove only project A's symlinks
+        let manager = SymlinkManager::new(agents_dir.clone(), commands_dir);
+        let removed = manager.remove_project_symlinks(registry_a.path()).unwrap();
+
+        assert_eq!(removed.len(), 1);
+        assert!(
+            removed[0]
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .contains("coder")
+        );
+
+        // Project B's symlink survives
+        let remaining: Vec<_> = fs::read_dir(&agents_dir).unwrap().collect();
+        assert_eq!(remaining.len(), 1);
+        let remaining_name = remaining[0]
+            .as_ref()
+            .unwrap()
+            .file_name()
+            .to_string_lossy()
+            .to_string();
+        assert!(remaining_name.contains("tester"));
     }
 }

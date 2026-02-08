@@ -31,7 +31,10 @@ fn run() -> error::Result<()> {
 
 fn dispatch(command: Commands) -> error::Result<()> {
     match command {
-        Commands::Init { registry_url, global } => commands::init::run(registry_url, global),
+        Commands::Init {
+            registry_url,
+            global,
+        } => commands::init::run(registry_url, global),
         Commands::Install { skill, all } => {
             if all {
                 commands::install::run_all()

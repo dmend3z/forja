@@ -108,10 +108,11 @@ mod tests {
             is_initialized: true,
         };
         let tips = get_tips(&ctx);
-        assert!(tips.iter().any(|t| t
-            .command
-            .as_deref()
-            .is_some_and(|c| c.contains("install --all"))));
+        assert!(tips.iter().any(|t| {
+            t.command
+                .as_deref()
+                .is_some_and(|c| c.contains("install --all"))
+        }));
     }
 
     #[test]
@@ -123,10 +124,11 @@ mod tests {
             is_initialized: true,
         };
         let tips = get_tips(&ctx);
-        assert!(tips.iter().any(|t| t
-            .command
-            .as_deref()
-            .is_some_and(|c| c.contains("team preset"))));
+        assert!(tips.iter().any(|t| {
+            t.command
+                .as_deref()
+                .is_some_and(|c| c.contains("team preset"))
+        }));
     }
 
     #[test]
@@ -138,10 +140,11 @@ mod tests {
             is_initialized: true,
         };
         let tips = get_tips(&ctx);
-        assert!(!tips.iter().any(|t| t
-            .command
-            .as_deref()
-            .is_some_and(|c| c.contains("team preset"))));
+        assert!(!tips.iter().any(|t| {
+            t.command
+                .as_deref()
+                .is_some_and(|c| c.contains("team preset"))
+        }));
     }
 
     #[test]

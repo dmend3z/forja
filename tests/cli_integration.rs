@@ -11,41 +11,33 @@ fn forja() -> Command {
 
 #[test]
 fn help_contains_all_subcommands() {
-    forja()
-        .arg("--help")
-        .assert()
-        .success()
-        .stdout(
-            predicate::str::contains("init")
-                .and(predicate::str::contains("install"))
-                .and(predicate::str::contains("uninstall"))
-                .and(predicate::str::contains("search"))
-                .and(predicate::str::contains("list"))
-                .and(predicate::str::contains("update"))
-                .and(predicate::str::contains("info"))
-                .and(predicate::str::contains("phases"))
-                .and(predicate::str::contains("doctor"))
-                .and(predicate::str::contains("plan"))
-                .and(predicate::str::contains("task"))
-                .and(predicate::str::contains("execute"))
-                .and(predicate::str::contains("team"))
-                .and(predicate::str::contains("guide")),
-        );
+    forja().arg("--help").assert().success().stdout(
+        predicate::str::contains("init")
+            .and(predicate::str::contains("install"))
+            .and(predicate::str::contains("uninstall"))
+            .and(predicate::str::contains("search"))
+            .and(predicate::str::contains("list"))
+            .and(predicate::str::contains("update"))
+            .and(predicate::str::contains("info"))
+            .and(predicate::str::contains("phases"))
+            .and(predicate::str::contains("doctor"))
+            .and(predicate::str::contains("plan"))
+            .and(predicate::str::contains("task"))
+            .and(predicate::str::contains("execute"))
+            .and(predicate::str::contains("team"))
+            .and(predicate::str::contains("guide")),
+    );
 }
 
 #[test]
 fn help_shows_workflow_phases() {
-    forja()
-        .arg("--help")
-        .assert()
-        .success()
-        .stdout(
-            predicate::str::contains("Research")
-                .and(predicate::str::contains("Code"))
-                .and(predicate::str::contains("Test"))
-                .and(predicate::str::contains("Review"))
-                .and(predicate::str::contains("Deploy")),
-        );
+    forja().arg("--help").assert().success().stdout(
+        predicate::str::contains("Research")
+            .and(predicate::str::contains("Code"))
+            .and(predicate::str::contains("Test"))
+            .and(predicate::str::contains("Review"))
+            .and(predicate::str::contains("Deploy")),
+    );
 }
 
 #[test]
@@ -87,8 +79,7 @@ fn install_help_shows_examples() {
         .assert()
         .success()
         .stdout(
-            predicate::str::contains("EXAMPLES:")
-                .and(predicate::str::contains("forja install")),
+            predicate::str::contains("EXAMPLES:").and(predicate::str::contains("forja install")),
         );
 }
 

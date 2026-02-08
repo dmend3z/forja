@@ -40,8 +40,7 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
         return Ok(());
     }
 
-    let url =
-        registry_url.unwrap_or_else(|| "https://github.com/dmend3z/forja.git".to_string());
+    let url = registry_url.unwrap_or_else(|| "https://github.com/dmend3z/forja.git".to_string());
 
     // Create .forja/ directory
     fs::create_dir_all(&paths.forja_root)?;
@@ -79,8 +78,7 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
     }
 
     // Install skills filtered by selected phases
-    let (installed, _skipped) =
-        super::install::install_by_phases(&paths, &selected_phases)?;
+    let (installed, _skipped) = super::install::install_by_phases(&paths, &selected_phases)?;
 
     // Sync symlinks to ~/.claude/
     sync::sync_symlinks(&paths)?;
@@ -104,19 +102,11 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
     ));
 
     output::print_section_header("Setup");
-    println!(
-        "  {}  {}",
-        "Mode:".cyan().bold(),
-        mode_label(mode)
-    );
+    println!("  {}  {}", "Mode:".cyan().bold(), mode_label(mode));
     if let Some(ref detected) = stack {
         println!("  {}  {}", "Stack:".cyan().bold(), detected);
     }
-    println!(
-        "  {}  {}",
-        "Profile:".cyan().bold(),
-        profile
-    );
+    println!("  {}  {}", "Profile:".cyan().bold(), profile);
     if mode == ForjaMode::Project {
         println!("  {}  .forja/", "Location:".cyan().bold());
     }

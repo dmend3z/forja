@@ -1,8 +1,8 @@
 use crate::error::{ForjaError, Result};
+use crate::output;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::{SymlinkManager, load_installed_ids, save_installed_ids};
-use crate::output;
 use colored::Colorize;
 
 struct InstallCounts {
@@ -63,7 +63,9 @@ pub fn run_all() -> Result<()> {
         counts.skipped
     );
 
-    output::print_tip("Run 'forja doctor' to verify your setup, or 'forja guide' for a walkthrough");
+    output::print_tip(
+        "Run 'forja doctor' to verify your setup, or 'forja guide' for a walkthrough",
+    );
 
     Ok(())
 }
