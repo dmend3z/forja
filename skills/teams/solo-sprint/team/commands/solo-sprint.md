@@ -36,13 +36,13 @@ Model: sonnet
 ## Orchestration
 
 Create a task list with dependencies:
-1. **Code + Test** — implement and test in one pass → no dependencies
-2. **Simplify** — refine code for clarity → blocked by Code + Test
-3. **Review** — quick code review → blocked by Simplify
+1. **Code + Test** → Coder-Tester — implement and test in one pass
+2. **Simplify** → Code-Simplifier — refine code for clarity (blocked by Code + Test)
+3. **Review** → Reviewer — quick code review (blocked by Simplify)
 
 If reviewer requests changes, send findings back to Coder-Tester (max 2 rounds).
 
-Start tasks in dependency order. Teammates self-claim unblocked tasks.
+Assign tasks by role. Each agent works on its designated task when unblocked.
 
 ## Shutdown
 
