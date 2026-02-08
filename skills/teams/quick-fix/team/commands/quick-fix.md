@@ -27,10 +27,27 @@ Model: sonnet
 
 ## Orchestration
 
-1. Start the **Coder** — they find and fix the bug
-2. Verify existing tests pass after the fix
-3. Start the **Deployer** — they commit and create a PR
-4. Report the PR URL to user
+Create a task list with dependencies:
+1. **Fix** — find and fix the bug → no dependencies
+2. **Verify** — run existing tests to confirm no regressions → blocked by Fix
+3. **Deploy** — commit and create a PR → blocked by Verify
+
+Report the PR URL to user when done.
+
+Start tasks in dependency order. Teammates self-claim unblocked tasks.
+
+## Shutdown
+
+When the task is complete:
+1. Ask the lead to shut down all teammates gracefully
+2. The lead sends shutdown requests and waits for confirmation
+3. The lead cleans up the team (TeamDelete)
+
+## Best Practices
+
+- **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
+- **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
+- **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
 
 ## When to Use
 
