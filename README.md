@@ -119,7 +119,7 @@ Specialized agents for your stack, TDD workflows, security audits, and team conf
 | **Test** | 4 | TDD workflow, test generation, E2E Playwright, coverage analysis |
 | **Review** | 5 | Code quality, security audit, performance, PR workflow, simplification |
 | **Deploy** | 3 | Git commits, PR creation, post-deploy verification |
-| **+Teams** | 4 configs | Multi-agent team configurations |
+| **+Teams** | 4 configs | Multi-agent team presets |
 
 Run `forja list --available` to see all agents with descriptions.
 
