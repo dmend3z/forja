@@ -1,11 +1,11 @@
 pub mod doctor;
 pub mod execute;
 pub mod info;
-pub mod plan;
 pub mod init;
 pub mod install;
 pub mod list;
 pub mod phases;
+pub mod plan;
 pub mod search;
 pub mod status;
 pub mod task;

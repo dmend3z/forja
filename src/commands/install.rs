@@ -4,51 +4,61 @@ use crate::registry::catalog;
 use crate::symlink::manager::{load_installed_ids, save_installed_ids, SymlinkManager};
 use colored::Colorize;
 
-pub fn run_all() -> Result<()> {
-    let paths = ForjaPaths::ensure_initialized()?;
+struct InstallCounts {
+    installed: usize,
+    skipped: usize,
+    failed: usize,
+}
 
+fn install_all_skills(paths: &ForjaPaths, verbose: bool) -> Result<InstallCounts> {
     let mut installed_ids = load_installed_ids(&paths.state);
     let registry = catalog::scan(&paths.registry, &installed_ids)?;
     let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
 
-    let mut installed_count = 0;
-    let mut skipped_count = 0;
+    let mut counts = InstallCounts {
+        installed: 0,
+        skipped: 0,
+        failed: 0,
+    };
 
     for skill in &registry.skills {
         if installed_ids.contains(&skill.id) {
-            skipped_count += 1;
+            counts.skipped += 1;
             continue;
         }
 
         match manager.install(skill) {
             Ok(_) => {
                 installed_ids.push(skill.id.clone());
-                installed_count += 1;
-                println!(
-                    "  {} {}",
-                    "✓".green(),
-                    skill.name
-                );
+                counts.installed += 1;
+                if verbose {
+                    println!("  {} {}", "✓".green(), skill.name);
+                }
             }
             Err(e) => {
-                eprintln!(
-                    "  {} {} — {}",
-                    "✗".red(),
-                    skill.name,
-                    e
-                );
+                counts.failed += 1;
+                if verbose {
+                    eprintln!("  {} {} — {}", "✗".red(), skill.name, e);
+                }
             }
         }
     }
 
     save_installed_ids(&paths.state, &installed_ids)?;
 
+    Ok(counts)
+}
+
+pub fn run_all() -> Result<()> {
+    let paths = ForjaPaths::ensure_initialized()?;
+    let counts = install_all_skills(&paths, true)?;
+
     println!();
     println!(
         "{} {} installed, {} already installed",
         "Done:".green().bold(),
-        installed_count,
-        skipped_count
+        counts.installed,
+        counts.skipped
     );
 
     Ok(())
@@ -57,28 +67,8 @@ pub fn run_all() -> Result<()> {
 /// Install all skills without per-skill output. Returns (installed, skipped) counts.
 /// Used by `forja init` to auto-install everything in one go.
 pub fn install_all_quiet(paths: &ForjaPaths) -> Result<(usize, usize)> {
-    let mut installed_ids = load_installed_ids(&paths.state);
-    let registry = catalog::scan(&paths.registry, &installed_ids)?;
-    let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
-
-    let mut installed_count = 0;
-    let mut skipped_count = 0;
-
-    for skill in &registry.skills {
-        if installed_ids.contains(&skill.id) {
-            skipped_count += 1;
-            continue;
-        }
-
-        if manager.install(skill).is_ok() {
-            installed_ids.push(skill.id.clone());
-            installed_count += 1;
-        }
-    }
-
-    save_installed_ids(&paths.state, &installed_ids)?;
-
-    Ok((installed_count, skipped_count))
+    let counts = install_all_skills(paths, false)?;
+    Ok((counts.installed, counts.skipped))
 }
 
 pub fn run(skill_path: &str) -> Result<()> {

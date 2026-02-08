@@ -105,14 +105,10 @@ fn detect_stack(cwd: &Path) -> Option<String> {
         components.push("TypeScript");
     } else if has_file(cwd, "package.json") {
         components.push("JavaScript");
-    } else if has_file(cwd, "pyproject.toml") || has_file(cwd, "setup.py") {
-        // Python framework detection
-        if has_file(cwd, "manage.py") {
-            components.push("Python + Django");
-        } else {
-            components.push("Python");
-        }
-    } else if has_file(cwd, "requirements.txt") {
+    } else if has_file(cwd, "pyproject.toml")
+        || has_file(cwd, "setup.py")
+        || has_file(cwd, "requirements.txt")
+    {
         if has_file(cwd, "manage.py") {
             components.push("Python + Django");
         } else {

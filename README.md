@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/forja-cli)](https://www.npmjs.com/package/forja-cli)
 
-**Skills marketplace for [Claude Code](https://claude.com/claude-code).** One command to install 28 curated skills for research, coding, testing, code review, and deployment.
+**Agent manager for [Claude Code](https://claude.com/claude-code).** Stop configuring, start shipping. 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy.
 
 > **forja** (Portuguese: *forge*) — forge your Claude Code setup in seconds.
 
@@ -12,7 +12,14 @@
 
 ## Quick Start
 
-### npm (recommended)
+### Homebrew (macOS/Linux)
+
+```bash
+brew install dmend3z/forja/forja
+forja init
+```
+
+### npm
 
 ```bash
 npm install -g forja-cli
@@ -25,7 +32,7 @@ forja init
 curl -fsSL https://raw.githubusercontent.com/dmend3z/forja/main/install.sh | sh
 ```
 
-That's it. All 28 skills are installed and ready to use:
+That's it. All 25 agents are installed and ready to use:
 
 ```bash
 forja task "add user authentication with JWT"
@@ -36,7 +43,7 @@ forja task "add user authentication with JWT"
 **Without forja** — manual setup, 10+ minutes:
 
 ```
-Search for Claude Code plugins → Read docs → Download individually →
+Search for Claude Code agents → Read docs → Download individually →
 Configure each one → Figure out which phase needs what → Start coding
 ```
 
@@ -46,36 +53,36 @@ Configure each one → Figure out which phase needs what → Start coding
 forja init → Start coding
 ```
 
-forja auto-installs skills for every phase of development. You get specialized agents for your stack, TDD workflows, security audits, and team configs — all wired up and ready.
+forja auto-installs agents for every phase of development. You get specialized agents for your stack, TDD workflows, security audits, and team configs — all wired up and ready.
 
 ## What You Get
 
-| Phase | Skills | What it covers |
+| Phase | Agents | What it covers |
 |-------|--------|----------------|
 | **Research** | 4 | Codebase exploration, docs research, architecture planning |
 | **Code** | 8 | TypeScript, Python, Go, Rust, Next.js, NestJS, database, general |
 | **Test** | 4 | TDD workflow, test generation, E2E Playwright, coverage analysis |
 | **Review** | 5 | Code quality, security audit, performance, PR workflow, simplification |
 | **Deploy** | 3 | Git commits, PR creation, post-deploy verification |
-| **Teams** | 4 | Multi-agent team configurations |
+| **+Teams** | 4 configs | Multi-agent team configurations |
 
-Run `forja list --available` to see all skills with descriptions.
+Run `forja list --available` to see all agents with descriptions.
 
 ## Commands
 
 ```
 forja                              # Status dashboard (or welcome if not initialized)
-forja init                         # Initialize + install all skills
+forja init                         # Initialize + install all agents
 forja task <task>                  # Run a task in Claude Code
 forja task <task> --team <name>    # Run with a specific team
 forja plan <task>                  # Create an implementation plan
 forja execute                      # Execute the latest plan
-forja list                         # Show installed skills
-forja list --available             # Show all available skills
-forja search <query>               # Search skills
-forja info <skill-id>              # Show skill details
-forja install <skill-id>           # Install a single skill
-forja uninstall <skill-id>         # Remove a skill
+forja list                         # Show installed agents
+forja list --available             # Show all available agents
+forja search <query>               # Search agents
+forja info <skill-id>              # Show agent details
+forja install <skill-id>           # Install a single agent
+forja uninstall <skill-id>         # Remove an agent
 forja update                       # Update the registry
 forja doctor                       # Verify installation health
 forja phases                       # Show the 5 workflow phases
@@ -103,9 +110,9 @@ forja task "build user dashboard" --team full-product
 
 ```
 ~/.forja/
-├── registry/     # Cloned skills repo (or symlink to local)
+├── registry/     # Cloned agent registry (or symlink to local)
 ├── config.json   # Settings
-└── state.json    # Installed skill IDs
+└── state.json    # Installed agent IDs
 
 ~/.claude/agents/
 ├── forja--research--codebase--explorer--researcher.md  → registry
@@ -113,7 +120,7 @@ forja task "build user dashboard" --team full-product
 └── ...
 ```
 
-`forja init` clones the skills registry and symlinks all agents into `~/.claude/agents/`. Claude Code picks them up automatically — no restart needed. The `forja--` prefix prevents name collisions with other agents.
+`forja init` clones the agent registry and symlinks all agents into `~/.claude/agents/`. Claude Code picks them up automatically — no restart needed. The `forja--` prefix prevents name collisions with other agents.
 
 ## Profiles
 
@@ -130,7 +137,7 @@ Control model assignments per phase:
 | Guide | Description |
 |-------|-------------|
 | [Architecture](docs/ARCHITECTURE.md) | System design and data flow |
-| [Skill Authoring](docs/SKILL-AUTHORING.md) | Create and publish skills |
+| [Agent Authoring](docs/SKILL-AUTHORING.md) | Create and publish agents |
 | [Teams](docs/TEAMS.md) | Multi-agent team configs |
 | [Contributing](docs/CONTRIBUTING.md) | Development setup |
 
@@ -138,7 +145,7 @@ Control model assignments per phase:
 
 - [Claude Code](https://claude.com/claude-code)
 - `git` (for registry cloning)
-- `gh` CLI (optional, for PR skills)
+- `gh` CLI (optional, for PR agents)
 
 ## License
 

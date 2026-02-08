@@ -1,6 +1,6 @@
 # Architecture
 
-Rust CLI for managing Claude Code skills. Clap 4 for arg parsing, serde for serialization, thiserror for errors. No async runtime -- all operations are filesystem I/O and git subprocesses.
+Rust CLI for managing Claude Code agents. Clap 4 for arg parsing, serde for serialization, thiserror for errors. No async runtime -- all operations are filesystem I/O and git subprocesses.
 
 ## Module Map
 
@@ -80,7 +80,7 @@ commands/init.rs::run(registry_url)
   4. Create ~/.forja/plans/
   5. save_installed_ids([], state)      → empty state.json
   6. Ensure ~/.claude/agents/
-  7. install_all_quiet(&paths)          → scan catalog, install all skills, save state
+  7. install_all_quiet(&paths)          → scan catalog, install all agents, save state
   8. detect_stack(&cwd)                → check for Cargo.toml, package.json, next.config.*, etc.
   9. Print minimal output              → checkmarks + skill count + detected stack + "Try:" hint
 ```
@@ -93,8 +93,8 @@ commands/status.rs::run()
   1. ForjaPaths::new()
   2. If ~/.forja/ does not exist:     → print welcome pitch with "forja init" prompt
   3. Else:
-     a. load_installed_ids()          → count installed skills
-     b. catalog::scan()               → count total available skills
+     a. load_installed_ids()          → count installed agents
+     b. catalog::scan()               → count total available agents
      c. SymlinkManager::verify()      → check symlink health
      d. Print status dashboard        → skills count + health status + "forja task" hint
 ```
@@ -172,7 +172,7 @@ struct ForjaState {
 
 ### `Registry` (`src/models/registry.rs`)
 
-In-memory index of all available skills. Built fresh by `catalog::scan()` on every command invocation. Methods: `find_by_id(&str)`, `search(&str)` (matches against id, name, description, phase, tech).
+In-memory index of all available agents. Built fresh by `catalog::scan()` on every command invocation. Methods: `find_by_id(&str)`, `search(&str)` (matches against id, name, description, phase, tech).
 
 ### `Skill` (`src/models/skill.rs`)
 
@@ -239,7 +239,7 @@ All operations are synchronous: filesystem reads, git subprocesses, and interact
 
 ### Scan-on-demand catalog (no cache)
 
-`catalog::scan()` walks the `skills/<phase>/<tech>/<name>/` directory tree and reads every `plugin.json` on every invocation. No index file, no cache. With <100 skills the scan completes in under 50ms, making caching unnecessary complexity.
+`catalog::scan()` walks the `skills/<phase>/<tech>/<name>/` directory tree and reads every `plugin.json` on every invocation. No index file, no cache. With <100 agents the scan completes in under 50ms, making caching unnecessary complexity.
 
 ### Symlink prefix `forja--`
 
@@ -253,15 +253,15 @@ Slashes in the skill ID (`code/general/feature`) are replaced with `--`. This av
 
 ### State tracked in `~/.forja/state.json`
 
-A single JSON file stores installed skill IDs, team configurations, and the active profile. The `save_installed_ids()` wrapper in `symlink/manager.rs` loads the full state before writing, ensuring that updating the installed list does not clobber team data.
+A single JSON file stores installed agent IDs, team configurations, and the active profile. The `save_installed_ids()` wrapper in `symlink/manager.rs` loads the full state before writing, ensuring that updating the installed list does not clobber team data.
 
 ### State migration (v1 to v2)
 
-The original state format was a bare `Vec<String>` of skill IDs. When `load_state()` encounters this format, it transparently wraps it into a `ForjaState` with `version: 2` and empty teams. This migration happens in-memory on read; the v2 format is written back on the next state save.
+The original state format was a bare `Vec<String>` of agent IDs. When `load_state()` encounters this format, it transparently wraps it into a `ForjaState` with `version: 2` and empty teams. This migration happens in-memory on read; the v2 format is written back on the next state save.
 
 ### Local dev mode
 
-`forja init` detects if the current working directory contains a `skills/` folder. If so, it creates a symlink from `~/.forja/registry` to the CWD instead of cloning from git. This enables development against the monorepo without duplicating the skill catalog.
+`forja init` detects if the current working directory contains a `skills/` folder. If so, it creates a symlink from `~/.forja/registry` to the CWD instead of cloning from git. This enables development against the monorepo without duplicating the agent catalog.
 
 ### Teams env var management
 
@@ -273,7 +273,7 @@ Team slash commands are written to `~/.claude/commands/` with the pattern `forja
 
 ### Auto-install on init
 
-`forja init` installs all skills automatically after setting up the registry. The `install_all_quiet()` function in `install.rs` reuses the same catalog scan and symlink logic as `install --all` but returns `(installed, skipped)` counts instead of printing per-skill output. This eliminates the manual browse-choose-install loop.
+`forja init` installs all agents automatically after setting up the registry. The `install_all_quiet()` function in `install.rs` reuses the same catalog scan and symlink logic as `install --all` but returns `(installed, skipped)` counts instead of printing per-agent output. This eliminates the manual browse-choose-install loop.
 
 ### Stack detection
 

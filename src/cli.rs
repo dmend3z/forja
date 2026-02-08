@@ -19,7 +19,7 @@ pub enum Commands {
     /// Install a skill via symlink
     Install {
         /// Skill path: phase/tech/skill (e.g. "code/nextjs/components")
-        #[arg(conflicts_with = "all")]
+        #[arg(conflicts_with = "all", required_unless_present = "all")]
         skill: Option<String>,
 
         /// Install all available skills

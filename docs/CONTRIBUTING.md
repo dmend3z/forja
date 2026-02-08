@@ -1,6 +1,6 @@
-# Contributing to forja-skills
+# Contributing to forja
 
-This guide covers the essentials for contributing to the forja project -- both the Rust CLI and the skill catalog.
+This guide covers the essentials for contributing to the forja project -- both the Rust CLI and the agent catalog.
 
 ## Development Setup
 
@@ -16,13 +16,13 @@ cargo build
 cargo run -- init
 ```
 
-When you run `forja init` from inside the repo, it detects the local `skills/` directory, creates a symlink at `~/.forja/registry` pointing to your working copy, and auto-installs all skills. Changes to skill files are reflected immediately without re-installing.
+When you run `forja init` from inside the repo, it detects the local `skills/` directory, creates a symlink at `~/.forja/registry` pointing to your working copy, and auto-installs all agents. Changes to agent files are reflected immediately without re-installing.
 
 ### Prerequisites
 
 - Rust (edition 2024)
 - Git
-- Claude Code (for testing skill behavior end-to-end)
+- Claude Code (for testing agent behavior end-to-end)
 
 ## Project Structure
 
@@ -39,7 +39,7 @@ src/                  # CLI source code
   registry/           # Catalog scanner and git operations
   symlink/            # Symlink creation and management
 
-skills/               # Skill catalog
+skills/               # Agent catalog
   <phase>/<tech>/<name>/
     .claude-plugin/plugin.json
     agents/*.md
@@ -49,7 +49,7 @@ skills/               # Skill catalog
 
 For a detailed breakdown, see [docs/ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## How to Add a New Skill
+## How to Add a New Agent
 
 1. Pick the phase (`research`, `code`, `test`, `review`, `deploy`, `teams`) and a tech category.
 2. Create the directory: `skills/<phase>/<tech>/<name>/`
@@ -58,7 +58,7 @@ For a detailed breakdown, see [docs/ARCHITECTURE.md](./ARCHITECTURE.md).
 5. Test with `cargo run -- list --available` to verify the catalog scanner picks it up.
 6. Install it with `cargo run -- install <phase>/<tech>/<name>` and test in Claude Code.
 
-The skill ID format is `<phase>/<tech>/<name>` (e.g., `code/rust/feature`).
+The agent ID format is `<phase>/<tech>/<name>` (e.g., `code/rust/feature`).
 
 For the full authoring guide, see [docs/SKILL-AUTHORING.md](./SKILL-AUTHORING.md).
 
