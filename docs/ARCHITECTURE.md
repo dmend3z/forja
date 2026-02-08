@@ -202,7 +202,7 @@ struct PlanMetadata {
     created: String,
     status: PlanStatus,        // Pending | Executed | Archived
     task: String,
-    team_size: String,         // preset name: full-product, solo-sprint, quick-fix
+    team_size: String,         // preset name: full-product, solo-sprint, quick-fix, refactor
     profile: String,
     agents: Vec<PlanAgent>,    // { skill_id, role }
     stack: Option<PlanStack>,  // { language, framework? }

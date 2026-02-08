@@ -15,7 +15,7 @@ Teams require the experimental agent teams feature in Claude Code. Forja enables
 
 ## Team Presets
 
-Forja ships with 3 built-in team configurations. Each preset maps agents to workflow phases and assigns models based on a profile.
+Forja ships with 4 built-in team configurations. Each preset maps agents to workflow phases and assigns models based on a profile.
 
 ### full-product
 
@@ -52,6 +52,18 @@ Orchestration order: Coder-Tester first, then Reviewer. If the reviewer requests
 | 2 | Deployer | DEPLOY | Commits with `fix(scope): ...`, pushes branch, creates PR |
 
 Orchestration order: Coder fixes the bug, then Deployer commits and creates the PR.
+
+### refactor
+
+3 agents for structural code changes that preserve behavior. Use when you need to extract modules, reorganize files, or restructure code — but the external behavior must stay the same.
+
+| # | Agent | Phase | Role |
+|---|-------|-------|------|
+| 1 | Analyzer | RESEARCH | Maps dependencies, callers, test coverage, public API surface. Read-only. |
+| 2 | Refactorer | CODE | Executes the refactoring plan step-by-step. Runs tests after each change. |
+| 3 | Reviewer | REVIEW | Verifies behavioral equivalence — flags regressions, API breaks. Does NOT review for security or performance. |
+
+Orchestration order: Analyzer produces a plan, Lead evaluates (stops if test coverage too low), Refactorer executes, Reviewer checks for regressions. Max 2 review rounds before escalating. No deployer — user commits when ready.
 
 ## Model Profiles
 
@@ -187,5 +199,6 @@ The `--profile` flag overrides the plan's default profile (balanced).
 | Simple bug fix, known location | `forja task "..." --team quick-fix` |
 | Medium feature, familiar codebase | `forja task "..." --team solo-sprint` |
 | Large feature, needs research | `forja plan "..." && forja execute` |
+| Restructuring code without changing behavior | `forja task "..." --team refactor` |
 | Recurring workflow with specific agents | `forja team create my-team`, then slash command |
 | One-off task, no team needed | `forja task "..."` (solo mode) |

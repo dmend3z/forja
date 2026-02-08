@@ -51,12 +51,13 @@ forja organizes skills around the workflow phases that matter:
 ## Skill Catalog
 
 ### Research
-/f
+
 | Skill | ID | Description |
 |-------|----|-------------|
 | Codebase Explorer | `research/codebase/explorer` | Maps structure, traces patterns, outputs exploration report |
 | Docs Researcher | `research/docs/researcher` | Research external docs and APIs via web search |
 | Architecture Planner | `research/architecture/planner` | Implementation plans with phases, files, and dependency maps |
+| Planning Pipeline | `research/planning/forja-plan` | Interview, research, auto-detect agents, save executable plan |
 
 ### Code
 
@@ -88,6 +89,7 @@ forja organizes skills around the workflow phases that matter:
 | Security Auditor | `review/security/auditor` | OWASP Top 10, secrets, injection, auth |
 | Performance | `review/performance/analyzer` | Complexity, N+1, re-renders, bundle size |
 | PR Workflow | `review/pr-workflow/reviewer` | Full PR review lifecycle |
+| Code Simplifier | `review/code-simplifier/simplifier` | Simplify code for clarity, consistency, and maintainability |
 
 ### Deploy
 
@@ -111,17 +113,40 @@ forja organizes skills around the workflow phases that matter:
 ## Commands
 
 ```
-forja init                    # Initialize (~/.forja/, registry link)
-forja install <phase/tech/skill>  # Install a skill via symlink
-forja uninstall <skill-id>    # Remove an installed skill
-forja list                    # Show installed skills
-forja list --available        # Show all available skills
-forja search <query>          # Search by name, description, phase, or tech
-forja info <skill-id>         # Show detailed skill information
-forja phases                  # Show the 5 workflow phases
-forja update                  # Update the registry (git pull)
-forja doctor                  # Verify installation health
+forja init                          # Initialize (~/.forja/, registry link)
+forja install <phase/tech/skill>    # Install a skill via symlink
+forja install --all                 # Install all available skills
+forja uninstall <skill-id>          # Remove an installed skill
+forja list                          # Show installed skills
+forja list --available              # Show all available skills
+forja search <query>                # Search by name, description, phase, or tech
+forja info <skill-id>               # Show detailed skill information
+forja phases                        # Show the 5 workflow phases
+forja update                        # Update the registry (git pull)
+forja doctor                        # Verify installation health
+forja plan <task>                    # Create an implementation plan
+forja task <task>                    # Run a task in Claude Code
+forja task <task> --team <name>      # Run with a specific team
+forja execute                        # Execute the latest pending plan
+forja execute <id> --profile <p>     # Execute plan with profile override
+forja team create <name>             # Create custom team via wizard
+forja team preset <name>             # Create team from built-in preset
+forja team list                      # List configured teams
+forja team info <name>               # Show team details
+forja team delete <name>             # Delete a team
 ```
+
+## Profiles
+
+Profiles control which model is assigned to each phase when running plans or teams:
+
+| Profile | Thinking phases (Research, Review) | Execution phases (Code, Test, Deploy) |
+|---------|-----------------------------------|---------------------------------------|
+| **fast** | sonnet | sonnet |
+| **balanced** (default) | opus | sonnet |
+| **max** | opus | opus |
+
+Use `--profile` with `forja execute` or `forja team preset` to override the default.
 
 ## How It Works
 
@@ -160,6 +185,15 @@ skills/<phase>/<tech>/<name>/
 └── commands/             # Slash commands
     └── command-name.md
 ```
+
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Architecture](docs/ARCHITECTURE.md) | System design, directory layout, data flow |
+| [Skill Authoring](docs/SKILL-AUTHORING.md) | How to create and publish skills |
+| [Teams](docs/TEAMS.md) | Multi-agent team configs and profiles |
+| [Contributing](docs/CONTRIBUTING.md) | Development setup and contribution guidelines |
 
 ## Development
 
