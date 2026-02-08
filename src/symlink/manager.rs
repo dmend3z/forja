@@ -59,6 +59,7 @@ impl SymlinkManager {
     }
 
     /// Remove all `forja--` prefixed symlinks from both agents/ and commands/.
+    #[cfg(test)]
     pub fn remove_all_forja_symlinks(&self) -> Result<Vec<PathBuf>> {
         let mut removed = Vec::new();
         removed.extend(self.remove_matching_symlinks(&self.claude_agents_dir, SYMLINK_PREFIX)?);
@@ -128,13 +129,13 @@ impl SymlinkManager {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let name = entry.file_name().to_string_lossy().to_string();
-            if name.starts_with(SYMLINK_PREFIX) && entry.path().is_symlink() {
-                if let Ok(target) = fs::read_link(entry.path()) {
-                    if target.starts_with(registry_path) {
-                        fs::remove_file(entry.path())?;
-                        removed.push(entry.path());
-                    }
-                }
+            if name.starts_with(SYMLINK_PREFIX)
+                && entry.path().is_symlink()
+                && let Ok(target) = fs::read_link(entry.path())
+                && target.starts_with(registry_path)
+            {
+                fs::remove_file(entry.path())?;
+                removed.push(entry.path());
             }
         }
         Ok(removed)

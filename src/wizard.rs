@@ -50,7 +50,7 @@ fn prompt_mode() -> Result<ForjaMode> {
 }
 
 fn prompt_skill_phases() -> Result<Vec<Phase>> {
-    let phases = vec![
+    let phases = [
         Phase::Research,
         Phase::Code,
         Phase::Test,

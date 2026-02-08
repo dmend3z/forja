@@ -38,12 +38,12 @@ pub fn sync_symlinks(paths: &ForjaPaths) -> Result<bool> {
 
     // Recreate symlinks from current state
     let installed_ids = load_installed_ids(&paths.state);
-    if !installed_ids.is_empty() {
-        if let Ok(registry) = catalog::scan(&paths.registry, &installed_ids) {
-            for skill in &registry.skills {
-                if installed_ids.contains(&skill.id) {
-                    let _ = manager.install(skill);
-                }
+    if !installed_ids.is_empty()
+        && let Ok(registry) = catalog::scan(&paths.registry, &installed_ids)
+    {
+        for skill in &registry.skills {
+            if installed_ids.contains(&skill.id) {
+                let _ = manager.install(skill);
             }
         }
     }
