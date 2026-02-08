@@ -5,21 +5,44 @@ All notable changes to forja will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2025-06-XX
+## [0.2.0] - Unreleased
 
 ### Added
 
 - Auto-install all skills during `forja init` — one command to go from zero to ready
-- Project stack detection during init (Next.js, Rust, Python, Go, TypeScript, and more)
-- `forja` with no args shows contextual status dashboard (or welcome pitch if not initialized)
-- Shell installer script (`install.sh`) for non-npm installs via `curl | sh`
-- `install_all_quiet()` function for silent bulk installation
+- Project stack detection during init (Next.js, Rust, Python, Go, TypeScript)
+- `forja` with no args shows status dashboard or welcome screen
+- Shell installer script (`install.sh`) for `curl | sh` installs
+- Silent bulk installation for scripted workflows
+- Show installation tips in `status` and `update` output
+- `--yes` flag for non-interactive `uninstall` and `delete` commands
+- Detailed `--help` text for all CLI commands
+- Interactive init wizard with guided setup
+- Community roadmap with contributor guide
+- Auto-release workflow for automated versioning
+- Code-Simplifier as 6th agent in team configurations
 
 ### Changed
 
-- `forja init` output is now minimal (3-4 lines with checkmarks, no file paths)
-- README restructured for GitHub visitors: hero, quick start, before/after, summary table
-- CLI subcommand field is now `Option<Commands>` to support no-args invocation
+- `forja init` output is minimal — 3-4 lines with checkmarks, no file paths
+- Restructure README for GitHub visitors — hero, quick start, before/after, summary table
+- Error messages include contextual hints and structured exit codes
+- Clarify agent team roles and task dependencies in orchestration
+
+### Fixed
+
+- Replace deprecated `macos-13` CI runner with `macos-latest`
+
+### Removed
+
+- Unused `walkdir` and `same-file` dependencies
+
+## [0.1.1] - 2025-06-03
+
+### Added
+
+- Pre-built binary for `aarch64-apple-darwin` (Apple Silicon)
+- Analytics integration in website
 
 ## [0.1.0] - 2025-06-01
 
@@ -33,3 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plan and execute workflow with model profiles (fast, balanced, max)
 - Custom team creation wizard
 - Registry management with git-based updates
+
+[0.2.0]: https://github.com/dmend3z/forja/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/dmend3z/forja/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/dmend3z/forja/releases/tag/v0.1.0

@@ -57,18 +57,21 @@ fn prompt_skill_phases() -> Result<Vec<Phase>> {
     // All selected by default
     let defaults: Vec<bool> = vec![true; phases.len()];
 
-    let selections = MultiSelect::new()
-        .with_prompt("Which workflow phases? (space to toggle, enter to confirm)")
-        .items(&labels)
-        .defaults(&defaults)
-        .interact()
-        .map_err(|e| ForjaError::Dialoguer(e.to_string()))?;
+    loop {
+        let selections = MultiSelect::new()
+            .with_prompt("Which workflow phases? (space to toggle, enter to confirm)")
+            .items(&labels)
+            .defaults(&defaults)
+            .interact()
+            .map_err(|e| ForjaError::Dialoguer(e.to_string()))?;
 
-    if selections.is_empty() {
-        return Ok(phases);
+        if selections.is_empty() {
+            eprintln!("At least one phase is required. Please select again.");
+            continue;
+        }
+
+        return Ok(selections.into_iter().map(|i| phases[i]).collect());
     }
-
-    Ok(selections.into_iter().map(|i| phases[i]).collect())
 }
 
 fn prompt_profile() -> Result<String> {
