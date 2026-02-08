@@ -1,7 +1,7 @@
 use crate::error::{ForjaError, Result};
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
-use crate::symlink::manager::{load_installed_ids, save_installed_ids, SymlinkManager};
+use crate::symlink::manager::{SymlinkManager, load_installed_ids, save_installed_ids};
 use colored::Colorize;
 
 struct InstallCounts {
@@ -90,11 +90,7 @@ pub fn run(skill_path: &str) -> Result<()> {
     installed_ids.push(skill_path.to_string());
     save_installed_ids(&paths.state, &installed_ids)?;
 
-    println!(
-        "{} {}",
-        "Installed:".green().bold(),
-        skill.name.bold()
-    );
+    println!("{} {}", "Installed:".green().bold(), skill.name.bold());
     println!("  Phase: {}", skill.phase.as_str().cyan());
     println!("  Tech:  {}", skill.tech.cyan());
     println!("  {}", skill.description.dimmed());

@@ -1,6 +1,6 @@
 use crate::error::{ForjaError, Result};
 use crate::paths::ForjaPaths;
-use crate::symlink::manager::{load_installed_ids, save_installed_ids, SymlinkManager};
+use crate::symlink::manager::{SymlinkManager, load_installed_ids, save_installed_ids};
 use colored::Colorize;
 
 pub fn run(skill_path: &str) -> Result<()> {

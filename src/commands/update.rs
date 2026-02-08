@@ -1,7 +1,7 @@
 use crate::error::Result;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
-use crate::symlink::manager::{load_installed_ids, SymlinkManager};
+use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 use colored::Colorize;
 
 pub fn run() -> Result<()> {

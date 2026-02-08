@@ -8,7 +8,7 @@ use crate::error::{ForjaError, Result};
 use crate::models::phase::Phase;
 use crate::models::profile::Profile;
 use crate::models::skill::Skill;
-use crate::models::state::{load_state, save_state, TeamEntry, TeamMember};
+use crate::models::state::{TeamEntry, TeamMember, load_state, save_state};
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::load_installed_ids;
@@ -131,10 +131,7 @@ pub(crate) fn generate_slash_command(
 
     // Frontmatter
     out.push_str("---\n");
-    out.push_str(&format!(
-        "description: Launch the {} team\n",
-        team_name
-    ));
+    out.push_str(&format!("description: Launch the {} team\n", team_name));
     out.push_str("argument-hint: Task description\n");
     out.push_str("---\n\n");
 
@@ -179,10 +176,7 @@ pub(crate) fn generate_slash_command(
 
     let mut step = 1;
     for &phase in phase_order {
-        let phase_members: Vec<_> = members
-            .iter()
-            .filter(|(_, p, _)| *p == phase)
-            .collect();
+        let phase_members: Vec<_> = members.iter().filter(|(_, p, _)| *p == phase).collect();
         if phase_members.is_empty() {
             continue;
         }
@@ -207,13 +201,17 @@ pub(crate) fn generate_slash_command(
     // Tips
     out.push_str("\n## Tips\n\n");
     out.push_str("- Use delegate mode (Shift+Tab) to keep the lead focused on orchestration\n");
-    out.push_str("- Each teammate loads CLAUDE.md automatically — keep it concise and operational\n");
+    out.push_str(
+        "- Each teammate loads CLAUDE.md automatically — keep it concise and operational\n",
+    );
     out.push_str("- Teammates communicate via messages + shared task list, not conversation\n");
 
     // Troubleshooting
     out.push_str("\n## Troubleshooting\n\n");
     out.push_str("- If teammates don't spawn: verify `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json\n");
-    out.push_str("- If agents can't find files: check CLAUDE.md has project structure documented\n");
+    out.push_str(
+        "- If agents can't find files: check CLAUDE.md has project structure documented\n",
+    );
     out.push_str("- Run `forja doctor` to verify installation health\n");
 
     out
@@ -490,7 +488,9 @@ pub fn list() -> Result<()> {
     let state = load_state(&paths.state);
 
     if state.teams.is_empty() {
-        println!("No teams configured. Create one with `forja team create <name>` or `forja team preset <name>`.");
+        println!(
+            "No teams configured. Create one with `forja team create <name>` or `forja team preset <name>`."
+        );
         return Ok(());
     }
 
@@ -630,11 +630,7 @@ pub(crate) fn apply_profile_to_command(content: &str, profile: &Profile) -> Stri
         // Detect phase from section headers like "### 1. Researcher (Phase: RESEARCH)"
         if let Some(start) = line.find("Phase:") {
             let after = &line[start + 6..];
-            let phase_str = after
-                .trim()
-                .trim_end_matches(')')
-                .trim()
-                .to_lowercase();
+            let phase_str = after.trim().trim_end_matches(')').trim().to_lowercase();
             // Handle "CODE + TEST" style -- take the first one
             let first_phase = phase_str.split('+').next().unwrap_or("").trim();
             current_phase = first_phase.parse::<Phase>().ok();
@@ -666,13 +662,21 @@ pub(crate) fn resolve_preset_members(
             ("research/codebase/explorer", "researcher", Phase::Research),
             ("code/general/feature", "coder", Phase::Code),
             ("test/tdd/workflow", "tester", Phase::Test),
-            ("review/code-simplifier/simplifier", "code-simplifier", Phase::Review),
+            (
+                "review/code-simplifier/simplifier",
+                "code-simplifier",
+                Phase::Review,
+            ),
             ("review/code-quality/reviewer", "reviewer", Phase::Review),
             ("deploy/git/commit", "deployer", Phase::Deploy),
         ],
         "solo-sprint" => vec![
             ("code/general/feature", "coder-tester", Phase::Code),
-            ("review/code-simplifier/simplifier", "code-simplifier", Phase::Review),
+            (
+                "review/code-simplifier/simplifier",
+                "code-simplifier",
+                Phase::Review,
+            ),
             ("review/code-quality/reviewer", "reviewer", Phase::Review),
         ],
         "quick-fix" => vec![
@@ -800,7 +804,10 @@ mod tests {
         let content = "### 1. Researcher (Phase: RESEARCH)\nModel: sonnet\n### 2. Coder (Phase: CODE)\nModel: sonnet\n";
         let result = apply_profile_to_command(content, &Profile::Balanced);
 
-        assert!(result.contains("Model: opus"), "Research phase should get opus");
+        assert!(
+            result.contains("Model: opus"),
+            "Research phase should get opus"
+        );
         // CODE phase should stay sonnet
         let lines: Vec<&str> = result.lines().collect();
         let model_lines: Vec<&&str> = lines.iter().filter(|l| l.starts_with("Model:")).collect();

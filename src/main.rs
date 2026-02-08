@@ -50,9 +50,7 @@ fn dispatch(command: Commands) -> error::Result<()> {
         } => commands::execute::run(plan_id.as_deref(), profile),
         Commands::Team { command } => match command {
             TeamCommands::Create { name } => commands::team::create(&name),
-            TeamCommands::Preset { name, ref profile } => {
-                commands::team::preset(&name, profile)
-            }
+            TeamCommands::Preset { name, ref profile } => commands::team::preset(&name, profile),
             TeamCommands::List => commands::team::list(),
             TeamCommands::Info { ref name } => commands::team::info(name),
             TeamCommands::Delete { ref name } => commands::team::delete(name),

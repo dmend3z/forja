@@ -103,11 +103,7 @@ impl SymlinkManager {
         Ok(created)
     }
 
-    fn remove_matching_symlinks(
-        &self,
-        dir: &Path,
-        prefix: &str,
-    ) -> Result<Vec<PathBuf>> {
+    fn remove_matching_symlinks(&self, dir: &Path, prefix: &str) -> Result<Vec<PathBuf>> {
         let mut removed = Vec::new();
 
         if !dir.exists() {

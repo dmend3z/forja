@@ -1,7 +1,7 @@
 use crate::error::Result;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
-use crate::symlink::manager::{load_installed_ids, SymlinkManager};
+use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 use colored::Colorize;
 
 pub fn run() -> Result<()> {
@@ -26,10 +26,7 @@ fn print_welcome() {
     println!("  Get started:");
     println!("    {}", "forja init".cyan());
     println!();
-    println!(
-        "  Run {} for all commands",
-        "forja --help".dimmed()
-    );
+    println!("  Run {} for all commands", "forja --help".dimmed());
     println!();
 }
 
@@ -45,7 +42,9 @@ fn print_status(paths: &ForjaPaths) -> Result<()> {
     let health = if broken.is_empty() {
         "all symlinks OK".green().to_string()
     } else {
-        format!("{} broken symlink(s)", broken.len()).red().to_string()
+        format!("{} broken symlink(s)", broken.len())
+            .red()
+            .to_string()
     };
 
     println!();
@@ -54,10 +53,7 @@ fn print_status(paths: &ForjaPaths) -> Result<()> {
     println!("  Skills:  {}/{} installed", installed, total);
     println!("  Health:  {}", health);
     println!();
-    println!(
-        "  Next: {}",
-        "forja task \"describe your task\"".cyan()
-    );
+    println!("  Next: {}", "forja task \"describe your task\"".cyan());
     println!();
 
     Ok(())

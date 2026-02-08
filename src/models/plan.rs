@@ -236,7 +236,10 @@ mod tests {
 
         assert_eq!(loaded.phases.len(), 2);
         assert_eq!(loaded.phases[0].name, "Database schema");
-        assert_eq!(loaded.phases[0].files_to_create, vec!["migrations/001_users.sql"]);
+        assert_eq!(
+            loaded.phases[0].files_to_create,
+            vec!["migrations/001_users.sql"]
+        );
         assert!(loaded.phases[0].files_to_modify.is_empty());
         assert_eq!(loaded.phases[1].depends_on, vec!["Database schema"]);
         assert_eq!(loaded.phases[1].agent_role, "coder");

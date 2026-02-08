@@ -60,11 +60,7 @@ pub fn run(available: bool) -> Result<()> {
 
         for id in &installed_ids {
             if let Some(skill) = registry.find_by_id(id) {
-                println!(
-                    "  {} {}",
-                    skill.id.bold(),
-                    skill.description.dimmed()
-                );
+                println!("  {} {}", skill.id.bold(), skill.description.dimmed());
             } else {
                 println!("  {} {}", id.bold(), "(not found in catalog)".red());
             }

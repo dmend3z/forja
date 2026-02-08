@@ -3,7 +3,7 @@ use crate::models::state::load_state;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::settings;
-use crate::symlink::manager::{load_installed_ids, SymlinkManager};
+use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 use colored::Colorize;
 
 pub fn run() -> Result<()> {
@@ -31,7 +31,8 @@ pub fn run() -> Result<()> {
 
     // Check symlinks
     if paths.claude_agents.exists() {
-        let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
+        let manager =
+            SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
         let (healthy, broken) = manager.verify()?;
 
         check(
@@ -64,15 +65,24 @@ pub fn run() -> Result<()> {
     }
 
     // Check agent teams env var
-    check("Agent teams env var set", settings::has_teams_env_var(&paths.claude_dir));
+    check(
+        "Agent teams env var set",
+        settings::has_teams_env_var(&paths.claude_dir),
+    );
 
     // Check configured teams
     let state = load_state(&paths.state);
     if !state.teams.is_empty() {
         println!();
-        println!("  {} {} team(s) configured:", "TEAMS:".cyan().bold(), state.teams.len());
+        println!(
+            "  {} {} team(s) configured:",
+            "TEAMS:".cyan().bold(),
+            state.teams.len()
+        );
         for (name, entry) in &state.teams {
-            let cmd_path = paths.claude_commands.join(format!("forja--team--{}.md", name));
+            let cmd_path = paths
+                .claude_commands
+                .join(format!("forja--team--{}.md", name));
             let status = if cmd_path.exists() {
                 "OK".green().to_string()
             } else {

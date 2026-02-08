@@ -17,8 +17,7 @@ pub fn run(registry_url: Option<String>) -> Result<()> {
         return Ok(());
     }
 
-    let url =
-        registry_url.unwrap_or_else(|| "https://github.com/dmend3z/forja.git".to_string());
+    let url = registry_url.unwrap_or_else(|| "https://github.com/dmend3z/forja.git".to_string());
 
     // Create ~/.forja/
     fs::create_dir_all(&paths.forja_root)?;
@@ -68,10 +67,7 @@ pub fn run(registry_url: Option<String>) -> Result<()> {
     if let Some(ref detected) = stack {
         println!("  Detected: {}", detected.bold());
     }
-    println!(
-        "  Try: {}",
-        "forja task \"describe your task here\"".cyan()
-    );
+    println!("  Try: {}", "forja task \"describe your task here\"".cyan());
     println!();
 
     Ok(())

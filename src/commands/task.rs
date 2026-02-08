@@ -6,11 +6,11 @@ use dialoguer::Select;
 
 use crate::error::{ForjaError, Result};
 use crate::models::profile::Profile;
-use crate::models::state::{load_state, TeamEntry, TeamMember};
+use crate::models::state::{TeamEntry, TeamMember, load_state};
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::settings;
-use crate::symlink::manager::{load_installed_ids, SymlinkManager};
+use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 
 const PRESET_TEAMS: &[(&str, &str)] = &[
     ("quick-fix", "coder + deployer"),
@@ -111,7 +111,12 @@ fn run_simple(task: &str, print: bool) -> Result<()> {
     Ok(())
 }
 
-fn run_team(task: &str, print: bool, team_name: &str, profile_override: Option<&str>) -> Result<()> {
+fn run_team(
+    task: &str,
+    print: bool,
+    team_name: &str,
+    profile_override: Option<&str>,
+) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
     let state = load_state(&paths.state);
 
@@ -120,15 +125,16 @@ fn run_team(task: &str, print: bool, team_name: &str, profile_override: Option<&
         (entry.members.clone(), entry.profile.clone())
     } else {
         // Preset fallback: resolve in-memory, no persistence
-        let fallback_profile: Profile = profile_override
-            .unwrap_or("balanced")
-            .parse()
-            .map_err(|_| {
-                ForjaError::Dialoguer(format!(
-                    "Unknown profile '{}'. Use: fast, balanced, max",
-                    profile_override.unwrap_or("balanced")
-                ))
-            })?;
+        let fallback_profile: Profile =
+            profile_override
+                .unwrap_or("balanced")
+                .parse()
+                .map_err(|_| {
+                    ForjaError::Dialoguer(format!(
+                        "Unknown profile '{}'. Use: fast, balanced, max",
+                        profile_override.unwrap_or("balanced")
+                    ))
+                })?;
 
         let members = crate::commands::team::resolve_preset_members(team_name, &fallback_profile)?;
         (members, fallback_profile.as_str().to_string())

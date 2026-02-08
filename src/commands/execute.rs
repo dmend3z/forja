@@ -4,11 +4,11 @@ use std::process::Command;
 use colored::Colorize;
 
 use crate::error::{ForjaError, Result};
-use crate::models::plan::{find_latest_pending, load_plan, save_plan, PlanMetadata, PlanStatus};
+use crate::models::plan::{PlanMetadata, PlanStatus, find_latest_pending, load_plan, save_plan};
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::settings;
-use crate::symlink::manager::{load_installed_ids, SymlinkManager};
+use crate::symlink::manager::{SymlinkManager, load_installed_ids};
 
 pub fn run(plan_id: Option<&str>, profile: &str) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
@@ -70,7 +70,11 @@ pub fn run(plan_id: Option<&str>, profile: &str) -> Result<()> {
                     }
                 },
                 None => {
-                    eprintln!("  {} {} — not found in catalog", "skipped".yellow(), skill_id);
+                    eprintln!(
+                        "  {} {} — not found in catalog",
+                        "skipped".yellow(),
+                        skill_id
+                    );
                 }
             }
         }
