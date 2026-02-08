@@ -1,1 +1,11 @@
 /target
+npm/*/bin/
+.env
+.env.*
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.log
