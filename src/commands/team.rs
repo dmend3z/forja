@@ -240,6 +240,7 @@ pub(crate) fn command_file_name(team_name: &str) -> String {
 
 // ── Subcommands ──────────────────────────────────────────────────
 
+/// Interactively create a custom team by selecting installed skills and a model profile.
 pub fn create(name: &str) -> Result<()> {
     let paths = ForjaPaths::new()?;
     let mut state = load_state(&paths.state);
@@ -404,6 +405,7 @@ pub fn create(name: &str) -> Result<()> {
     Ok(())
 }
 
+/// Create a team from a built-in preset (full-product, solo-sprint, quick-fix).
 pub fn preset(name: &str, profile_str: &str) -> Result<()> {
     let paths = ForjaPaths::new()?;
     let mut state = load_state(&paths.state);
@@ -483,6 +485,7 @@ pub fn preset(name: &str, profile_str: &str) -> Result<()> {
     Ok(())
 }
 
+/// List all configured teams with their profile and agent count.
 pub fn list() -> Result<()> {
     let paths = ForjaPaths::new()?;
     let state = load_state(&paths.state);
@@ -519,6 +522,7 @@ pub fn list() -> Result<()> {
     Ok(())
 }
 
+/// Show detailed information about a team: members, models, and slash command path.
 pub fn info(name: &str) -> Result<()> {
     let paths = ForjaPaths::new()?;
     let state = load_state(&paths.state);
@@ -562,12 +566,25 @@ pub fn info(name: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn delete(name: &str) -> Result<()> {
+/// Delete a team and its slash command file, with confirmation prompt.
+pub fn delete(name: &str, skip_confirm: bool) -> Result<()> {
     let paths = ForjaPaths::new()?;
     let mut state = load_state(&paths.state);
 
     if !state.teams.contains_key(name) {
         return Err(ForjaError::TeamNotFound(name.to_string()));
+    }
+
+    if !skip_confirm {
+        let confirmed = Confirm::new()
+            .with_prompt(format!("Delete team '{}'?", name))
+            .default(true)
+            .interact()
+            .map_err(|e| ForjaError::Dialoguer(e.to_string()))?;
+
+        if !confirmed {
+            return Err(ForjaError::PromptCancelled);
+        }
     }
 
     // Remove command file

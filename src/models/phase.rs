@@ -1,6 +1,7 @@
 use std::fmt;
 use std::str::FromStr;
 
+/// The five workflow phases that organize the skill catalog, plus a Teams meta-phase.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Phase {
     Research,

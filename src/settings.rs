@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use crate::error::Result;
+use crate::error::{ForjaError, Result};
 
 const TEAMS_ENV_KEY: &str = "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS";
 
@@ -26,12 +26,12 @@ pub fn enable_teams_env_var(claude_dir: &Path) -> Result<()> {
 
     let env = root
         .as_object_mut()
-        .expect("settings root must be an object")
+        .ok_or_else(|| ForjaError::InvalidSettings("root must be a JSON object".to_string()))?
         .entry("env")
         .or_insert_with(|| serde_json::json!({}));
 
     env.as_object_mut()
-        .expect("env must be an object")
+        .ok_or_else(|| ForjaError::InvalidSettings("\"env\" must be a JSON object".to_string()))?
         .insert(TEAMS_ENV_KEY.to_string(), serde_json::json!("1"));
 
     let json = serde_json::to_string_pretty(&root)?;

@@ -32,3 +32,35 @@ pub fn pull(repo_path: &Path) -> Result<String> {
 
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn clone_fails_with_invalid_url() {
+        let dir = TempDir::new().unwrap();
+        let target = dir.path().join("repo");
+
+        let result = clone("https://invalid.example.com/nonexistent.git", &target);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ForjaError::Git(msg) => assert!(msg.contains("git clone failed")),
+            other => panic!("expected Git error, got: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn pull_fails_on_non_repo_directory() {
+        let dir = TempDir::new().unwrap();
+        // dir.path() is not a git repo
+
+        let result = pull(dir.path());
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ForjaError::Git(msg) => assert!(msg.contains("git pull failed")),
+            other => panic!("expected Git error, got: {:?}", other),
+        }
+    }
+}

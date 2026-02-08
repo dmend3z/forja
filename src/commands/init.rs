@@ -6,6 +6,7 @@ use serde_json::json;
 use std::fs;
 use std::path::Path;
 
+/// Initialize forja: create `~/.forja/`, clone the registry, and set up state.
 pub fn run(registry_url: Option<String>) -> Result<()> {
     let paths = ForjaPaths::new()?;
 

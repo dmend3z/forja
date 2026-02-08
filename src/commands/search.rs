@@ -4,6 +4,7 @@ use crate::registry::catalog;
 use crate::symlink::manager::load_installed_ids;
 use colored::Colorize;
 
+/// Search the skill catalog by name, description, phase, or tech.
 pub fn run(query: &str) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
 
@@ -13,6 +14,11 @@ pub fn run(query: &str) -> Result<()> {
 
     if results.is_empty() {
         println!("No skills matching \"{}\"", query.yellow());
+        println!();
+        println!(
+            "  {} Try 'forja list --available' to browse all skills",
+            "Tip:".cyan().bold()
+        );
         return Ok(());
     }
 

@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+/// All error types returned by forja CLI operations.
 #[derive(Debug, Error)]
 pub enum ForjaError {
     #[error("IO error: {0}")]
@@ -14,7 +15,7 @@ pub enum ForjaError {
     #[error("forja is not initialized. Run `forja init` first")]
     NotInitialized,
 
-    #[error("Skill not found: {0}")]
+    #[error("Skill not found: {0}. Run 'forja search <query>' or 'forja list --available' to browse")]
     SkillNotFound(String),
 
     #[error("Skill already installed: {0}")]
@@ -31,6 +32,9 @@ pub enum ForjaError {
 
     #[error("Team already exists: {0}")]
     TeamAlreadyExists(String),
+
+    #[error("Invalid settings.json: {0}")]
+    InvalidSettings(String),
 
     #[error("Prompt cancelled by user")]
     PromptCancelled,

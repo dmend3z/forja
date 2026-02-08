@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use super::phase::Phase;
 
+/// Model cost/quality profiles that control which Claude model each phase uses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Profile {
     Fast,

@@ -1,6 +1,7 @@
 use crate::error::{ForjaError, Result};
 use std::path::PathBuf;
 
+/// Canonical paths used by forja: `~/.forja/` for state and `~/.claude/` for symlinks.
 pub struct ForjaPaths {
     pub forja_root: PathBuf,
     pub registry: PathBuf,
