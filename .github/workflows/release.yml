@@ -129,3 +129,60 @@ jobs:
         with:
           generate_release_notes: true
           files: release/*.tar.gz
+
+  update-homebrew:
+    needs: github-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download release tarballs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p tarballs
+          gh release download "$TAG" --pattern "*.tar.gz" --dir tarballs
+
+      - name: Compute SHA256 checksums
+        id: sha
+        run: |
+          echo "darwin_arm64=$(shasum -a 256 tarballs/forja-darwin-arm64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "darwin_x64=$(shasum -a 256 tarballs/forja-darwin-x64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "linux_arm64=$(shasum -a 256 tarballs/forja-linux-arm64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "linux_x64=$(shasum -a 256 tarballs/forja-linux-x64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Render formula from template
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA_DARWIN_ARM64: ${{ steps.sha.outputs.darwin_arm64 }}
+          SHA_DARWIN_X64: ${{ steps.sha.outputs.darwin_x64 }}
+          SHA_LINUX_ARM64: ${{ steps.sha.outputs.linux_arm64 }}
+          SHA_LINUX_X64: ${{ steps.sha.outputs.linux_x64 }}
+        run: |
+          sed \
+            -e "s/@@VERSION@@/${VERSION}/g" \
+            -e "s/@@SHA256_DARWIN_ARM64@@/${SHA_DARWIN_ARM64}/g" \
+            -e "s/@@SHA256_DARWIN_X64@@/${SHA_DARWIN_X64}/g" \
+            -e "s/@@SHA256_LINUX_ARM64@@/${SHA_LINUX_ARM64}/g" \
+            -e "s/@@SHA256_LINUX_X64@@/${SHA_LINUX_X64}/g" \
+            homebrew/forja.rb.template > forja.rb
+
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/dmend3z/homebrew-forja.git" tap
+          mkdir -p tap/Formula
+          cp forja.rb tap/Formula/forja.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/forja.rb
+          git commit -m "forja ${VERSION}"
+          git push
