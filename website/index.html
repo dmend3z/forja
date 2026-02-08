@@ -408,12 +408,13 @@
                 <code>npm install -g forja-cli</code>
                 <button class="copy-btn" data-copy="npm install -g forja-cli" aria-label="Copy command">&#128203;</button>
               </div>
+              <p class="step-alt">Or: <code>brew install dmend3z/forja/forja</code></p>
             </div>
           </div>
           <div class="quickstart-step">
             <div class="step-marker">2</div>
             <div class="step-content">
-              <h3>Initialize the registry</h3>
+              <h3>Initialize &mdash; all 25 agents installed</h3>
               <div class="step-code">
                 <code>forja init</code>
                 <button class="copy-btn" data-copy="forja init" aria-label="Copy command">&#128203;</button>
@@ -421,33 +422,14 @@
             </div>
           </div>
           <div class="quickstart-step">
-            <div class="step-marker">3</div>
+            <div class="step-marker">&#10003;</div>
             <div class="step-content">
-              <h3>Browse available skills</h3>
+              <h3>Start building</h3>
               <div class="step-code">
-                <code>forja list --available</code>
-                <button class="copy-btn" data-copy="forja list --available" aria-label="Copy command">&#128203;</button>
+                <code>forja task "add user auth with JWT"</code>
+                <button class="copy-btn" data-copy='forja task "add user auth with JWT"' aria-label="Copy command">&#128203;</button>
               </div>
-            </div>
-          </div>
-          <div class="quickstart-step">
-            <div class="step-marker">4</div>
-            <div class="step-content">
-              <h3>Install your first skill</h3>
-              <div class="step-code">
-                <code>forja install test/tdd/workflow</code>
-                <button class="copy-btn" data-copy="forja install test/tdd/workflow" aria-label="Copy command">&#128203;</button>
-              </div>
-            </div>
-          </div>
-          <div class="quickstart-step">
-            <div class="step-marker">5</div>
-            <div class="step-content">
-              <h3>Verify everything works</h3>
-              <div class="step-code">
-                <code>forja doctor</code>
-                <button class="copy-btn" data-copy="forja doctor" aria-label="Copy command">&#128203;</button>
-              </div>
+              <p class="step-alt">With a team: <code>forja task "..." --team full-product</code></p>
             </div>
           </div>
         </div>
@@ -472,8 +454,8 @@
           </div>
           <div class="how-step">
             <div class="how-step-number">2</div>
-            <h3>Create Symlinks</h3>
-            <p><code>forja install</code> symlinks agent files into <code>~/.claude/agents/</code></p>
+            <h3>Auto-Install Agents</h3>
+            <p><code>forja init</code> auto-installs all agents as symlinks into <code>~/.claude/agents/</code></p>
           </div>
           <div class="how-step">
             <div class="how-step-number">3</div>

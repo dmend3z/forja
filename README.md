@@ -38,6 +38,16 @@ That's it. All 25 agents are installed and ready to use:
 forja task "add user authentication with JWT"
 ```
 
+### With Teams (optional)
+
+Run complex tasks with coordinated multi-agent teams:
+
+```bash
+forja task "build user dashboard" --team full-product
+```
+
+Teams auto-configure on first use. Presets: `full-product`, `solo-sprint`, `quick-fix`, `refactor`.
+
 ## Why forja?
 
 **Without forja** — manual setup, 10+ minutes:

@@ -899,6 +899,18 @@ code {
   font-size: 0.9rem;
 }
 
+.step-alt {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.step-alt code {
+  font-size: 0.82rem;
+  font-style: normal;
+}
+
 /* --- How It Works --- */
 
 .how-grid {
