@@ -1,0 +1,7 @@
+{
+  "name": "refactor-team",
+  "description": "3-agent refactoring team: analyzer maps the code, refactorer makes structural changes, reviewer verifies behavioral equivalence.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["teams", "agents", "refactoring", "structural-changes"]
+}
