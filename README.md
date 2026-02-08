@@ -16,9 +16,9 @@
 
 ---
 
-Anthropic shipped [agent teams](https://code.claude.com/docs/en/agent-teams) in Claude Code — multiple AI sessions working in parallel, coordinated through a shared task list. It's powerful, but it's a lot of setup: feature flags, per-agent prompts, team structures, workflow orchestration.
+Anthropic shipped [agent teams](https://code.claude.com/docs/en/agent-teams) in Claude Code — multiple AI sessions working in parallel, coordinated through a shared task list. Powerful, but a lot of setup: feature flags, per-agent prompts, team structures, workflow orchestration.
 
-**forja gives you all of that in one command.** 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy — plus pre-built team configurations, ready to go.
+**forja gives you all of that in one command.** 25 curated agents across 5 dev phases — Research, Code, Test, Review, Deploy — plus pre-built team configs, ready to go.
 
 > **forja** (Portuguese: *forge*)
 
@@ -58,23 +58,23 @@ forja execute
 
 ### `forja plan` + `forja execute` (recommended)
 
-The plan workflow gives you structured, multi-phase execution. When you run `forja plan`, it:
+Structured, multi-phase execution. When you run `forja plan`, it:
 
-1. **Interviews you** — project type, goals, exclusions, depth
-2. **Researches your codebase** — detects stack, finds relevant files, maps architecture
-3. **Selects the right agents** — picks agents based on your stack (Next.js, Rust, Python, etc.)
+1. **Interviews you** — project type, goals, exclusions
+2. **Researches your codebase** — detects stack, maps architecture
+3. **Selects agents** — picks agents based on your stack (Next.js, Rust, Python, etc.)
 4. **Sizes the team** — `quick-fix`, `solo-sprint`, or `full-product` based on complexity
-5. **Builds phased steps** — each phase has files to create/modify, dependencies, and specific instructions
-6. **Saves the plan** — JSON (machine-readable) + Markdown (human-readable) in `~/.forja/plans/`
+5. **Builds phased steps** — files to create/modify, dependencies, instructions
+6. **Saves the plan** — JSON + Markdown in `~/.forja/plans/`
 
-Then `forja execute` picks up the latest plan and runs it — agents work in order, passing context between phases, with quality gates verified at the end.
+Then `forja execute` runs the plan — agents work in order, passing context between phases.
 
 ```bash
 forja plan "refactor auth to use OAuth2"
 # answer a few questions, review the plan
 
 forja execute
-# agents handle research -> code -> test -> review -> deploy
+# agents handle research → code → test → review → deploy
 ```
 
 ### `forja task` (quick mode)
@@ -98,17 +98,17 @@ Teams auto-configure on first use. Presets: `full-product`, `solo-sprint`, `quic
 **Without forja** — manual setup, 10+ minutes:
 
 ```
-Search for Claude Code agents -> Read docs -> Download individually ->
-Configure each one -> Figure out which phase needs what -> Start coding
+Search for Claude Code agents → Read docs → Download individually →
+Configure each one → Figure out which phase needs what → Start coding
 ```
 
 **With forja** — one command, 30 seconds:
 
 ```
-forja init -> Start coding
+forja init → Start coding
 ```
 
-forja auto-installs agents for every phase of development. You get specialized agents for your stack, TDD workflows, security audits, and team configs — all wired up and ready.
+Specialized agents for your stack, TDD workflows, security audits, and team configs — all wired up and ready.
 
 ## What You Get
 
@@ -176,7 +176,7 @@ forja task "build user dashboard" --team full-product
 └── ...
 ```
 
-`forja init` clones the agent registry and symlinks all agents into `~/.claude/agents/`. Claude Code picks them up automatically — no restart needed. The `forja--` prefix prevents name collisions with other agents.
+`forja init` clones the agent registry and symlinks agents into `~/.claude/agents/`. Claude Code picks them up automatically — no restart needed. The `forja--` prefix prevents name collisions.
 
 ## Profiles
 
