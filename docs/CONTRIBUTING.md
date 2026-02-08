@@ -6,7 +6,7 @@ This guide covers the essentials for contributing to the forja project -- both t
 
 ```bash
 # Clone the monorepo
-git clone https://github.com/forja-dev/forja-skills.git
+git clone https://github.com/dmend3z/forja.git
 cd forja-skills
 
 # Build the CLI
@@ -16,7 +16,7 @@ cargo build
 cargo run -- init
 ```
 
-When you run `forja init` from inside the repo, it detects the local `skills/` directory and creates a symlink at `~/.forja/registry` pointing to your working copy. Changes to skills are reflected immediately without re-installing.
+When you run `forja init` from inside the repo, it detects the local `skills/` directory, creates a symlink at `~/.forja/registry` pointing to your working copy, and auto-installs all skills. Changes to skill files are reflected immediately without re-installing.
 
 ### Prerequisites
 
@@ -34,6 +34,7 @@ src/                  # CLI source code
   paths.rs            # ForjaPaths -- all filesystem paths
   settings.rs         # User settings
   commands/           # One file per CLI command
+    status.rs           # No-args status display
   models/             # Data types: Skill, Phase, Plugin, State, Plan, Profile
   registry/           # Catalog scanner and git operations
   symlink/            # Symlink creation and management

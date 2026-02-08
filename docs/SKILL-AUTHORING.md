@@ -304,10 +304,10 @@ You are a linting specialist. You find and fix lint violations.
 From the forja-skills repo root:
 
 ```bash
-# Initialize forja in local dev mode (creates symlink to local skills/)
+# Initialize forja in local dev mode (creates symlink + installs all skills)
 forja init
 
-# Install your new skill
+# If you created this skill after running init, install it explicitly
 forja install review/linting/fixer
 
 # Verify everything is healthy
@@ -342,12 +342,14 @@ Typical cycle:
 
 ```bash
 # One-time setup
-forja init                    # Detects local skills/, creates symlink
-forja install <skill-id>      # Install the skill you're working on
+forja init                    # Detects local skills/, creates symlink, installs all skills
 
 # Edit-test loop
 vim skills/.../agents/my-agent.md   # Edit the agent
 # Open Claude Code -- changes are live immediately
+
+# Adding a new skill after init
+forja install <skill-id>      # Install a skill created after initial setup
 
 # Verify
 forja doctor                  # Check symlink health
