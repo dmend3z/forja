@@ -21,6 +21,15 @@ You are the lead of a quick-fix team. Speed matters, but don't break things.
 5. Spawn the **Deployer** to commit and create a PR
 6. Report the PR URL to user
 
+## Model Enforcement
+
+When spawning any teammate with the Task tool, you MUST pass the `model` parameter. Agent frontmatter `model:` fields are NOT enforced at runtime — only the Task tool parameter controls cost.
+
+| Role | Model |
+|------|-------|
+| Coder | sonnet |
+| Deployer | sonnet |
+
 ## Rules
 
 - Fix the bug, nothing else — no refactors, no improvements

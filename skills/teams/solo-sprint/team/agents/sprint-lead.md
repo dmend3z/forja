@@ -21,6 +21,16 @@ You are the lead of a lightweight 2-agent sprint team.
 5. If reviewer requests changes, send feedback back to Coder-Tester
 6. Once approved, report completion to user
 
+## Model Enforcement
+
+When spawning any teammate with the Task tool, you MUST pass the `model` parameter. Agent frontmatter `model:` fields are NOT enforced at runtime — only the Task tool parameter controls cost.
+
+| Role | Model |
+|------|-------|
+| Coder-Tester | opus |
+| Code-Simplifier | sonnet |
+| Reviewer | sonnet |
+
 ## When to Use This Team
 
 - Medium features (3-10 files)

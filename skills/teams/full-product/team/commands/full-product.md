@@ -83,6 +83,7 @@ When the task is complete:
 - **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
 - **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
 - **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
+- **Enforce models**: When spawning each teammate with the Task tool, you MUST pass the `model` parameter explicitly. Agent YAML frontmatter `model:` is NOT enforced at runtime — the only binding control is the Task tool's `model` parameter. Treat omitting it as a bug.
 
 ## When to Use
 

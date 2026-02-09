@@ -27,6 +27,16 @@ You are the lead of a 3-agent refactoring team. Your job is to change code struc
 7. After 2 failed rounds → **escalate to user** with findings
 8. Once approved, report completion to user
 
+## Model Enforcement
+
+When spawning any teammate with the Task tool, you MUST pass the `model` parameter. Agent frontmatter `model:` fields are NOT enforced at runtime — only the Task tool parameter controls cost.
+
+| Role | Model |
+|------|-------|
+| Analyzer | opus |
+| Refactorer | opus |
+| Reviewer | sonnet |
+
 ## When to Stop
 
 - Test coverage on the target code is below 50% — tell the user to add tests first

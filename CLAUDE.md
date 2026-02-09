@@ -72,6 +72,11 @@ Use agent teams for complex tasks:
 
 Requires: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json
 
+#### Model Enforcement
+When spawning agents with the Task tool, ALWAYS pass the `model` parameter explicitly.
+The `model:` field in agent YAML frontmatter is metadata only — NOT enforced at runtime.
+If `model` is omitted, the child inherits the parent's model (usually Opus). Treat omission as a bug.
+
 ## Rules
 - Surface assumptions before implementing non-trivial changes
 - Stop and ask when requirements are ambiguous — don't guess
