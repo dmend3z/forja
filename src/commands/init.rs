@@ -2,6 +2,7 @@ use crate::error::Result;
 use crate::models::config::{self, ForjaConfig};
 use crate::output;
 use crate::paths::{ForjaMode, ForjaPaths};
+use crate::registry::catalog;
 use crate::symlink::manager::save_installed_ids;
 use crate::symlink::sync;
 use crate::wizard;
@@ -46,8 +47,7 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
     fs::create_dir_all(&paths.forja_root)?;
 
     // Link or clone registry
-    let local_skills = cwd.join("skills");
-    let is_local = local_skills.exists();
+    let is_local = catalog::is_forja_registry(&cwd);
 
     if is_local {
         std::os::unix::fs::symlink(&cwd, &paths.registry)?;
@@ -152,8 +152,7 @@ fn restore_flow(cwd: &Path, registry_url: Option<String>) -> Result<()> {
             .or_else(|| config.as_ref().map(|c| c.registry_url.clone()))
             .unwrap_or_else(|| "https://github.com/dmend3z/forja.git".to_string());
 
-        let local_skills = cwd.join("skills");
-        if local_skills.exists() {
+        if catalog::is_forja_registry(cwd) {
             std::os::unix::fs::symlink(cwd, &paths.registry)?;
         } else {
             crate::registry::git::clone(&url, &paths.registry)?;
