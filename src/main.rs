@@ -62,6 +62,11 @@ fn dispatch(command: Commands) -> error::Result<()> {
             ref plan_id,
             ref profile,
         } => commands::execute::run(plan_id.as_deref(), profile),
+        Commands::Monitor { port, no_open } => {
+            let rt = tokio::runtime::Runtime::new()
+                .map_err(|e| error::ForjaError::Monitor(format!("Failed to start runtime: {e}")))?;
+            rt.block_on(commands::monitor::run(port, !no_open))
+        }
         Commands::Team { command } => match command {
             TeamCommands::Create { name } => commands::team::create(&name),
             TeamCommands::Preset { name, ref profile } => commands::team::preset(&name, profile),

@@ -424,6 +424,7 @@ pub fn preset(name: &str, profile_str: &str) -> Result<()> {
         ("full-product", "teams/full-product/team"),
         ("solo-sprint", "teams/solo-sprint/team"),
         ("quick-fix", "teams/quick-fix/team"),
+        ("dispatch", "teams/dispatch/team"),
     ];
 
     let skill_id = preset_mapping
@@ -432,7 +433,7 @@ pub fn preset(name: &str, profile_str: &str) -> Result<()> {
         .map(|(_, id)| *id)
         .ok_or_else(|| {
             ForjaError::SkillNotFound(format!(
-                "Unknown preset '{}'. Available: full-product, solo-sprint, quick-fix",
+                "Unknown preset '{}'. Available: full-product, solo-sprint, quick-fix, dispatch",
                 name
             ))
         })?;
@@ -700,9 +701,10 @@ pub(crate) fn resolve_preset_members(
             ("code/general/feature", "coder", Phase::Code),
             ("deploy/git/commit", "deployer", Phase::Deploy),
         ],
+        "dispatch" => vec![("teams/dispatch/team", "dispatcher", Phase::Teams)],
         _ => {
             return Err(ForjaError::SkillNotFound(format!(
-                "Unknown preset '{}'. Available: full-product, solo-sprint, quick-fix",
+                "Unknown preset '{}'. Available: full-product, solo-sprint, quick-fix, dispatch",
                 preset_name
             )));
         }

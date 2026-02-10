@@ -219,6 +219,27 @@ EXAMPLES:
         profile: String,
     },
 
+    /// Real-time dashboard for monitoring agent teams
+    #[command(
+        long_about = "Launch a real-time web dashboard that monitors active Claude Code agent \
+            teams. Watches team configs, task progress, and inter-agent messages, streaming \
+            updates live to your browser via SSE.",
+        after_help = "\
+EXAMPLES:
+  forja monitor                     # Start on default port 3030
+  forja monitor --port 8080         # Use custom port
+  forja monitor --no-open           # Don't auto-open browser"
+    )]
+    Monitor {
+        /// Port to bind the dashboard server
+        #[arg(long, default_value = "3030")]
+        port: u16,
+
+        /// Don't auto-open the browser
+        #[arg(long)]
+        no_open: bool,
+    },
+
     /// Manage multi-agent teams
     #[command(
         long_about = "Create, configure, and manage multi-agent teams for complex tasks. \
