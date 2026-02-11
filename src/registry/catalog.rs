@@ -94,6 +94,7 @@ fn parse_skill(
         path: path.to_path_buf(),
         installed: installed_ids.contains(&id.to_string()),
         content_types,
+        keywords: plugin.keywords.unwrap_or_default(),
     })
 }
 
@@ -125,13 +126,31 @@ mod tests {
     /// Helper: create the minimum directory structure for a valid skill.
     /// skills/<phase>/<tech>/<name>/.claude-plugin/plugin.json
     fn create_skill(root: &Path, phase: &str, tech: &str, name: &str, description: &str) {
+        create_skill_with_keywords(root, phase, tech, name, description, &[]);
+    }
+
+    fn create_skill_with_keywords(
+        root: &Path,
+        phase: &str,
+        tech: &str,
+        name: &str,
+        description: &str,
+        keywords: &[&str],
+    ) {
         let skill_dir = root.join("skills").join(phase).join(tech).join(name);
         let plugin_dir = skill_dir.join(".claude-plugin");
         fs::create_dir_all(&plugin_dir).unwrap();
 
+        let keywords_json = if keywords.is_empty() {
+            String::new()
+        } else {
+            let kw: Vec<String> = keywords.iter().map(|k| format!("\"{k}\"")).collect();
+            format!(r#", "keywords": [{}]"#, kw.join(", "))
+        };
+
         let plugin = format!(
-            r#"{{ "name": "{}", "description": "{}" }}"#,
-            name, description
+            r#"{{ "name": "{}", "description": "{}"{} }}"#,
+            name, description, keywords_json
         );
         fs::write(plugin_dir.join("plugin.json"), plugin).unwrap();
 
@@ -288,6 +307,35 @@ mod tests {
         fs::create_dir_all(skills.join("test")).unwrap();
 
         assert!(!is_forja_registry(dir.path()));
+    }
+
+    #[test]
+    fn scan_reads_keywords_from_plugin_json() {
+        let dir = TempDir::new().unwrap();
+        create_skill_with_keywords(
+            dir.path(),
+            "code",
+            "rust",
+            "feature",
+            "Rust feature coder",
+            &["ownership", "borrow-checker", "traits"],
+        );
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert_eq!(registry.skills.len(), 1);
+        assert_eq!(
+            registry.skills[0].keywords,
+            vec!["ownership", "borrow-checker", "traits"]
+        );
+    }
+
+    #[test]
+    fn scan_empty_keywords_when_absent() {
+        let dir = TempDir::new().unwrap();
+        create_skill(dir.path(), "code", "general", "feature", "Writes features");
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert!(registry.skills[0].keywords.is_empty());
     }
 
     #[test]

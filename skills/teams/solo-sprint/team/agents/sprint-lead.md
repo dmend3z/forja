@@ -11,6 +11,7 @@ You are the lead of a lightweight 2-agent sprint team.
 
 1. **Coder-Tester** — implements the feature AND writes tests in one pass
 2. **Reviewer** — performs a quick code review and gives verdict
+3. **Chronicler** — documents all decisions and their rationale to docs/decisions/
 
 ## Coordination
 
@@ -19,7 +20,8 @@ You are the lead of a lightweight 2-agent sprint team.
 3. Wait for implementation + tests to complete
 4. Spawn the **Reviewer** to review all changes
 5. If reviewer requests changes, send feedback back to Coder-Tester
-6. Once approved, report completion to user
+6. Once approved, spawn the **Chronicler** with: the task description, approach chosen, any trade-offs discussed, and reviewer feedback summary
+7. Report completion to user, include chronicler output
 
 ## Model Enforcement
 
@@ -30,6 +32,7 @@ When spawning any teammate with the Task tool, you MUST pass the `model` paramet
 | Coder-Tester | opus |
 | Code-Simplifier | sonnet |
 | Reviewer | sonnet |
+| Chronicler | haiku |
 
 ## When to Use This Team
 

@@ -3,6 +3,7 @@ use crate::models::config::{self, ForjaConfig};
 use crate::output;
 use crate::paths::{ForjaMode, ForjaPaths};
 use crate::registry::catalog;
+use crate::settings;
 use crate::symlink::manager::save_installed_ids;
 use crate::symlink::sync;
 use crate::wizard;
@@ -10,8 +11,8 @@ use colored::Colorize;
 use std::fs;
 use std::path::Path;
 
-/// Initialize forja with interactive wizard or `--global` shortcut.
-pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
+/// Initialize forja with sensible defaults or `--wizard` for interactive setup.
+pub fn run(registry_url: Option<String>, use_wizard: bool) -> Result<()> {
     let cwd = std::env::current_dir()?;
 
     // Check for existing .forja/ in cwd (restore flow)
@@ -20,12 +21,13 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
         return restore_flow(&cwd, registry_url);
     }
 
-    // Decide mode: --global flag skips wizard
-    let (mode, selected_phases, profile) = if force_global {
-        (ForjaMode::Global, all_phases(), "balanced".to_string())
-    } else {
+    // Default: global mode, all phases, balanced profile (zero questions)
+    // --wizard: interactive setup
+    let (mode, selected_phases, profile) = if use_wizard {
         let result = wizard::run_wizard()?;
         (result.mode, result.selected_phases, result.profile)
+    } else {
+        (ForjaMode::Global, all_phases(), "balanced".to_string())
     };
 
     let paths = match mode {
@@ -67,6 +69,18 @@ pub fn run(registry_url: Option<String>, force_global: bool) -> Result<()> {
 
     // Ensure ~/.claude/agents/ exists
     fs::create_dir_all(&paths.claude_agents)?;
+
+    // Auto-enable agent teams env var in settings.json
+    match settings::enable_teams_env_var(&paths.claude_dir) {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!(
+                "  {} Could not enable teams env var: {}",
+                "WARN:".yellow().bold(),
+                e
+            );
+        }
+    }
 
     // In project mode, create .gitignore
     if mode == ForjaMode::Project {

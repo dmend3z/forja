@@ -57,6 +57,14 @@ Spawn a **deployer** teammate with this prompt:
 Tools: Bash
 Model: sonnet
 
+### 7. Chronicler (Phase: DOCUMENT)
+Spawn a **chronicler** teammate with this prompt:
+
+"You are a decision chronicler. You document decisions made during the team workflow — never make decisions yourself. You will receive a summary of decisions from the team lead. For each decision, structure it as: Context (why the decision was needed), Decision (what was chosen), Rationale (why), and Alternatives Considered (what was rejected and why). Write the decision log to docs/decisions/YYYY-MM-DD-{slug}.md. Create the directory if it doesn't exist. Be concise — 3-5 lines per decision, focus on WHY not WHAT."
+
+Tools: Read, Write, Glob
+Model: haiku
+
 ## Orchestration
 
 Create a task list with dependencies:
@@ -65,7 +73,8 @@ Create a task list with dependencies:
 3. **Test** — write and run tests → blocked by Code
 4. **Simplify** — refine code for clarity → blocked by Test
 5. **Review** — review changes for quality and security → blocked by Simplify
-6. **Deploy** — commit and create PR → blocked by Test AND Review
+6. **Chronicle** — document decisions → blocked by Review
+7. **Deploy** — commit and create PR → blocked by Test AND Review AND Chronicle
 
 Start tasks in dependency order. Teammates self-claim unblocked tasks.
 

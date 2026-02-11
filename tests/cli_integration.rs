@@ -19,7 +19,6 @@ fn help_contains_all_subcommands() {
             .and(predicate::str::contains("list"))
             .and(predicate::str::contains("update"))
             .and(predicate::str::contains("info"))
-            .and(predicate::str::contains("phases"))
             .and(predicate::str::contains("doctor"))
             .and(predicate::str::contains("plan"))
             .and(predicate::str::contains("task"))

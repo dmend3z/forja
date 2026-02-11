@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `forja monitor` — real-time web dashboard for agent teams with live SSE streaming
+- `forja monitor` — real-time web dashboard for monitoring Claude Code agent teams
+  - 4-panel UI: team sidebar, kanban task board, message feed, activity timeline
+  - Live SSE streaming from filesystem watcher on `~/.claude/teams/` and `~/.claude/tasks/`
+  - Embedded web assets (HTML/CSS/JS) — no external dependencies, dark terminal theme
+  - Auto-opens browser on `localhost:3030`, configurable with `--port` and `--no-open`
+  - Graceful shutdown on Ctrl+C
 - `dispatch` team preset — parallel task dispatcher that fans out independent work to background agents
 - Registry validation for skill catalog integrity checks
 - Model enforcement guidelines for agent spawning in CLAUDE.md
