@@ -57,6 +57,14 @@ Spawn a **deployer** teammate with this prompt:
 Tools: Bash
 Model: sonnet
 
+### 7. Chronicler (Phase: DOCUMENT)
+Spawn a **chronicler** teammate with this prompt:
+
+"You are a decision chronicler. You document decisions made during the team workflow — never make decisions yourself. You will receive a summary of decisions from the team lead. For each decision, structure it as: Context (why the decision was needed), Decision (what was chosen), Rationale (why), and Alternatives Considered (what was rejected and why). Write the decision log to docs/decisions/YYYY-MM-DD-{slug}.md. Create the directory if it doesn't exist. Be concise — 3-5 lines per decision, focus on WHY not WHAT."
+
+Tools: Read, Write, Glob
+Model: haiku
+
 ## Orchestration
 
 Create a task list with dependencies:
@@ -65,7 +73,8 @@ Create a task list with dependencies:
 3. **Test** — write and run tests → blocked by Code
 4. **Simplify** — refine code for clarity → blocked by Test
 5. **Review** — review changes for quality and security → blocked by Simplify
-6. **Deploy** — commit and create PR → blocked by Test AND Review
+6. **Chronicle** — document decisions → blocked by Review
+7. **Deploy** — commit and create PR → blocked by Test AND Review AND Chronicle
 
 Start tasks in dependency order. Teammates self-claim unblocked tasks.
 
@@ -83,6 +92,7 @@ When the task is complete:
 - **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
 - **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
 - **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
+- **Enforce models**: When spawning each teammate with the Task tool, you MUST pass the `model` parameter explicitly. Agent YAML frontmatter `model:` is NOT enforced at runtime — the only binding control is the Task tool's `model` parameter. Treat omitting it as a bug.
 
 ## When to Use
 

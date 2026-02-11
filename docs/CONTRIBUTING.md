@@ -7,10 +7,13 @@ This guide covers the essentials for contributing to the forja project -- both t
 ```bash
 # Clone the monorepo
 git clone https://github.com/dmend3z/forja.git
-cd forja-skills
+cd forja
 
 # Build the CLI
 cargo build
+
+# Run tests
+cargo test
 
 # Initialize in local dev mode (detects skills/ dir and symlinks instead of cloning)
 cargo run -- init
@@ -34,17 +37,37 @@ src/                  # CLI source code
   paths.rs            # ForjaPaths -- all filesystem paths
   settings.rs         # User settings
   commands/           # One file per CLI command
-    status.rs           # No-args status display
+    status.rs         # No-args status display
+    monitor/          # Real-time dashboard with tokio + axum
+      mod.rs
+      events.rs
+      server.rs
+      state.rs
+      watcher.rs
   models/             # Data types: Skill, Phase, Plugin, State, Plan, Profile
   registry/           # Catalog scanner and git operations
   symlink/            # Symlink creation and management
 
-skills/               # Agent catalog
+skills/               # Agent catalog (31 skills across 6 phases)
+  research/           # 4 skills
+  code/               # 8 skills
+  test/               # 4 skills
+  review/             # 5 skills
+  deploy/             # 3 skills
+  teams/              # 7 team configurations
   <phase>/<tech>/<name>/
-    .claude-plugin/plugin.json
-    agents/*.md
-    skills/*/SKILL.md
-    commands/*.md
+    .claude-plugin/plugin.json  # Required manifest
+    agents/*.md                 # Agent definitions (optional)
+    skills/*/SKILL.md           # Skill prompts (optional)
+    commands/*.md               # Slash commands (optional)
+
+docs/                 # Documentation
+  ARCHITECTURE.md     # System design and technical details
+  CONTRIBUTING.md     # This file
+  SKILL-AUTHORING.md  # How to create new skills
+  TEAMS.md            # Agent teams guide
+
+images/               # Banner images for README
 ```
 
 For a detailed breakdown, see [docs/ARCHITECTURE.md](./ARCHITECTURE.md).
@@ -76,6 +99,7 @@ Each CLI command lives in its own file under `src/commands/`. The pattern:
 - **`ForjaError`** (`src/error.rs`) -- all errors go through this enum. Use `thiserror` derives, not manual `impl`.
 - **`ForjaPaths`** (`src/paths.rs`) -- canonical source for all filesystem paths (`~/.forja/`, `~/.claude/agents/`, etc.). Never hardcode paths.
 - **`Result<T>`** -- alias for `std::result::Result<T, ForjaError>`, defined in `src/error.rs`.
+- **`Skill`**, **`Phase`**, **`Plugin`** (`src/models/`) -- core domain types for the catalog and skill management.
 
 ### Running tests
 
@@ -88,7 +112,7 @@ Tests use `tempfile` for isolated filesystem testing. Existing tests live alongs
 ## Code Style
 
 - **snake_case** for functions, variables, modules. **PascalCase** for types and enums.
-- **No async** -- all operations are synchronous filesystem and git subprocess calls.
+- **No async except monitor** -- most operations are synchronous filesystem and git subprocess calls. The `monitor` module uses `tokio` + `axum` for the real-time dashboard.
 - **`ForjaPaths`** for all path construction -- no ad-hoc `home_dir().join(...)`.
 - **`ForjaError`** for all errors -- add new variants as needed, use `#[from]` for automatic conversion.
 - **`colored`** for terminal output -- use `.bold()`, `.green()`, `.yellow()`, `.cyan()` consistently.

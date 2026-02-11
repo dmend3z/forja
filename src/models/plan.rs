@@ -95,6 +95,88 @@ pub fn find_latest_pending(plans_dir: &Path) -> Result<PlanMetadata> {
     Err(ForjaError::NoPlansFound)
 }
 
+// --- Execution Checkpoints ---
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum PhaseStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Failed,
+    Skipped,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PhaseCheckpoint {
+    pub phase_index: usize,
+    pub phase_name: String,
+    pub status: PhaseStatus,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub started_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exit_code: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionCheckpoint {
+    pub plan_id: String,
+    pub started_at: String,
+    pub last_updated: String,
+    pub current_phase: Option<usize>,
+    pub phases: Vec<PhaseCheckpoint>,
+}
+
+pub fn checkpoint_path(plans_dir: &Path, plan_id: &str) -> std::path::PathBuf {
+    plans_dir.join(format!("{plan_id}.checkpoint.json"))
+}
+
+pub fn workspace_dir(plans_dir: &Path, plan_id: &str) -> std::path::PathBuf {
+    plans_dir.join(format!("{plan_id}-workspace"))
+}
+
+pub fn initialize_checkpoint(plan: &PlanMetadata) -> ExecutionCheckpoint {
+    let now = chrono::Utc::now().to_rfc3339();
+    let phases = plan
+        .phases
+        .iter()
+        .enumerate()
+        .map(|(i, p)| PhaseCheckpoint {
+            phase_index: i,
+            phase_name: p.name.clone(),
+            status: PhaseStatus::Pending,
+            started_at: None,
+            completed_at: None,
+            exit_code: None,
+            error_message: None,
+        })
+        .collect();
+
+    ExecutionCheckpoint {
+        plan_id: plan.id.clone(),
+        started_at: now.clone(),
+        last_updated: now,
+        current_phase: None,
+        phases,
+    }
+}
+
+pub fn load_checkpoint(path: &Path) -> Result<ExecutionCheckpoint> {
+    let content = fs::read_to_string(path)?;
+    let checkpoint: ExecutionCheckpoint = serde_json::from_str(&content)?;
+    Ok(checkpoint)
+}
+
+pub fn save_checkpoint(path: &Path, checkpoint: &ExecutionCheckpoint) -> Result<()> {
+    let json = serde_json::to_string_pretty(checkpoint)?;
+    fs::write(path, json)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -284,5 +366,97 @@ mod tests {
         assert_eq!(plan.id, "old-plan");
         assert!(plan.quality_gates.is_empty());
         assert!(plan.phases.is_empty());
+    }
+
+    // --- Checkpoint tests ---
+
+    fn sample_plan_with_phases() -> PlanMetadata {
+        let mut plan = sample_plan("test-phases", PlanStatus::Pending);
+        plan.phases = vec![
+            PlanPhase {
+                name: "Database schema".to_string(),
+                agent_role: "coder".to_string(),
+                files_to_create: vec!["migrations/001.sql".to_string()],
+                files_to_modify: vec![],
+                instructions: "Create tables".to_string(),
+                depends_on: vec![],
+            },
+            PlanPhase {
+                name: "Auth middleware".to_string(),
+                agent_role: "coder".to_string(),
+                files_to_create: vec![],
+                files_to_modify: vec!["src/app.ts".to_string()],
+                instructions: "Add JWT".to_string(),
+                depends_on: vec!["Database schema".to_string()],
+            },
+            PlanPhase {
+                name: "Tests".to_string(),
+                agent_role: "tester".to_string(),
+                files_to_create: vec!["tests/auth.test.ts".to_string()],
+                files_to_modify: vec![],
+                instructions: "Write tests".to_string(),
+                depends_on: vec!["Auth middleware".to_string()],
+            },
+        ];
+        plan
+    }
+
+    #[test]
+    fn initialize_checkpoint_creates_all_phases_pending() {
+        let plan = sample_plan_with_phases();
+        let checkpoint = initialize_checkpoint(&plan);
+
+        assert_eq!(checkpoint.plan_id, "test-phases");
+        assert_eq!(checkpoint.phases.len(), 3);
+        assert!(
+            checkpoint
+                .phases
+                .iter()
+                .all(|p| p.status == PhaseStatus::Pending)
+        );
+        assert_eq!(checkpoint.phases[0].phase_name, "Database schema");
+        assert_eq!(checkpoint.phases[1].phase_index, 1);
+        assert_eq!(checkpoint.phases[2].phase_name, "Tests");
+        assert!(checkpoint.current_phase.is_none());
+    }
+
+    #[test]
+    fn checkpoint_roundtrip_serialization() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("test.checkpoint.json");
+
+        let plan = sample_plan_with_phases();
+        let mut checkpoint = initialize_checkpoint(&plan);
+        checkpoint.current_phase = Some(1);
+        checkpoint.phases[0].status = PhaseStatus::Completed;
+        checkpoint.phases[0].exit_code = Some(0);
+        checkpoint.phases[1].status = PhaseStatus::InProgress;
+
+        save_checkpoint(&path, &checkpoint).unwrap();
+        let loaded = load_checkpoint(&path).unwrap();
+
+        assert_eq!(loaded.plan_id, "test-phases");
+        assert_eq!(loaded.current_phase, Some(1));
+        assert_eq!(loaded.phases[0].status, PhaseStatus::Completed);
+        assert_eq!(loaded.phases[0].exit_code, Some(0));
+        assert_eq!(loaded.phases[1].status, PhaseStatus::InProgress);
+        assert_eq!(loaded.phases[2].status, PhaseStatus::Pending);
+    }
+
+    #[test]
+    fn checkpoint_path_format() {
+        let plans_dir = Path::new("/tmp/plans");
+        let path = checkpoint_path(plans_dir, "20260208-user-auth");
+        assert_eq!(
+            path,
+            Path::new("/tmp/plans/20260208-user-auth.checkpoint.json")
+        );
+    }
+
+    #[test]
+    fn workspace_dir_format() {
+        let plans_dir = Path::new("/tmp/plans");
+        let dir = workspace_dir(plans_dir, "20260208-user-auth");
+        assert_eq!(dir, Path::new("/tmp/plans/20260208-user-auth-workspace"));
     }
 }

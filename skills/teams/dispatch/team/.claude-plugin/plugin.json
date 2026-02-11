@@ -1,0 +1,7 @@
+{
+  "name": "dispatch-team",
+  "description": "Parallel task dispatcher — fan-out independent work to background agents while you keep working in the main session.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["teams", "parallel", "dispatch", "delegation", "background"]
+}

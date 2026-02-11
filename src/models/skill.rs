@@ -15,6 +15,7 @@ pub struct Skill {
     pub path: PathBuf,
     pub installed: bool,
     pub content_types: Vec<ContentType>,
+    pub keywords: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

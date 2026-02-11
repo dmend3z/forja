@@ -222,6 +222,7 @@ mod tests {
             path: skill_path,
             installed: false,
             content_types: vec![ContentType::Agent],
+            keywords: vec![],
         }
     }
 

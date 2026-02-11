@@ -52,6 +52,15 @@ pub enum ForjaError {
 
     #[error("Claude Code CLI not found. Install it from https://claude.ai/download")]
     ClaudeCliNotFound,
+
+    #[error("Ambiguous skill name '{0}' — multiple skills match")]
+    AmbiguousSkillName(String),
+
+    #[error("Phase execution failed: {0}")]
+    PhaseExecutionFailed(String),
+
+    #[error("Monitor error: {0}")]
+    Monitor(String),
 }
 
 impl ForjaError {
@@ -78,6 +87,11 @@ impl ForjaError {
             Self::NoPlansFound => "Create a plan first: forja plan \"your task\"",
             Self::PlanNotFound(_) => "List plans with: forja execute (interactive picker)",
             Self::ClaudeCliNotFound => "Install Claude Code from https://claude.ai/download",
+            Self::AmbiguousSkillName(_) => {
+                "Use the full skill path: forja install <phase>/<tech>/<name>"
+            }
+            Self::PhaseExecutionFailed(_) => "Fix the issue and resume: forja execute --resume",
+            Self::Monitor(_) => "Check if the port is already in use, try --port <other>",
         }
     }
 
@@ -85,8 +99,12 @@ impl ForjaError {
     pub fn exit_code(&self) -> i32 {
         match self {
             Self::NotInitialized => 2,
-            Self::SkillNotFound(_) | Self::TeamNotFound(_) | Self::PlanNotFound(_) => 3,
+            Self::SkillNotFound(_)
+            | Self::AmbiguousSkillName(_)
+            | Self::TeamNotFound(_)
+            | Self::PlanNotFound(_) => 3,
             Self::Io(_) | Self::Json(_) => 4,
+            Self::Monitor(_) => 5,
             _ => 1,
         }
     }
@@ -116,7 +134,10 @@ mod tests {
             ForjaError::Dialoguer("test".into()),
             ForjaError::NoPlansFound,
             ForjaError::PlanNotFound("test".into()),
+            ForjaError::AmbiguousSkillName("test".into()),
+            ForjaError::PhaseExecutionFailed("test".into()),
             ForjaError::ClaudeCliNotFound,
+            ForjaError::Monitor("test".into()),
         ];
 
         for variant in &variants {

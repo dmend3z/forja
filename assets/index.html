@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>forja monitor</title>
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">forja <span class="accent">monitor</span></div>
+        <div class="status">
+            <span id="status-dot" class="dot disconnected"></span>
+            <span id="status-text">Connecting...</span>
+        </div>
+    </header>
+
+    <main>
+        <aside id="teams-panel" class="panel">
+            <h2>Teams</h2>
+            <div id="teams-list" class="panel-content">
+                <p class="empty">No active teams</p>
+            </div>
+        </aside>
+
+        <section id="tasks-panel" class="panel">
+            <h2>Tasks</h2>
+            <div id="tasks-board" class="kanban">
+                <div class="kanban-col">
+                    <h3>Pending</h3>
+                    <div id="tasks-pending" class="kanban-items"></div>
+                </div>
+                <div class="kanban-col">
+                    <h3>In Progress</h3>
+                    <div id="tasks-in-progress" class="kanban-items"></div>
+                </div>
+                <div class="kanban-col">
+                    <h3>Done</h3>
+                    <div id="tasks-completed" class="kanban-items"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="messages-panel" class="panel">
+            <h2>Messages</h2>
+            <div id="messages-feed" class="panel-content">
+                <p class="empty">No messages yet</p>
+            </div>
+        </section>
+
+        <section id="activity-panel" class="panel">
+            <h2>Activity</h2>
+            <div id="activity-log" class="panel-content">
+                <p class="empty">Waiting for events...</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="/assets/app.js"></script>
+</body>
+</html>

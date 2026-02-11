@@ -24,12 +24,13 @@ pub struct Cli {
 pub enum Commands {
     /// Initialize forja (create ~/.forja/, set up registry)
     #[command(
-        long_about = "Initialize forja by creating the ~/.forja/ directory and setting up the \
-            skills registry. On first run, clones the default registry. If a local skills/ \
-            directory exists, creates a symlink instead (dev mode).",
+        long_about = "Initialize forja by creating the ~/.forja/ directory, cloning the skills \
+            registry, and installing all skills. No questions asked — just works. Use --wizard \
+            for interactive setup (choose mode, phases, profile).",
         after_help = "\
 EXAMPLES:
-  forja init                          # Use default registry
+  forja init                          # Install everything (global, all phases, balanced)
+  forja init --wizard                 # Interactive setup wizard
   forja init --registry-url <url>     # Use a custom registry"
     )]
     Init {
@@ -37,9 +38,9 @@ EXAMPLES:
         #[arg(long)]
         registry_url: Option<String>,
 
-        /// Skip the interactive wizard and use global mode (~/.forja/)
+        /// Run the interactive setup wizard (choose mode, phases, profile)
         #[arg(long)]
-        global: bool,
+        wizard: bool,
     },
 
     /// Install a skill via symlink
@@ -130,9 +131,6 @@ EXAMPLES:
         skill: String,
     },
 
-    /// Show the 5 workflow phases and their skills
-    Phases,
-
     /// Verify installation health
     #[command(
         long_about = "Run diagnostic checks on your forja installation: directory structure, \
@@ -201,12 +199,14 @@ EXAMPLES:
 
     /// Execute the latest plan (created by /forja-plan in Claude Code)
     #[command(
-        long_about = "Execute a previously created plan. Defaults to the latest pending \
-            plan, or specify a plan ID. Use --profile to control model selection.",
+        long_about = "Execute a previously created plan phase by phase with checkpoints. \
+            Defaults to the latest pending plan, or specify a plan ID. Use --resume to \
+            continue from where a previous execution stopped.",
         after_help = "\
 EXAMPLES:
   forja execute                       # Run the latest plan
   forja execute abc123                # Run a specific plan
+  forja execute --resume              # Resume from last checkpoint
   forja execute --profile fast        # Use fast model profile"
     )]
     Execute {
@@ -217,6 +217,31 @@ EXAMPLES:
         /// Model profile: fast, balanced, max
         #[arg(long, default_value = "balanced")]
         profile: String,
+
+        /// Resume from last checkpoint (skip completed phases)
+        #[arg(long)]
+        resume: bool,
+    },
+
+    /// Real-time dashboard for monitoring agent teams
+    #[command(
+        long_about = "Launch a real-time web dashboard that monitors active Claude Code agent \
+            teams. Watches team configs, task progress, and inter-agent messages, streaming \
+            updates live to your browser via SSE.",
+        after_help = "\
+EXAMPLES:
+  forja monitor                     # Start on default port 3030
+  forja monitor --port 8080         # Use custom port
+  forja monitor --no-open           # Don't auto-open browser"
+    )]
+    Monitor {
+        /// Port to bind the dashboard server
+        #[arg(long, default_value = "3030")]
+        port: u16,
+
+        /// Don't auto-open the browser
+        #[arg(long)]
+        no_open: bool,
     },
 
     /// Manage multi-agent teams

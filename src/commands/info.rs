@@ -4,6 +4,7 @@ use std::path::Path;
 use colored::Colorize;
 
 use crate::error::{ForjaError, Result};
+use crate::models::registry::ResolveResult;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
 use crate::symlink::manager::load_installed_ids;
@@ -14,9 +15,24 @@ pub fn run(skill_path: &str) -> Result<()> {
 
     let installed_ids = load_installed_ids(&paths.state);
     let registry = catalog::scan(&paths.registry, &installed_ids)?;
-    let skill = registry
-        .find_by_id(skill_path)
-        .ok_or_else(|| ForjaError::SkillNotFound(skill_path.to_string()))?;
+
+    let skill = match registry.resolve(skill_path) {
+        ResolveResult::Found(s) => s,
+        ResolveResult::NotFound => {
+            return Err(ForjaError::SkillNotFound(skill_path.to_string()));
+        }
+        ResolveResult::Ambiguous(matches) => {
+            println!(
+                "{} '{}' matches multiple skills:",
+                "Ambiguous:".yellow().bold(),
+                skill_path
+            );
+            for s in &matches {
+                println!("  {} — {}", s.id.cyan(), s.description.dimmed());
+            }
+            return Err(ForjaError::AmbiguousSkillName(skill_path.to_string()));
+        }
+    };
 
     println!("{}", skill.name.bold());
     println!("{}", skill.description);

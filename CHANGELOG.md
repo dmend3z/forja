@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `forja monitor` — real-time web dashboard for monitoring Claude Code agent teams
+  - 4-panel UI: team sidebar, kanban task board, message feed, activity timeline
+  - Live SSE streaming from filesystem watcher on `~/.claude/teams/` and `~/.claude/tasks/`
+  - Embedded web assets (HTML/CSS/JS) — no external dependencies, dark terminal theme
+  - Auto-opens browser on `localhost:3030`, configurable with `--port` and `--no-open`
+  - Graceful shutdown on Ctrl+C
+- `dispatch` team preset — parallel task dispatcher that fans out independent work to background agents
+- Registry validation for skill catalog integrity checks
+- Model enforcement guidelines for agent spawning in CLAUDE.md
 - Auto-install all skills during `forja init` — one command to go from zero to ready
 - Project stack detection during init (Next.js, Rust, Python, Go, TypeScript)
 - `forja` with no args shows status dashboard or welcome screen
@@ -28,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restructure README for GitHub visitors — hero, quick start, before/after, summary table
 - Error messages include contextual hints and structured exit codes
 - Clarify agent team roles and task dependencies in orchestration
+- 5 team presets now available: full-product, solo-sprint, quick-fix, refactor, dispatch
 
 ### Fixed
 

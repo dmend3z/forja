@@ -1,4 +1,5 @@
 use crate::error::{ForjaError, Result};
+use crate::models::registry::ResolveResult;
 use crate::output;
 use crate::paths::ForjaPaths;
 use crate::registry::catalog;
@@ -111,19 +112,34 @@ pub fn run(skill_path: &str) -> Result<()> {
     let paths = ForjaPaths::ensure_initialized()?;
 
     let mut installed_ids = load_installed_ids(&paths.state);
-    if installed_ids.contains(&skill_path.to_string()) {
-        return Err(ForjaError::AlreadyInstalled(skill_path.to_string()));
-    }
-
     let registry = catalog::scan(&paths.registry, &installed_ids)?;
-    let skill = registry
-        .find_by_id(skill_path)
-        .ok_or_else(|| ForjaError::SkillNotFound(skill_path.to_string()))?;
+
+    let skill = match registry.resolve(skill_path) {
+        ResolveResult::Found(s) => s,
+        ResolveResult::NotFound => {
+            return Err(ForjaError::SkillNotFound(skill_path.to_string()));
+        }
+        ResolveResult::Ambiguous(matches) => {
+            println!(
+                "{} '{}' matches multiple skills:",
+                "Ambiguous:".yellow().bold(),
+                skill_path
+            );
+            for s in &matches {
+                println!("  {} — {}", s.id.cyan(), s.description.dimmed());
+            }
+            return Err(ForjaError::AmbiguousSkillName(skill_path.to_string()));
+        }
+    };
+
+    if installed_ids.contains(&skill.id) {
+        return Err(ForjaError::AlreadyInstalled(skill.id.clone()));
+    }
 
     let manager = SymlinkManager::new(paths.claude_agents.clone(), paths.claude_commands.clone());
     let created = manager.install(skill)?;
 
-    installed_ids.push(skill_path.to_string());
+    installed_ids.push(skill.id.clone());
     save_installed_ids(&paths.state, &installed_ids)?;
 
     println!("{} {}", "Installed:".green().bold(), skill.name.bold());

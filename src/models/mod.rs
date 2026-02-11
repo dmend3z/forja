@@ -1,4 +1,5 @@
 pub mod active_project;
+pub mod claude;
 pub mod config;
 pub mod phase;
 pub mod plan;

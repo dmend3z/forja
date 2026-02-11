@@ -16,8 +16,18 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
 colored = "2"
+chrono = "0.4"
 dirs = "6"
 dialoguer = "0.11"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "signal"] }
+axum = "0.8"
+tower-http = { version = "0.6", features = ["cors"] }
+notify = "7"
+notify-debouncer-mini = "0.5"
+rust-embed = "8"
+open = "5"
+mime_guess = "2"
+tokio-stream = { version = "0.1", features = ["sync"] }
 
 [dev-dependencies]
 tempfile = "3"

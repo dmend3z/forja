@@ -5,7 +5,7 @@ pub mod info;
 pub mod init;
 pub mod install;
 pub mod list;
-pub mod phases;
+pub mod monitor;
 pub mod plan;
 pub mod search;
 pub mod status;

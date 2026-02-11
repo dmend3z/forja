@@ -1,0 +1,7 @@
+{
+  "name": "technical-council",
+  "description": "Council of engineering personas — consult 5 diverse technical perspectives on architecture, infrastructure, security, quality, and performance decisions.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["teams", "council", "architecture", "technical", "consultation"]
+}

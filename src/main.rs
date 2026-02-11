@@ -33,8 +33,8 @@ fn dispatch(command: Commands) -> error::Result<()> {
     match command {
         Commands::Init {
             registry_url,
-            global,
-        } => commands::init::run(registry_url, global),
+            wizard,
+        } => commands::init::run(registry_url, wizard),
         Commands::Install { skill, all } => {
             if all {
                 commands::install::run_all()
@@ -48,7 +48,6 @@ fn dispatch(command: Commands) -> error::Result<()> {
         Commands::List { available } => commands::list::run(available),
         Commands::Update => commands::update::run(),
         Commands::Info { ref skill } => commands::info::run(skill),
-        Commands::Phases => commands::phases::run(),
         Commands::Doctor => commands::doctor::run(),
         Commands::Guide { ref phase } => commands::guide::run(phase.as_deref()),
         Commands::Plan { ref task } => commands::plan::run(task),
@@ -61,7 +60,13 @@ fn dispatch(command: Commands) -> error::Result<()> {
         Commands::Execute {
             ref plan_id,
             ref profile,
-        } => commands::execute::run(plan_id.as_deref(), profile),
+            resume,
+        } => commands::execute::run(plan_id.as_deref(), profile, resume),
+        Commands::Monitor { port, no_open } => {
+            let rt = tokio::runtime::Runtime::new()
+                .map_err(|e| error::ForjaError::Monitor(format!("Failed to start runtime: {e}")))?;
+            rt.block_on(commands::monitor::run(port, !no_open))
+        }
         Commands::Team { command } => match command {
             TeamCommands::Create { name } => commands::team::create(&name),
             TeamCommands::Preset { name, ref profile } => commands::team::preset(&name, profile),

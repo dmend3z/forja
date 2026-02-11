@@ -424,6 +424,9 @@ pub fn preset(name: &str, profile_str: &str) -> Result<()> {
         ("full-product", "teams/full-product/team"),
         ("solo-sprint", "teams/solo-sprint/team"),
         ("quick-fix", "teams/quick-fix/team"),
+        ("dispatch", "teams/dispatch/team"),
+        ("tech-council", "teams/technical-council/team"),
+        ("biz-council", "teams/strategic-council/team"),
     ];
 
     let skill_id = preset_mapping
@@ -432,7 +435,7 @@ pub fn preset(name: &str, profile_str: &str) -> Result<()> {
         .map(|(_, id)| *id)
         .ok_or_else(|| {
             ForjaError::SkillNotFound(format!(
-                "Unknown preset '{}'. Available: full-product, solo-sprint, quick-fix",
+                "Unknown preset '{}'. Available: full-product, solo-sprint, quick-fix, dispatch, tech-council, biz-council",
                 name
             ))
         })?;
@@ -700,9 +703,20 @@ pub(crate) fn resolve_preset_members(
             ("code/general/feature", "coder", Phase::Code),
             ("deploy/git/commit", "deployer", Phase::Deploy),
         ],
+        "dispatch" => vec![("teams/dispatch/team", "dispatcher", Phase::Teams)],
+        "tech-council" => vec![(
+            "teams/technical-council/team",
+            "council-facilitator",
+            Phase::Review,
+        )],
+        "biz-council" => vec![(
+            "teams/strategic-council/team",
+            "strategic-facilitator",
+            Phase::Review,
+        )],
         _ => {
             return Err(ForjaError::SkillNotFound(format!(
-                "Unknown preset '{}'. Available: full-product, solo-sprint, quick-fix",
+                "Unknown preset '{}'. Available: full-product, solo-sprint, quick-fix, dispatch, tech-council, biz-council",
                 preset_name
             )));
         }
@@ -869,6 +883,22 @@ mod tests {
         assert_eq!(members.len(), 2);
         assert_eq!(members[0].agent_name, "coder");
         assert_eq!(members[1].agent_name, "deployer");
+    }
+
+    #[test]
+    fn resolve_preset_members_tech_council() {
+        let members = resolve_preset_members("tech-council", &Profile::Balanced).unwrap();
+        assert_eq!(members.len(), 1);
+        assert_eq!(members[0].agent_name, "council-facilitator");
+        assert_eq!(members[0].skill_id, "teams/technical-council/team");
+    }
+
+    #[test]
+    fn resolve_preset_members_biz_council() {
+        let members = resolve_preset_members("biz-council", &Profile::Balanced).unwrap();
+        assert_eq!(members.len(), 1);
+        assert_eq!(members[0].agent_name, "strategic-facilitator");
+        assert_eq!(members[0].skill_id, "teams/strategic-council/team");
     }
 
     #[test]
