@@ -7,7 +7,7 @@ This guide covers the essentials for contributing to the forja project -- both t
 ```bash
 # Clone the monorepo
 git clone https://github.com/dmend3z/forja.git
-cd mndz-skills
+cd forja
 
 # Build the CLI
 cargo build
