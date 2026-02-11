@@ -314,10 +314,10 @@ fn build_phase_prompt(
 
             // Include phase output summary if available
             let output_path = workspace_dir.join(format!("phase-{i}.md"));
-            if output_path.exists() {
-                if let Ok(content) = fs::read_to_string(&output_path) {
-                    prompt.push_str(&format!("\nOutput summary:\n{content}\n"));
-                }
+            if output_path.exists()
+                && let Ok(content) = fs::read_to_string(&output_path)
+            {
+                prompt.push_str(&format!("\nOutput summary:\n{content}\n"));
             }
             prompt.push('\n');
         }
