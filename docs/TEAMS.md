@@ -15,32 +15,46 @@ Teams require the experimental agent teams feature in Claude Code. Forja enables
 
 ## Team Presets
 
-Forja ships with 4 built-in team configurations. Each preset maps agents to workflow phases and assigns models based on a profile.
+Forja ships with 6 built-in team configurations. Each preset maps agents to workflow phases and assigns models based on a profile.
 
 ### full-product
 
-5 agents covering the full development lifecycle. Use for new features that touch multiple files and need research, implementation, testing, review, and deployment.
+6 agents covering the full development lifecycle. Use for new features that touch multiple files and need research, implementation, testing, simplification, review, and deployment.
 
 | # | Agent | Phase | Role |
 |---|-------|-------|------|
 | 1 | Researcher | RESEARCH | Explores codebase, maps architecture, identifies patterns and risks |
 | 2 | Coder | CODE | Implements features following existing patterns |
 | 3 | Tester | TEST | Writes tests (TDD), targets 80%+ coverage |
-| 4 | Reviewer | REVIEW | Reviews for correctness, security (OWASP), performance |
-| 5 | Deployer | DEPLOY | Creates conventional commits, pushes branch, opens PR |
+| 4 | Code-Simplifier | CODE | Simplifies complex code, removes duplication, improves readability |
+| 5 | Reviewer | REVIEW | Reviews for correctness, security (OWASP), performance |
+| 6 | Deployer | DEPLOY | Creates conventional commits, pushes branch, opens PR |
 
-Orchestration order: Researcher first, then Coder, then Tester and Reviewer in parallel, then Deployer after both approve.
+**Usage:**
+```bash
+forja team preset full-product
+forja task "add user authentication with JWT" --team full-product
+```
+
+Orchestration order: Researcher first, then Coder, then Tester, then Code-Simplifier, then Reviewer, then Deployer after all approve.
 
 ### solo-sprint
 
-2 agents for medium features (3-10 files) where you already understand the codebase and don't need a research phase.
+3 agents for medium features (3-10 files) where you already understand the codebase and don't need a research phase.
 
 | # | Agent | Phase | Role |
 |---|-------|-------|------|
 | 1 | Coder-Tester | CODE + TEST | Implements and tests in a single pass |
-| 2 | Reviewer | REVIEW | Sprint-style review (concise, not a deep audit) |
+| 2 | Code-Simplifier | CODE | Simplifies and improves readability |
+| 3 | Reviewer | REVIEW | Sprint-style review (concise, not a deep audit) |
 
-Orchestration order: Coder-Tester first, then Reviewer. If the reviewer requests changes, findings go back to the Coder-Tester (max 2 rounds).
+**Usage:**
+```bash
+forja team preset solo-sprint --profile fast
+forja task "add pagination to user list" --team solo-sprint
+```
+
+Orchestration order: Coder-Tester first, then Code-Simplifier, then Reviewer. If the reviewer requests changes, findings go back to the Coder-Tester (max 2 rounds).
 
 ### quick-fix
 
@@ -51,9 +65,67 @@ Orchestration order: Coder-Tester first, then Reviewer. If the reviewer requests
 | 1 | Coder | CODE | Finds root cause, applies minimal fix, runs existing tests |
 | 2 | Deployer | DEPLOY | Commits with `fix(scope): ...`, pushes branch, creates PR |
 
+**Usage:**
+```bash
+forja team preset quick-fix
+forja task "fix login redirect bug" --team quick-fix
+```
+
 Orchestration order: Coder fixes the bug, then Deployer commits and creates the PR.
 
-### refactor
+### dispatch
+
+1 agent for parallel task orchestration. Use when you have multiple independent tasks that can be split among parallel workers.
+
+| # | Agent | Phase | Role |
+|---|-------|-------|------|
+| 1 | Dispatcher | RESEARCH | Analyzes task, creates subtasks, spawns parallel workers, aggregates results |
+
+**Usage:**
+```bash
+forja team preset dispatch
+forja task "add validation to all API endpoints" --team dispatch
+```
+
+The dispatcher breaks down the task into independent units (e.g., one worker per endpoint), spawns them in parallel, and consolidates the results.
+
+### tech-council
+
+1 agent for technical architecture decisions. Use when you need diverse engineering perspectives on system design, technology choices, or architectural trade-offs.
+
+| # | Agent | Phase | Role |
+|---|-------|-------|------|
+| 1 | Council-Facilitator | RESEARCH | Summons 5 engineering personas (Senior Backend, Senior Frontend, DevOps, Security, Product Engineer) to debate and reach consensus |
+
+**Usage:**
+```bash
+forja team preset tech-council
+forja task "should we use GraphQL or REST for the new API?" --team tech-council
+```
+
+The facilitator presents the question to the council, moderates the discussion, and synthesizes recommendations.
+
+### biz-council
+
+1 agent for business strategy decisions. Use when you need perspectives on product-market fit, monetization, growth strategy, or competitive positioning.
+
+| # | Agent | Phase | Role |
+|---|-------|-------|------|
+| 1 | Strategic-Facilitator | RESEARCH | Summons 5 business personas (CEO, CMO, CFO, CPO, Head of Sales) to evaluate and reach consensus |
+
+**Usage:**
+```bash
+forja team preset biz-council
+forja task "pricing strategy for enterprise tier" --team biz-council
+```
+
+The facilitator presents the question to the council, facilitates debate, and synthesizes a strategic recommendation.
+
+## Slash Command Teams
+
+Some teams are available only as slash commands (not CLI presets). They provide specialized workflows accessed directly in Claude Code.
+
+### /refactor
 
 3 agents for structural code changes that preserve behavior. Use when you need to extract modules, reorganize files, or restructure code — but the external behavior must stay the same.
 
@@ -63,7 +135,14 @@ Orchestration order: Coder fixes the bug, then Deployer commits and creates the 
 | 2 | Refactorer | CODE | Executes the refactoring plan step-by-step. Runs tests after each change. |
 | 3 | Reviewer | REVIEW | Verifies behavioral equivalence — flags regressions, API breaks. Does NOT review for security or performance. |
 
+**Usage:**
+```
+/refactor Extract user validation logic into a separate module
+```
+
 Orchestration order: Analyzer produces a plan, Lead evaluates (stops if test coverage too low), Refactorer executes, Reviewer checks for regressions. Max 2 review rounds before escalating. No deployer — user commits when ready.
+
+**Note:** Install with `forja install teams/refactor/team` to enable the `/refactor` slash command.
 
 ## Model Profiles
 
@@ -88,6 +167,9 @@ The default profile is `balanced`.
 forja team preset full-product
 forja team preset solo-sprint --profile fast
 forja team preset quick-fix --profile max
+forja team preset dispatch
+forja team preset tech-council
+forja team preset biz-council
 ```
 
 This creates a slash command at `~/.claude/commands/forja--team--<name>.md` and saves the team configuration to `~/.forja/state.json`. The `--profile` flag defaults to `balanced`.
@@ -149,6 +231,9 @@ This tells Claude Code to spawn the agents defined in the team and orchestrate t
 ```bash
 forja task "add user auth with JWT" --team full-product
 forja task "fix the login bug" --team quick-fix --profile fast
+forja task "add validation to all API endpoints" --team dispatch
+forja task "should we migrate to microservices?" --team tech-council
+forja task "pricing strategy for enterprise tier" --team biz-council
 ```
 
 The `--team` flag accepts any configured team name or a preset name. If the preset hasn't been configured yet, forja resolves it in-memory without persisting. The `--profile` flag overrides the team's default profile for this run.
@@ -198,7 +283,10 @@ The `--profile` flag overrides the plan's default profile (balanced).
 |----------|----------|
 | Simple bug fix, known location | `forja task "..." --team quick-fix` |
 | Medium feature, familiar codebase | `forja task "..." --team solo-sprint` |
-| Large feature, needs research | `forja plan "..." && forja execute` |
-| Restructuring code without changing behavior | `forja task "..." --team refactor` |
+| Large feature, needs research | `forja plan "..." && forja execute` or `forja task "..." --team full-product` |
+| Restructuring code without changing behavior | `/refactor Extract module X` (slash command) |
+| Multiple independent tasks in parallel | `forja task "..." --team dispatch` |
+| Technical architecture decision | `forja task "..." --team tech-council` |
+| Business strategy decision | `forja task "..." --team biz-council` |
 | Recurring workflow with specific agents | `forja team create my-team`, then slash command |
 | One-off task, no team needed | `forja task "..."` (solo mode) |

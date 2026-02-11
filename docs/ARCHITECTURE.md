@@ -1,6 +1,6 @@
 # Architecture
 
-Rust CLI for managing Claude Code agents. Clap 4 for arg parsing, serde for serialization, thiserror for errors. No async runtime -- all operations are filesystem I/O and git subprocesses.
+Rust CLI for managing Claude Code agents. Clap 4 for arg parsing, serde for serialization, thiserror for errors. No async runtime except for the monitor module, which uses Tokio and Axum for real-time dashboard serving.
 
 ## Module Map
 
@@ -9,8 +9,11 @@ src/
 ├── main.rs              # Entry point: parses CLI, dispatches to commands, handles top-level errors
 ├── cli.rs               # Clap derive structs: Cli, Commands, TeamCommands
 ├── error.rs             # ForjaError (thiserror) + Result<T> type alias
-├── paths.rs             # ForjaPaths: all filesystem paths (~/.forja/*, ~/.claude/*)
+├── paths.rs             # ForjaPaths: all filesystem paths (~/.forja/*, ~/.claude/*), ForjaMode (Project vs Global)
 ├── settings.rs          # Read/write ~/.claude/settings.json (agent teams env var)
+├── output.rs            # Terminal output formatting and colored messages
+├── tips.rs              # Random tips for status dashboard
+├── wizard.rs            # Interactive init wizard (3 steps)
 │
 ├── models/              # Data types (no business logic beyond ser/de)
 │   ├── phase.rs         # Phase enum: Research, Code, Test, Review, Deploy, Teams
@@ -19,14 +22,19 @@ src/
 │   ├── registry.rs      # Registry: in-memory skill index with find_by_id() and search()
 │   ├── state.rs         # ForjaState, TeamEntry, TeamMember + load/save/migration
 │   ├── profile.rs       # Profile enum (Fast, Balanced, Max) + model resolution per phase
-│   └── plan.rs          # PlanMetadata, PlanPhase, PlanStatus + find_latest_pending()
+│   ├── plan.rs          # PlanMetadata, PlanPhase, PlanStatus + find_latest_pending()
+│   ├── config.rs        # Config: registry URL, local mode flag
+│   ├── active_project.rs # Active project tracking for project-scoped state
+│   └── claude.rs        # Claude Code integration models
 │
 ├── registry/            # Catalog scanning and git operations
 │   ├── catalog.rs       # scan(): walks skills/<phase>/<tech>/<name>/, builds Registry
 │   └── git.rs           # clone() and pull() via git subprocess
 │
 ├── symlink/             # Symlink lifecycle management
-│   └── manager.rs       # SymlinkManager: install/uninstall/verify + state persistence wrappers
+│   ├── manager.rs       # SymlinkManager: install/uninstall/verify + state persistence wrappers
+│   ├── auto_install.rs  # Auto-install agents on init
+│   └── sync.rs          # Symlink sync operations
 │
 └── commands/            # One file per CLI subcommand
     ├── init.rs          # Create ~/.forja/, clone or symlink registry, auto-install all skills, detect stack
@@ -36,13 +44,19 @@ src/
     ├── list.rs          # Show installed or all available skills grouped by phase
     ├── update.rs        # git pull on registry
     ├── info.rs          # Show skill details (phase, tech, description, content types)
-    ├── phases.rs        # Display the 5+1 workflow phases with descriptions
+    ├── guide.rs         # Show workflow phase guide (Research → Code → Test → Review → Deploy)
     ├── doctor.rs        # Health check: paths, symlinks, catalog count, teams, env var
     ├── status.rs        # No-args status: welcome pitch (not initialized) or dashboard (initialized)
     ├── plan.rs          # Load forja-plan command template, launch Claude Code session
     ├── execute.rs       # Load plan JSON, auto-install agents, build prompt, launch Claude Code
     ├── task.rs          # Direct task execution: solo or team mode with interactive picker
-    └── team.rs          # Team CRUD: create (wizard), preset, list, info, delete
+    ├── team.rs          # Team CRUD: create (wizard), preset, list, info, delete
+    └── monitor/         # Real-time dashboard for agent teams
+        ├── mod.rs       # forja monitor entry point
+        ├── server.rs    # Axum HTTP server
+        ├── watcher.rs   # Filesystem watcher for team/task changes
+        ├── state.rs     # Monitor state management
+        └── events.rs    # SSE event streaming
 ```
 
 ## Data Flow
@@ -132,15 +146,30 @@ commands/execute.rs::run(plan_id, profile)
   8. On success: mark plan status as "executed", save JSON
 ```
 
+### `forja monitor`
+
+```
+commands/monitor/mod.rs::run(port)
+    ↓
+  1. Initialize MonitorState from ~/.forja/state.json and ~/.forja/plans/
+  2. Spawn filesystem watcher (watcher.rs) → notify on changes to state.json or plans/
+  3. Start Axum HTTP server (server.rs):
+     a. GET / → serve static HTML dashboard
+     b. GET /api/events → SSE stream (events.rs)
+     c. GET /api/state → current state JSON
+  4. Watcher sends events → broadcast via SSE to connected clients
+  5. Dashboard polls state and renders real-time updates
+```
+
 ## Key Types
 
 ### `ForjaPaths` (`src/paths.rs`)
 
-All filesystem paths used by the CLI. Computed from `$HOME` on every invocation.
+All filesystem paths used by the CLI. Computed on every invocation with auto-detection of project vs global mode.
 
 | Field            | Path                      |
 |------------------|---------------------------|
-| `forja_root`     | `~/.forja/`               |
+| `forja_root`     | `~/.forja/` or `.forja/`  |
 | `registry`       | `~/.forja/registry/`      |
 | `config`         | `~/.forja/config.json`    |
 | `state`          | `~/.forja/state.json`     |
@@ -149,7 +178,17 @@ All filesystem paths used by the CLI. Computed from `$HOME` on every invocation.
 | `claude_agents`  | `~/.claude/agents/`       |
 | `claude_commands` | `~/.claude/commands/`    |
 
-Two constructors: `new()` (always succeeds) and `ensure_initialized()` (errors if `~/.forja/` missing).
+Constructors:
+- `new()` → always succeeds, detects ForjaMode (Project if `.forja/` exists in cwd, else Global)
+- `ensure_initialized()` → errors if `forja_root` missing
+
+### `ForjaMode` (`src/paths.rs`)
+
+```rust
+enum ForjaMode { Global, Project }
+```
+
+Determines whether forja operates on the global `~/.forja/` or a project-scoped `.forja/`. Auto-detected by checking for `.forja/` in the current working directory.
 
 ### `ForjaError` (`src/error.rs`)
 
@@ -233,13 +272,15 @@ struct PlanMetadata {
 
 ## Design Decisions
 
-### No async runtime
+### Sync-first with async monitor
 
-All operations are synchronous: filesystem reads, git subprocesses, and interactive prompts (dialoguer). There is no network I/O beyond shelling out to `git`. This keeps the binary small and the code simple.
+All core operations are synchronous: filesystem reads, git subprocesses, and interactive prompts (dialoguer). There is no network I/O beyond shelling out to `git`. This keeps the binary small and the code simple.
+
+The monitor module is the exception: it uses Tokio and Axum to serve a real-time dashboard via HTTP and Server-Sent Events (SSE). This is isolated to the `commands/monitor/` subtree and does not affect the rest of the CLI.
 
 ### Scan-on-demand catalog (no cache)
 
-`catalog::scan()` walks the `skills/<phase>/<tech>/<name>/` directory tree and reads every `plugin.json` on every invocation. No index file, no cache. With <100 agents the scan completes in under 50ms, making caching unnecessary complexity.
+`catalog::scan()` walks the `skills/<phase>/<tech>/<name>/` directory tree and reads every `plugin.json` on every invocation. No index file, no cache. With 31 skills (24 individual skills + 7 team configs) the scan completes in under 50ms, making caching unnecessary complexity.
 
 ### Symlink prefix `forja--`
 
@@ -279,6 +320,14 @@ Team slash commands are written to `~/.claude/commands/` with the pattern `forja
 
 `detect_stack()` in `init.rs` checks the cwd for framework files (`next.config.*`, `nuxt.config.*`, etc.) and language markers (`Cargo.toml`, `go.mod`, `tsconfig.json`, etc.). Two-layer approach: frameworks first, then languages, joined with " + ". Returns `None` when no recognized files exist.
 
+### Project vs global mode
+
+`ForjaPaths::new()` auto-detects whether to use project-scoped (`.forja/` in cwd) or global (`~/.forja/`) state. Project mode enables per-project team configurations and plans while sharing the global registry and agent installation. Detection happens on every invocation by checking for `.forja/` in the current working directory.
+
 ### No-args contextual status
 
 Running `forja` with no subcommand shows a status dashboard (initialized) or welcome pitch (not initialized). Implemented by making the clap `command` field `Option<Commands>`. `--help` is unaffected since clap handles it before our code.
+
+### Real-time monitoring
+
+`forja monitor` starts a local Axum HTTP server with SSE streaming for real-time team activity visibility. The watcher uses `notify` crate to observe state and plan changes, broadcasting updates to connected dashboard clients. This enables multi-terminal workflows where one terminal runs agents while another monitors progress.

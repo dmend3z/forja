@@ -14,7 +14,7 @@ Symlinks are prefixed with `forja--` to avoid name collisions. For example, inst
 
 ## Directory Structure
 
-Every agent lives under `skills/` following a three-level hierarchy:
+Every skill lives under `skills/` following a three-level hierarchy:
 
 ```
 skills/<phase>/<tech>/<name>/
@@ -22,20 +22,22 @@ skills/<phase>/<tech>/<name>/
 
 - **phase** -- one of: `research`, `code`, `test`, `review`, `deploy`, `teams`
 - **tech** -- the technology or domain category (e.g. `typescript`, `tdd`, `security`, `git`)
-- **name** -- the agent name in kebab-case (e.g. `feature`, `workflow`, `auditor`)
+- **name** -- the skill name in kebab-case (e.g. `feature`, `workflow`, `auditor`)
 
-The agent ID is derived from this path: `<phase>/<tech>/<name>`. For example:
+The catalog currently contains 31 skills across 6 phases.
 
-| Path | Agent ID |
+The skill ID is derived from this path: `<phase>/<tech>/<name>`. For example:
+
+| Path | Skill ID |
 |------|----------|
 | `skills/code/rust/feature/` | `code/rust/feature` |
 | `skills/test/tdd/workflow/` | `test/tdd/workflow` |
 | `skills/deploy/git/commit/` | `deploy/git/commit` |
-| `skills/teams/quick-fix/team/` | `teams/quick-fix/team` |
+| `skills/teams/solo-sprint/team/` | `teams/solo-sprint/team` |
 
 ## Required: plugin.json
 
-Every agent must have a `.claude-plugin/plugin.json` file. This is the only required file -- without it, forja will not detect the agent.
+Every skill must have a `.claude-plugin/plugin.json` file. This is the only required file -- without it, forja will not detect the skill.
 
 ```
 <name>/
@@ -58,10 +60,10 @@ Every agent must have a `.claude-plugin/plugin.json` file. This is the only requ
 | Field | Required | Description |
 |-------|----------|-------------|
 | `name` | yes | Display name shown in `forja list` and `forja info` |
-| `description` | yes | One-sentence summary. Shown in search results |
-| `version` | no | Semver string |
-| `author` | no | Object with `name` (string) and optional `email` (string) |
-| `keywords` | no | Array of strings for `forja search` |
+| `description` | yes | One-sentence summary. Shown in listings and search results |
+| `version` | yes | Semver string (e.g. "1.0.0") |
+| `author` | yes | Object with `name` (string) |
+| `keywords` | yes | Array of strings for categorization and search |
 
 Real example from `deploy/git/commit`:
 
@@ -105,11 +107,13 @@ model: opus
 | `tools` | Comma-separated list of tools the agent can use |
 | `model` | Which model to use: `opus` for complex tasks, `sonnet` for simpler ones |
 
-**Available tools**: `Read`, `Write`, `Edit`, `Bash`, `Glob`, `Grep`, `LSP`
+**Available tools**: `Read`, `Write`, `Edit`, `Bash`, `Glob`, `Grep`, `LSP`, `Task`
 
 **Model guidance**:
 - Use `opus` for agents that need deep reasoning (coding, research, review, testing)
-- Use `sonnet` for agents that run straightforward commands (commits, PRs, deploys)
+- Use `sonnet` for agents that execute straightforward workflows (commits, PRs, deploys)
+
+**Important**: The `model` field in frontmatter is metadata only. When spawning agents programmatically with the `Task` tool, you MUST pass the `model` parameter explicitly to enforce the model choice.
 
 ### Body Content
 
@@ -213,11 +217,13 @@ argument-hint: What the user should pass as an argument
 ---
 ```
 
-Commands are symlinked into `~/.claude/commands/` on install. Note: commands from `teams`-phase skills are not symlinked by `forja install` -- they are managed separately by `forja team`.
+Commands are symlinked into `~/.claude/commands/` on install.
 
-## Complete Agent Layout
+Note: commands from `teams`-phase skills are managed separately. Installing a team skill with `forja install teams/<tech>/<name>` does not symlink its commands -- use `forja team add <team-name>` instead.
 
-Here is every possible file in an agent package, all together:
+## Complete Skill Layout
+
+Here is every possible file in a skill package:
 
 ```
 skills/<phase>/<tech>/<name>/
@@ -232,19 +238,19 @@ skills/<phase>/<tech>/<name>/
     command-name.md       # Slash command (symlinked to ~/.claude/commands/)
 ```
 
-Most agents only use one or two of these. A typical agent has `plugin.json` + one agent file.
+Most skills only use one or two of these content types. A typical skill has `plugin.json` + one agent file.
 
 ## Naming Conventions
 
-- **Directories**: kebab-case (`code-quality`, `tdd-workflow`, `full-product`)
-- **Agent files**: kebab-case matching the agent name (`ts-coder.md`, `security-auditor.md`)
-- **Agent IDs**: derived from path, slash-separated (`code/typescript/feature`, `review/security/auditor`)
+- **Directories**: kebab-case (`code-quality`, `tdd-workflow`, `solo-sprint`)
+- **Agent files**: kebab-case matching the agent name (`researcher.md`, `lint-fixer.md`)
+- **Skill IDs**: derived from path, slash-separated (`code/typescript/feature`, `review/security/auditor`)
 - **plugin.json name**: kebab-case display name (`git-commit`, `code-reviewer`, `tdd-workflow`)
-- **Agent names in frontmatter**: kebab-case (`committer`, `tdd-guide`, `security-auditor`)
+- **Agent names in frontmatter**: kebab-case (`committer`, `researcher`, `security-auditor`)
 
-## Concrete Example: Creating a Linting Agent
+## Concrete Example: Creating a Linting Skill
 
-Let's walk through creating a new agent that runs linting and auto-fixes issues.
+Let's walk through creating a new skill that runs linting and auto-fixes issues.
 
 ### 1. Create the directory structure
 
@@ -305,13 +311,13 @@ From the forja-skills repo root:
 
 ```bash
 # Initialize forja in local dev mode (creates symlink + installs all skills)
-forja init
+cargo run -- init
 
-# If you created this agent after running init, install it explicitly
-forja install review/linting/fixer
+# If you created this skill after running init, install it explicitly
+cargo run -- install review/linting/fixer
 
 # Verify everything is healthy
-forja doctor
+cargo run -- doctor
 ```
 
 `forja doctor` checks that all symlinks point to valid files. If you see `PASS` for symlinks, your agent is installed correctly.
@@ -327,7 +333,7 @@ ls -la ~/.claude/agents/ | grep forja--review--linting--fixer
 You should see:
 
 ```
-forja--review--linting--fixer--lint-fixer.md -> /path/to/skills/review/linting/fixer/agents/lint-fixer.md
+forja--review--linting--fixer--lint-fixer.md -> /Users/you/mndz-skills/skills/review/linting/fixer/agents/lint-fixer.md
 ```
 
 ## Local Development Workflow
@@ -342,27 +348,28 @@ Typical cycle:
 
 ```bash
 # One-time setup
-forja init                    # Detects local skills/, creates symlink, installs all agents
+cargo run -- init                    # Detects local skills/, creates symlink, installs all skills
 
 # Edit-test loop
-vim skills/.../agents/my-agent.md   # Edit the agent
+vim skills/.../agents/my-agent.md    # Edit the agent
 # Open Claude Code -- changes are live immediately
 
-# Adding a new agent after init
-forja install <skill-id>      # Install an agent created after initial setup
+# Adding a new skill after init
+cargo run -- install <skill-id>      # Install a skill created after initial setup
 
 # Verify
-forja doctor                  # Check symlink health
+cargo run -- doctor                  # Check symlink health
 ```
 
 ## Checklist
 
-Before submitting a new agent:
+Before submitting a new skill:
 
 - [ ] Directory follows `skills/<phase>/<tech>/<name>/` structure
-- [ ] `.claude-plugin/plugin.json` exists with `name` and `description`
+- [ ] `.claude-plugin/plugin.json` exists with all required fields (`name`, `description`, `version`, `author`, `keywords`)
 - [ ] Agent `.md` files have valid frontmatter (`name`, `description`, `tools`, `model`)
 - [ ] Agent prompt includes a clear role statement, workflow, and rules
-- [ ] `forja install <skill-id>` succeeds
-- [ ] `forja doctor` shows all symlinks healthy
+- [ ] `cargo run -- install <skill-id>` succeeds without errors
+- [ ] `cargo run -- doctor` shows all symlinks healthy
 - [ ] Agent appears in Claude Code's agent picker
+- [ ] Tested the agent end-to-end in a real scenario

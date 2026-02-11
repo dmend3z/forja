@@ -19,15 +19,18 @@ You are the lead of a full product development team. Your job is to coordinate 6
 
 ## Coordination Rules
 
-- Start with Researcher. Wait for their report before spawning Coder.
-- Require plan approval for the Coder before implementation begins.
-- Give Coder the research findings as context in their spawn prompt.
-- Tester runs after Coder finishes.
-- Code-Simplifier runs after Tester finishes (needs tests to verify refactorings).
-- Reviewer runs after Code-Simplifier finishes.
-- Deployer runs ONLY after both Tester and Reviewer approve.
-- Keep brief decision notes as you coordinate. After Review completes and before Deploy, spawn the Chronicler with your accumulated decision notes.
-- If Reviewer requests changes, send findings back to Coder for fixes.
+After creating all tasks with dependencies, follow this loop:
+1. Check TaskList for tasks that are pending and have no unresolved blockedBy
+2. Spawn ALL unblocked agents in ONE message (multiple Task tool calls)
+3. When an agent completes and messages you, check TaskList again
+4. Spawn any newly-unblocked agents in ONE message
+5. Repeat until all tasks are completed
+
+Special requirements:
+- Coder requires plan approval — spawn with plan mode so you review the plan before implementation
+- Give Coder the Researcher's findings as context in the spawn prompt
+- After Review completes, spawn Chronicler with your accumulated decision notes
+- If Reviewer requests changes, message the existing Coder — don't spawn a new one
 
 ## Model Enforcement
 
