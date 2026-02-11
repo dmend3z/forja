@@ -19,16 +19,17 @@ Forja ships with 6 built-in team configurations. Each preset maps agents to work
 
 ### full-product
 
-6 agents covering the full development lifecycle. Use for new features that touch multiple files and need research, implementation, testing, simplification, review, and deployment.
+7 agents covering the full development lifecycle. Use for new features that touch multiple files and need research, implementation, testing, simplification, review, and deployment.
 
 | # | Agent | Phase | Role |
 |---|-------|-------|------|
 | 1 | Researcher | RESEARCH | Explores codebase, maps architecture, identifies patterns and risks |
 | 2 | Coder | CODE | Implements features following existing patterns |
 | 3 | Tester | TEST | Writes tests (TDD), targets 80%+ coverage |
-| 4 | Code-Simplifier | CODE | Simplifies complex code, removes duplication, improves readability |
+| 4 | Code-Simplifier | REVIEW | Simplifies complex code, removes duplication, improves readability |
 | 5 | Reviewer | REVIEW | Reviews for correctness, security (OWASP), performance |
-| 6 | Deployer | DEPLOY | Creates conventional commits, pushes branch, opens PR |
+| 6 | Chronicler | DOCUMENT | Documents decisions made during the workflow (context, rationale, alternatives) |
+| 7 | Deployer | DEPLOY | Creates conventional commits, pushes branch, opens PR |
 
 **Usage:**
 ```bash
@@ -36,7 +37,7 @@ forja team preset full-product
 forja task "add user authentication with JWT" --team full-product
 ```
 
-Orchestration order: Researcher first, then Coder, then Tester, then Code-Simplifier, then Reviewer, then Deployer after all approve.
+Orchestration order: Researcher → Coder → Tester → Code-Simplifier → Reviewer → Chronicler → Deployer (deploy blocked by test, review, and chronicle).
 
 ### solo-sprint
 
@@ -75,51 +76,66 @@ Orchestration order: Coder fixes the bug, then Deployer commits and creates the 
 
 ### dispatch
 
-1 agent for parallel task orchestration. Use when you have multiple independent tasks that can be split among parallel workers.
+1 dispatcher agent for parallel task orchestration. Lightweight by design — no TeamCreate, no shared task list, just you + N background Task agents.
 
 | # | Agent | Phase | Role |
 |---|-------|-------|------|
-| 1 | Dispatcher | RESEARCH | Analyzes task, creates subtasks, spawns parallel workers, aggregates results |
+| 1 | Dispatcher | TEAMS | Decomposes work into independent tasks, spawns background agents in parallel (max 5), collects and synthesizes results |
+
+The dispatcher follows a 5-step workflow: **Decompose** (break into discrete tasks) → **Map** (select agent type and model per task) → **Dispatch** (spawn all independent tasks in a single message with `run_in_background: true`) → **Continue** (return control immediately) → **Collect** (read output files and synthesize).
 
 **Usage:**
 ```bash
 forja team preset dispatch
 forja task "add validation to all API endpoints" --team dispatch
+forja task "research React, Vue, and Svelte for our frontend" --team dispatch
 ```
 
-The dispatcher breaks down the task into independent units (e.g., one worker per endpoint), spawns them in parallel, and consolidates the results.
+**When to use:** Research multiple approaches in parallel, fix N unrelated bugs simultaneously, run review + tests + security audit in parallel, explore different parts of an unfamiliar codebase.
+
+**When NOT to use:** Sequential work where each step depends on the previous (use solo-sprint or full-product), tasks requiring agents to communicate mid-task (use a proper team with TeamCreate).
 
 ### tech-council
 
-1 agent for technical architecture decisions. Use when you need diverse engineering perspectives on system design, technology choices, or architectural trade-offs.
+1 facilitator agent that spawns 5 engineering personas in parallel. Use when you need diverse technical perspectives on architecture, technology choices, or engineering trade-offs.
 
 | # | Agent | Phase | Role |
 |---|-------|-------|------|
-| 1 | Council-Facilitator | RESEARCH | Summons 5 engineering personas (Senior Backend, Senior Frontend, DevOps, Security, Product Engineer) to debate and reach consensus |
+| 1 | Council-Facilitator | REVIEW | Dispatches 5 background agents (Principal Engineer, Platform Engineer, Security Engineer, QA Lead, Performance Engineer) and synthesizes their analysis |
+
+The facilitator spawns each persona as a background `general-purpose` agent with `model: opus`. Each persona analyzes the question from their specific bias, then the facilitator synthesizes a consensus, highlights tensions, and produces a recommendation.
 
 **Usage:**
 ```bash
 forja team preset tech-council
 forja task "should we use GraphQL or REST for the new API?" --team tech-council
+forja task "monolith vs microservices for our payment system?" --team tech-council
 ```
 
-The facilitator presents the question to the council, moderates the discussion, and synthesizes recommendations.
+**When to use:** Architecture decisions, technology evaluations, migration planning, trade-off analysis, system design review.
+
+**When NOT to use:** Pure implementation questions (use a coder), non-technical decisions (use biz-council), or questions with obvious answers.
 
 ### biz-council
 
-1 agent for business strategy decisions. Use when you need perspectives on product-market fit, monetization, growth strategy, or competitive positioning.
+1 facilitator agent that spawns 5 business personas in parallel. Use when you need diverse strategic perspectives on product decisions, go-to-market planning, or business model evaluation.
 
 | # | Agent | Phase | Role |
 |---|-------|-------|------|
-| 1 | Strategic-Facilitator | RESEARCH | Summons 5 business personas (CEO, CMO, CFO, CPO, Head of Sales) to evaluate and reach consensus |
+| 1 | Strategic-Facilitator | REVIEW | Dispatches 5 background agents (Product Lead, Design Lead, Data/Analytics Lead, Growth Lead, Operations Lead) and synthesizes their analysis |
+
+The facilitator spawns each persona as a background `general-purpose` agent with `model: opus`. Each persona evaluates the question from their specific bias, then the facilitator synthesizes a consensus, highlights tensions, and produces a strategic recommendation.
 
 **Usage:**
 ```bash
 forja team preset biz-council
 forja task "pricing strategy for enterprise tier" --team biz-council
+forja task "should we launch a free tier or go paid-only?" --team biz-council
 ```
 
-The facilitator presents the question to the council, facilitates debate, and synthesizes a strategic recommendation.
+**When to use:** Product decisions, go-to-market planning, resource allocation, strategic trade-offs, business model evaluation.
+
+**When NOT to use:** Technical architecture decisions (use tech-council), pure implementation questions (use a coder), or decisions already made.
 
 ## Slash Command Teams
 
