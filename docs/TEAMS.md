@@ -15,7 +15,7 @@ Teams require the experimental agent teams feature in Claude Code. Forja enables
 
 ## Team Presets
 
-Forja ships with 6 built-in team configurations. Each preset maps agents to workflow phases and assigns models based on a profile.
+Forja ships with 7 team configurations — 6 available as CLI presets and 1 as a slash command. Each team maps agents to workflow phases and assigns models based on a profile.
 
 ### full-product
 
@@ -46,16 +46,17 @@ Orchestration order: Researcher → Coder → Tester → Code-Simplifier → Rev
 | # | Agent | Phase | Role |
 |---|-------|-------|------|
 | 1 | Coder-Tester | CODE + TEST | Implements and tests in a single pass |
-| 2 | Code-Simplifier | CODE | Simplifies and improves readability |
+| 2 | Code-Simplifier | REVIEW | Simplifies and improves readability |
 | 3 | Reviewer | REVIEW | Sprint-style review (concise, not a deep audit) |
 
 **Usage:**
 ```bash
 forja team preset solo-sprint --profile fast
 forja task "add pagination to user list" --team solo-sprint
+forja task "add email validation to signup" --team solo-sprint
 ```
 
-Orchestration order: Coder-Tester first, then Code-Simplifier, then Reviewer. If the reviewer requests changes, findings go back to the Coder-Tester (max 2 rounds).
+Orchestration order: Coder-Tester → Code-Simplifier → Reviewer. If the reviewer requests changes, findings go back to the Coder-Tester (max 2 rounds).
 
 ### quick-fix
 
@@ -295,14 +296,14 @@ The `--profile` flag overrides the plan's default profile (balanced).
 
 ## Choosing the Right Approach
 
-| Scenario | Approach |
-|----------|----------|
-| Simple bug fix, known location | `forja task "..." --team quick-fix` |
-| Medium feature, familiar codebase | `forja task "..." --team solo-sprint` |
-| Large feature, needs research | `forja plan "..." && forja execute` or `forja task "..." --team full-product` |
-| Restructuring code without changing behavior | `/refactor Extract module X` (slash command) |
-| Multiple independent tasks in parallel | `forja task "..." --team dispatch` |
-| Technical architecture decision | `forja task "..." --team tech-council` |
-| Business strategy decision | `forja task "..." --team biz-council` |
-| Recurring workflow with specific agents | `forja team create my-team`, then slash command |
-| One-off task, no team needed | `forja task "..."` (solo mode) |
+| Scenario | Team | Example |
+|----------|------|---------|
+| Simple bug fix, known location | `quick-fix` | `forja task "fix login redirect bug" --team quick-fix` |
+| Medium feature, familiar codebase | `solo-sprint` | `forja task "add pagination to user list" --team solo-sprint` |
+| Large feature, needs research | `full-product` | `forja plan "add user auth with JWT" && forja execute` |
+| Restructuring code, same behavior | `/refactor` | `/refactor Extract user validation into AuthService` |
+| Multiple independent tasks in parallel | `dispatch` | `forja task "add validation to all API endpoints" --team dispatch` |
+| Technical architecture decision | `tech-council` | `forja task "GraphQL or REST for the new API?" --team tech-council` |
+| Business strategy decision | `biz-council` | `forja task "pricing strategy for enterprise tier" --team biz-council` |
+| Recurring workflow with specific agents | custom | `forja team create my-team`, then `/forja--team--my-team` |
+| One-off task, no team needed | solo | `forja task "add a health check endpoint"` |

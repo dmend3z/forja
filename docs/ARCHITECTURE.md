@@ -23,7 +23,7 @@ src/
 │   ├── state.rs         # ForjaState, TeamEntry, TeamMember + load/save/migration
 │   ├── profile.rs       # Profile enum (Fast, Balanced, Max) + model resolution per phase
 │   ├── plan.rs          # PlanMetadata, PlanPhase, PlanStatus + find_latest_pending()
-│   ├── config.rs        # Config: registry URL, local mode flag
+│   ├── config.rs        # ForjaConfig: version, mode, project_name, registry URL, local flag
 │   ├── active_project.rs # Active project tracking for project-scoped state
 │   └── claude.rs        # Claude Code integration models
 │
@@ -149,16 +149,24 @@ commands/execute.rs::run(plan_id, profile)
 ### `forja monitor`
 
 ```
-commands/monitor/mod.rs::run(port)
+commands/monitor/mod.rs::run(port, auto_open)
     ↓
-  1. Initialize MonitorState from ~/.forja/state.json and ~/.forja/plans/
-  2. Spawn filesystem watcher (watcher.rs) → notify on changes to state.json or plans/
-  3. Start Axum HTTP server (server.rs):
-     a. GET / → serve static HTML dashboard
-     b. GET /api/events → SSE stream (events.rs)
-     c. GET /api/state → current state JSON
-  4. Watcher sends events → broadcast via SSE to connected clients
-  5. Dashboard polls state and renders real-time updates
+  1. Ensure ~/.claude/teams/ and ~/.claude/tasks/ directories exist
+  2. Create DashboardState (state.rs) with broadcast channel (capacity 256)
+  3. initial_scan():
+     a. scan_teams() → read ~/.claude/teams/*/config.json → TeamSnapshot
+        - also parse ~/.claude/teams/*/inboxes/*.json → MessageGroupSnapshot
+     b. scan_tasks() → read ~/.claude/tasks/*/*.json → TaskSnapshot
+        - maps task dirs to teams via leadSessionId from config.json
+  4. Spawn filesystem watcher (watcher.rs) → notify crate watches ~/.claude/teams/ and ~/.claude/tasks/
+  5. Start Axum HTTP server (server.rs):
+     a. GET /                → embedded index.html (rust_embed from assets/)
+     b. GET /assets/{*path}  → embedded static assets
+     c. GET /api/events      → SSE stream (events.rs):
+        - sends full Snapshot on connect, then streams live DashboardEvents
+        - keepalive heartbeat every 15s
+  6. If auto_open (default true): open::that(url)
+  7. Graceful shutdown on Ctrl+C via tokio::signal
 ```
 
 ## Key Types
@@ -167,20 +175,31 @@ commands/monitor/mod.rs::run(port)
 
 All filesystem paths used by the CLI. Computed on every invocation with auto-detection of project vs global mode.
 
-| Field            | Path                      |
-|------------------|---------------------------|
-| `forja_root`     | `~/.forja/` or `.forja/`  |
-| `registry`       | `~/.forja/registry/`      |
-| `config`         | `~/.forja/config.json`    |
-| `state`          | `~/.forja/state.json`     |
-| `plans`          | `~/.forja/plans/`         |
-| `claude_dir`     | `~/.claude/`              |
-| `claude_agents`  | `~/.claude/agents/`       |
-| `claude_commands` | `~/.claude/commands/`    |
+| Field              | Path                        |
+|--------------------|-----------------------------|
+| `mode`             | `ForjaMode` (Global/Project)|
+| `project_root`     | `Some(PathBuf)` in Project mode, `None` in Global |
+| `forja_root`       | `~/.forja/` or `<project>/.forja/` |
+| `registry`         | `{forja_root}/registry/`    |
+| `config`           | `{forja_root}/config.json`  |
+| `state`            | `{forja_root}/state.json`   |
+| `plans`            | `{forja_root}/plans/`       |
+| `claude_dir`       | `~/.claude/`                |
+| `claude_agents`    | `~/.claude/agents/`         |
+| `claude_commands`  | `~/.claude/commands/`       |
 
-Constructors:
-- `new()` → always succeeds, detects ForjaMode (Project if `.forja/` exists in cwd, else Global)
-- `ensure_initialized()` → errors if `forja_root` missing
+`claude_dir`, `claude_agents`, and `claude_commands` always resolve to `~/.claude/` regardless of mode.
+
+Constructors (all return `Result<Self>`, can fail with `NoHomeDir`):
+- `resolve()` → walks up from cwd looking for `.forja/config.json`, falls back to global
+- `global()` → forces `~/.forja/` mode
+- `from_project(root)` → forces `<root>/.forja/` mode
+- `new()` → alias for `resolve()`
+- `ensure_initialized()` → `resolve()` + errors if `forja_root` doesn't exist
+
+Methods:
+- `display_name()` → project directory name in Project mode, `"global"` in Global mode
+- `global_forja_root()` → always returns `~/.forja/` regardless of mode (static)
 
 ### `ForjaMode` (`src/paths.rs`)
 
@@ -188,13 +207,17 @@ Constructors:
 enum ForjaMode { Global, Project }
 ```
 
-Determines whether forja operates on the global `~/.forja/` or a project-scoped `.forja/`. Auto-detected by checking for `.forja/` in the current working directory.
+Determines whether forja operates on the global `~/.forja/` or a project-scoped `.forja/`. Auto-detected by `detect_project_root()` which walks up from the current working directory looking for `.forja/config.json`. If found, uses Project mode rooted at that directory; otherwise falls back to Global.
 
 ### `ForjaError` (`src/error.rs`)
 
-Centralized error enum with `thiserror`. Variants: `Io`, `Json`, `NoHomeDir`, `NotInitialized`, `SkillNotFound`, `AlreadyInstalled`, `NotInstalled`, `Git`, `TeamNotFound`, `TeamAlreadyExists`, `PromptCancelled`, `Dialoguer`, `NoPlansFound`, `PlanNotFound`, `ClaudeCliNotFound`.
+Centralized error enum with `thiserror`. Variants: `Io`, `Json`, `NoHomeDir`, `NotInitialized`, `SkillNotFound`, `AlreadyInstalled`, `NotInstalled`, `Git`, `TeamNotFound`, `TeamAlreadyExists`, `InvalidSettings`, `PromptCancelled`, `Dialoguer`, `NoPlansFound`, `PlanNotFound`, `ClaudeCliNotFound`, `AmbiguousSkillName`, `PhaseExecutionFailed`, `Monitor`.
 
 Module defines `type Result<T> = std::result::Result<T, ForjaError>`.
+
+Methods:
+- `hint()` → returns an actionable message for each variant (e.g., `NotInitialized` → `"Run: forja init"`)
+- `exit_code()` → returns a specific exit code per category: `2` (not initialized), `3` (not found), `4` (IO/JSON), `5` (monitor), `1` (all others)
 
 ### `ForjaState` (`src/models/state.rs`)
 
@@ -270,6 +293,61 @@ struct PlanMetadata {
 
 `find_latest_pending()` scans `~/.forja/plans/`, sorts by filename (timestamp prefix), returns newest with status `Pending`.
 
+### `ForjaConfig` (`src/models/config.rs`)
+
+```rust
+struct ForjaConfig {
+    version: u32,              // always 2
+    mode: ForjaMode,           // Global or Project
+    project_name: Option<String>, // directory name in Project mode
+    registry_url: String,      // default: "https://github.com/dmend3z/forja.git"
+    local: bool,               // true when registry is a local symlink
+}
+```
+
+Stored at `{forja_root}/config.json`. Backward-compatible: missing `version`/`mode` fields get sane defaults via serde.
+
+### `ActiveProject` (`src/models/active_project.rs`)
+
+```rust
+struct ActiveProject {
+    project_name: String,      // directory name
+    project_root: PathBuf,     // absolute path to project
+    synced_at: u64,            // unix timestamp of last sync
+}
+```
+
+Stored at `~/.forja/active_project.json` (always global). Tracks which project currently owns the `~/.claude/agents/` symlinks, enabling project switching without stale symlinks.
+
+### Claude Code Integration Models (`src/models/claude.rs`)
+
+Read-only serde structs for parsing Claude Code's internal files. Used by the monitor module.
+
+- **`ClaudeTeamConfig`** — parses `~/.claude/teams/<name>/config.json`: team name, description, created_at, lead_agent_id, lead_session_id, members list
+- **`ClaudeTeamMember`** — agent_id, name, agent_type, model, color, joined_at, prompt
+- **`ClaudeInboxMessage`** — parses `~/.claude/teams/<name>/inboxes/<member>.json`: from, text, timestamp, color, read
+- **`ClaudeTask`** — parses `~/.claude/tasks/<team-id>/<n>.json`: id, subject, description, active_form, status, owner, blocks, blocked_by
+
+### `DashboardState` (`src/commands/monitor/state.rs`)
+
+Thread-safe state container for the monitor dashboard. Holds `Arc<RwLock<...>>` maps of teams, tasks, and messages indexed by team name. Uses a `broadcast::Sender<DashboardEvent>` to push updates to SSE subscribers.
+
+### `DashboardEvent` (`src/commands/monitor/events.rs`)
+
+```rust
+enum DashboardEvent {
+    Snapshot { teams, tasks, messages },  // sent on initial SSE connection
+    TeamUpdated { team },
+    TeamDeleted { team_name },
+    TaskUpdated { team_name, task },
+    TaskDeleted { team_name, task_id },
+    MessageReceived { team_name, recipient, message },
+    Heartbeat,
+}
+```
+
+Serialized as JSON with `#[serde(tag = "type")]` and streamed via SSE to dashboard clients.
+
 ## Design Decisions
 
 ### Sync-first with async monitor
@@ -322,7 +400,7 @@ Team slash commands are written to `~/.claude/commands/` with the pattern `forja
 
 ### Project vs global mode
 
-`ForjaPaths::new()` auto-detects whether to use project-scoped (`.forja/` in cwd) or global (`~/.forja/`) state. Project mode enables per-project team configurations and plans while sharing the global registry and agent installation. Detection happens on every invocation by checking for `.forja/` in the current working directory.
+`ForjaPaths::resolve()` walks up from the current working directory looking for `.forja/config.json`. If found, it uses Project mode rooted at that directory; otherwise it falls back to Global (`~/.forja/`). Project mode enables per-project team configurations and plans while sharing the global `~/.claude/agents/` installation. The `ActiveProject` struct tracks which project currently owns the agent symlinks, preventing stale links when switching projects.
 
 ### No-args contextual status
 
@@ -330,4 +408,4 @@ Running `forja` with no subcommand shows a status dashboard (initialized) or wel
 
 ### Real-time monitoring
 
-`forja monitor` starts a local Axum HTTP server with SSE streaming for real-time team activity visibility. The watcher uses `notify` crate to observe state and plan changes, broadcasting updates to connected dashboard clients. This enables multi-terminal workflows where one terminal runs agents while another monitors progress.
+`forja monitor` starts a local Axum HTTP server with SSE streaming for real-time team activity visibility. The watcher uses the `notify` crate to observe `~/.claude/teams/` (team configs and inboxes) and `~/.claude/tasks/` (task JSON files), broadcasting `DashboardEvent`s to connected SSE clients. Static assets (HTML/CSS/JS) are embedded in the binary via `rust_embed`. This enables multi-terminal workflows where one terminal runs agents while another monitors progress.
