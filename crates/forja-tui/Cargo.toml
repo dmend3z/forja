@@ -1,0 +1,17 @@
+[package]
+name = "forja-tui"
+description = "Interactive TUI task launcher for forja"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+forja-core = { path = "../forja-core" }
+ratatui = "0.29"
+crossterm = "0.28"
+tui-textarea = "0.7"
+
+[dev-dependencies]
+tempfile = { workspace = true }
