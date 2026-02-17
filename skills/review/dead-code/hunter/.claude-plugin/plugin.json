@@ -1,0 +1,7 @@
+{
+  "name": "dead-code-hunter",
+  "description": "Finds unused exports, zero-caller functions, orphaned files, and stale imports across the codebase",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["review", "dead-code", "cleanup", "unused", "imports"]
+}

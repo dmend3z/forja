@@ -1,0 +1,24 @@
+[package]
+name = "forja-desktop"
+description = "forja Desktop — skills marketplace for Claude Code"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+forja-core = { path = "../../crates/forja-core" }
+forja-spark = { path = "../../crates/forja-spark" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+dirs = { workspace = true }
