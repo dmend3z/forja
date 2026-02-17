@@ -22,6 +22,9 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     pub fn new(team_labels: Vec<String>, team_names: Vec<String>, profile_options: Vec<String>) -> Self {
+        assert!(!team_labels.is_empty(), "team_labels must not be empty");
+        assert_eq!(team_labels.len(), team_names.len(), "team labels/names length mismatch");
+        assert!(!profile_options.is_empty(), "profile_options must not be empty");
         let mut textarea = TextArea::default();
         textarea.set_placeholder_text("Describe your task here...");
         Self {

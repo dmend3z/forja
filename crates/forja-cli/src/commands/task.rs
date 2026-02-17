@@ -33,12 +33,15 @@ pub fn run(task: Option<&str>, print: bool, team: Option<&str>, profile: Option<
             }
             let output = forja_tui::launch()?;
             match output {
-                Some(o) => run_with_task(
-                    &o.description,
-                    false,
-                    o.team.as_deref(),
-                    Some(o.profile.as_str()),
-                ),
+                Some(o) => match o.team {
+                    Some(ref team_name) => run_team(
+                        &o.description,
+                        false,
+                        team_name,
+                        Some(o.profile.as_str()),
+                    ),
+                    None => run_simple(&o.description, false),
+                },
                 None => Ok(()), // user pressed Esc
             }
         }

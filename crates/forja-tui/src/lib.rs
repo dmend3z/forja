@@ -111,23 +111,21 @@ fn load_team_options() -> (Vec<String>, Vec<String>) {
         ("full-product", "full-product (5 agents)"),
     ];
 
-    if let Ok(paths) = ForjaPaths::new() {
-        if paths.forja_root.exists() {
-            let state = load_state(&paths.state);
-            for &(name, label) in presets {
-                if !state.teams.contains_key(name) {
-                    labels.push(label.to_string());
-                    names.push(name.to_string());
-                }
+    if let Ok(paths) = ForjaPaths::new() && paths.forja_root.exists() {
+        let state = load_state(&paths.state);
+        for &(name, label) in presets {
+            if !state.teams.contains_key(name) {
+                labels.push(label.to_string());
+                names.push(name.to_string());
             }
-            let mut configured: Vec<_> = state.teams.iter().collect();
-            configured.sort_by_key(|(n, _)| n.to_string());
-            for (name, entry) in configured {
-                labels.push(format!("{} ({} agents)", name, entry.members.len()));
-                names.push(name.clone());
-            }
-            return (labels, names);
         }
+        let mut configured: Vec<_> = state.teams.iter().collect();
+        configured.sort_by_key(|(n, _)| n.to_string());
+        for (name, entry) in configured {
+            labels.push(format!("{} ({} agents)", name, entry.members.len()));
+            names.push(name.clone());
+        }
+        return (labels, names);
     }
 
     // Fallback: just presets (forja not initialized)

@@ -3,9 +3,6 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use crate::app::{App, Focus};
 
 pub fn handle_key(app: &mut App, key: KeyEvent) {
-    // Clear error on any keypress
-    app.error_message = None;
-
     // Global keys (work in any focus mode)
     match key.code {
         KeyCode::Esc => {
@@ -30,6 +27,8 @@ pub fn handle_key(app: &mut App, key: KeyEvent) {
     // Focus-specific keys
     match app.focus {
         Focus::Textarea => {
+            // Clear error when user starts typing
+            app.error_message = None;
             app.textarea.input(key);
         }
         Focus::Team | Focus::Profile => match key.code {
