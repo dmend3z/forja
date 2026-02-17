@@ -14,7 +14,8 @@ pub enum ForjaMode {
 ///
 /// In **global** mode, `forja_root` points to `~/.forja/`.
 /// In **project** mode, `forja_root` points to `<project>/.forja/`.
-/// `claude_dir`, `claude_agents`, and `claude_commands` always resolve to `~/.claude/`.
+/// In **project** mode, `claude_dir` points to `<project>/.claude/` (project-local agents).
+/// In **global** mode, `claude_dir` points to `~/.claude/`.
 pub struct ForjaPaths {
     pub mode: ForjaMode,
     pub project_root: Option<PathBuf>,
@@ -60,9 +61,8 @@ impl ForjaPaths {
 
     /// Force project mode (`.forja/` inside given project root).
     pub fn from_project(project_root: PathBuf) -> Result<Self> {
-        let home = dirs::home_dir().ok_or(ForjaError::NoHomeDir)?;
         let forja_root = project_root.join(".forja");
-        let claude_dir = home.join(".claude");
+        let claude_dir = project_root.join(".claude");
 
         Ok(Self {
             mode: ForjaMode::Project,
@@ -107,6 +107,13 @@ impl ForjaPaths {
     pub fn global_forja_root() -> Result<PathBuf> {
         let home = dirs::home_dir().ok_or(ForjaError::NoHomeDir)?;
         Ok(home.join(".forja"))
+    }
+
+    /// Always returns `~/.claude/` regardless of current mode.
+    /// Used for global settings like `settings.json` which must always live in `~/.claude/`.
+    pub fn global_claude_dir() -> Result<PathBuf> {
+        let home = dirs::home_dir().ok_or(ForjaError::NoHomeDir)?;
+        Ok(home.join(".claude"))
     }
 }
 
@@ -192,13 +199,29 @@ mod tests {
     }
 
     #[test]
-    fn claude_dirs_always_in_home() {
+    fn project_mode_claude_dir_is_local() {
         let dir = TempDir::new().unwrap();
         let project = ForjaPaths::from_project(dir.path().to_path_buf()).unwrap();
-        let global = ForjaPaths::global().unwrap();
 
-        assert_eq!(project.claude_dir, global.claude_dir);
-        assert_eq!(project.claude_agents, global.claude_agents);
-        assert_eq!(project.claude_commands, global.claude_commands);
+        assert_eq!(project.claude_dir, dir.path().join(".claude"));
+        assert_eq!(project.claude_agents, dir.path().join(".claude").join("agents"));
+        assert_eq!(project.claude_commands, dir.path().join(".claude").join("commands"));
+    }
+
+    #[test]
+    fn global_mode_claude_dir_is_home() {
+        let global = ForjaPaths::global().unwrap();
+        let home = dirs::home_dir().unwrap();
+
+        assert_eq!(global.claude_dir, home.join(".claude"));
+        assert_eq!(global.claude_agents, home.join(".claude").join("agents"));
+        assert_eq!(global.claude_commands, home.join(".claude").join("commands"));
+    }
+
+    #[test]
+    fn global_claude_dir_always_home() {
+        let dir = ForjaPaths::global_claude_dir().unwrap();
+        let home = dirs::home_dir().unwrap();
+        assert_eq!(dir, home.join(".claude"));
     }
 }

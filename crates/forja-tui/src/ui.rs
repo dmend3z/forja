@@ -6,31 +6,50 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Wrap},
 };
 
-use crate::app::{App, Focus};
+use crate::app::{App, Focus, TuiMode};
 
 pub fn render(frame: &mut Frame, app: &mut App) {
     let area = frame.area();
 
-    let chunks = Layout::vertical([
-        Constraint::Length(1),  // title
-        Constraint::Min(6),    // textarea
-        Constraint::Length(3), // config (team + profile + gap)
-        Constraint::Min(4),    // preview
-        Constraint::Length(1), // help bar
-    ])
-    .split(area);
+    if app.mode == TuiMode::Plan {
+        let chunks = Layout::vertical([
+            Constraint::Length(1),  // title
+            Constraint::Min(9),    // textarea (gets extra space from missing config)
+            Constraint::Min(4),    // preview
+            Constraint::Length(1), // help bar
+        ])
+        .split(area);
 
-    render_title(frame, chunks[0]);
-    render_textarea(frame, app, chunks[1]);
-    render_config(frame, app, chunks[2]);
-    render_preview(frame, app, chunks[3]);
-    render_help(frame, app, chunks[4]);
+        render_title(frame, app, chunks[0]);
+        render_textarea(frame, app, chunks[1]);
+        render_preview(frame, app, chunks[2]);
+        render_help(frame, app, chunks[3]);
+    } else {
+        let chunks = Layout::vertical([
+            Constraint::Length(1),  // title
+            Constraint::Min(6),    // textarea
+            Constraint::Length(3), // config (team + profile + gap)
+            Constraint::Min(4),    // preview
+            Constraint::Length(1), // help bar
+        ])
+        .split(area);
+
+        render_title(frame, app, chunks[0]);
+        render_textarea(frame, app, chunks[1]);
+        render_config(frame, app, chunks[2]);
+        render_preview(frame, app, chunks[3]);
+        render_help(frame, app, chunks[4]);
+    }
 }
 
-fn render_title(frame: &mut Frame, area: ratatui::layout::Rect) {
+fn render_title(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+    let label = match app.mode {
+        TuiMode::Task => " forja task ",
+        TuiMode::Plan => " forja plan ",
+    };
     let title = Paragraph::new(Line::from(vec![
         Span::styled(
-            " forja task ",
+            label,
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
@@ -128,16 +147,25 @@ fn render_preview(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 }
 
 fn render_help(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
-    let mut spans = vec![
-        Span::styled(" Tab", Style::default().fg(Color::Cyan)),
-        Span::raw(": next  "),
-        Span::styled("Shift+Tab", Style::default().fg(Color::Cyan)),
-        Span::raw(": prev  "),
-        Span::styled("Ctrl+Enter", Style::default().fg(Color::Green)),
-        Span::raw(": launch  "),
-        Span::styled("Esc", Style::default().fg(Color::Red)),
-        Span::raw(": quit"),
-    ];
+    let mut spans = if app.mode == TuiMode::Plan {
+        vec![
+            Span::styled(" Ctrl+Enter", Style::default().fg(Color::Green)),
+            Span::raw(": create plan  "),
+            Span::styled("Esc", Style::default().fg(Color::Red)),
+            Span::raw(": quit"),
+        ]
+    } else {
+        vec![
+            Span::styled(" Tab", Style::default().fg(Color::Cyan)),
+            Span::raw(": next  "),
+            Span::styled("Shift+Tab", Style::default().fg(Color::Cyan)),
+            Span::raw(": prev  "),
+            Span::styled("Ctrl+Enter", Style::default().fg(Color::Green)),
+            Span::raw(": launch  "),
+            Span::styled("Esc", Style::default().fg(Color::Red)),
+            Span::raw(": quit"),
+        ]
+    };
 
     if let Some(ref msg) = app.error_message {
         spans.push(Span::raw("  "));
@@ -155,7 +183,14 @@ fn render_help(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 fn build_preview(app: &App) -> String {
     let desc = app.description();
     if desc.trim().is_empty() {
-        return "(type a task description above)".to_string();
+        return match app.mode {
+            TuiMode::Plan => "(describe what you want to plan above)".to_string(),
+            TuiMode::Task => "(type a task description above)".to_string(),
+        };
+    }
+
+    if app.mode == TuiMode::Plan {
+        return format!("Task:\n{desc}");
     }
 
     let mut preview = String::new();

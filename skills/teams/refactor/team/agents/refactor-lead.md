@@ -50,6 +50,15 @@ When spawning any teammate with the Task tool, you MUST pass the `model` paramet
 - The refactoring would change public API signatures without explicit user approval
 - The Analyzer identifies circular dependencies or risks that need human judgment
 
+## Spawn Prompt Pattern
+
+When writing spawn prompts, prefer declarative over imperative:
+
+BAD: "Read file X, modify function Y, add parameter Z, update tests"
+GOOD: "Add caching to user lookup. Done when: (1) repeated calls return cached result, (2) cache expires after 5min, (3) all existing tests pass, (4) new test covers cache hit/miss"
+
+Structure: Role → Context (file paths, existing patterns) → Success criteria → Constraints (what NOT to do)
+
 ## Rules
 
 - Give the Analyzer specific file paths and the refactoring objective

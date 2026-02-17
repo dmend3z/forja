@@ -18,7 +18,7 @@ src/
 ├── models/              # Data types (no business logic beyond ser/de)
 │   ├── phase.rs         # Phase enum: Research, Code, Test, Review, Deploy, Teams
 │   ├── skill.rs         # Skill struct + ContentType enum (Agent, Skill, Command)
-│   ├── plugin.rs        # PluginJson: mirrors .claude-plugin/plugin.json format
+│   ├── plugin.rs        # PluginJson: skill manifest format (skill.json + legacy plugin.json)
 │   ├── registry.rs      # Registry: in-memory skill index with find_by_id() and search()
 │   ├── state.rs         # ForjaState, TeamEntry, TeamMember + load/save/migration
 │   ├── profile.rs       # Profile enum (Fast, Balanced, Max) + model resolution per phase
@@ -241,8 +241,8 @@ In-memory index of all available agents. Built fresh by `catalog::scan()` on eve
 ```rust
 struct Skill {
     id: String,                    // "phase/tech/name"
-    name: String,                  // from plugin.json
-    description: String,           // from plugin.json
+    name: String,                  // from skill manifest
+    description: String,           // from skill manifest
     phase: Phase,
     tech: String,
     path: PathBuf,                 // absolute path to skill directory
@@ -253,7 +253,7 @@ struct Skill {
 
 ### `PluginJson` (`src/models/plugin.rs`)
 
-Serde struct mirroring `.claude-plugin/plugin.json`. Fields: `name`, `description`, `version?`, `author?`, `license?`, `keywords?`.
+Serde struct for skill manifest JSON. Scanner reads `skill.json` first, then legacy `.claude-plugin/plugin.json`. Fields: `name`, `description`, `version?`, `author?`, `license?`, `keywords?`.
 
 ### `Phase` (`src/models/phase.rs`)
 
@@ -358,7 +358,7 @@ The monitor module is the exception: it uses Tokio and Axum to serve a real-time
 
 ### Scan-on-demand catalog (no cache)
 
-`catalog::scan()` walks the `skills/<phase>/<tech>/<name>/` directory tree and reads every `plugin.json` on every invocation. No index file, no cache. With 31 skills (24 individual skills + 7 team configs) the scan completes in under 50ms, making caching unnecessary complexity.
+`catalog::scan()` walks the `skills/<phase>/<tech>/<name>/` directory tree and reads every skill manifest (`skill.json`, with legacy `.claude-plugin/plugin.json` fallback) on every invocation. No index file, no cache. With 31 skills (24 individual skills + 7 team configs) the scan completes in under 50ms, making caching unnecessary complexity.
 
 ### Symlink prefix `forja--`
 

@@ -1,6 +1,8 @@
 pub mod active_project;
+pub mod analytics;
 pub mod claude;
 pub mod config;
+pub mod lint;
 pub mod phase;
 pub mod plan;
 pub mod plugin;

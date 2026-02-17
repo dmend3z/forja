@@ -22,6 +22,13 @@ pub fn run() -> Result<()> {
                 .display()
         );
     } else {
+        // Save HEAD before pull for `forja diff`
+        if let Ok(head) = crate::registry::git::head_sha(&paths.registry) {
+            let last_update_path = paths.forja_root.join("last_update.json");
+            let data = serde_json::json!({ "head_before": head });
+            let _ = std::fs::write(&last_update_path, serde_json::to_string_pretty(&data).unwrap_or_default());
+        }
+
         println!("Updating registry...");
         let output = crate::registry::git::pull(&paths.registry)?;
         println!("{output}");

@@ -13,6 +13,7 @@ pub struct ActiveProject {
     pub synced_at: u64,
 }
 
+#[allow(dead_code)]
 impl ActiveProject {
     pub fn new(project_name: String, project_root: PathBuf) -> Self {
         let synced_at = SystemTime::now()
@@ -32,6 +33,7 @@ pub fn load_active_project(path: &Path) -> Option<ActiveProject> {
     serde_json::from_str(&content).ok()
 }
 
+#[allow(dead_code)]
 pub fn save_active_project(path: &Path, active: &ActiveProject) -> Result<()> {
     let json = serde_json::to_string_pretty(active)?;
     fs::write(path, json)?;

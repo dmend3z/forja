@@ -8,8 +8,16 @@ use crate::symlink::manager::{SymlinkManager, load_installed_ids, save_installed
 use colored::Colorize;
 
 /// Remove an installed skill by deleting its symlinks and updating state.
-pub fn run(skill_path: &str, skip_confirm: bool) -> Result<()> {
-    let paths = ForjaPaths::ensure_initialized()?;
+pub fn run(skill_path: &str, skip_confirm: bool, force_global: bool) -> Result<()> {
+    let paths = if force_global {
+        let p = ForjaPaths::global()?;
+        if !p.forja_root.exists() {
+            return Err(ForjaError::NotInitialized);
+        }
+        p
+    } else {
+        ForjaPaths::ensure_initialized()?
+    };
 
     let mut installed_ids = load_installed_ids(&paths.state);
 

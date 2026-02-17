@@ -12,7 +12,7 @@ use std::fs;
 use std::path::Path;
 
 /// Initialize forja with sensible defaults or `--wizard` for interactive setup.
-pub fn run(registry_url: Option<String>, use_wizard: bool) -> Result<()> {
+pub fn run(registry_url: Option<String>, use_wizard: bool, force_global: bool) -> Result<()> {
     let cwd = std::env::current_dir()?;
 
     // Check for existing .forja/ in cwd (restore flow)
@@ -21,13 +21,16 @@ pub fn run(registry_url: Option<String>, use_wizard: bool) -> Result<()> {
         return restore_flow(&cwd, registry_url);
     }
 
-    // Default: global mode, all phases, balanced profile (zero questions)
+    // Default: project-local mode, all phases, balanced profile
+    // --global: force global mode
     // --wizard: interactive setup
     let (mode, selected_phases, profile) = if use_wizard {
         let result = wizard::run_wizard()?;
         (result.mode, result.selected_phases, result.profile)
-    } else {
+    } else if force_global {
         (ForjaMode::Global, all_phases(), "balanced".to_string())
+    } else {
+        (ForjaMode::Project, all_phases(), "balanced".to_string())
     };
 
     let paths = match mode {
@@ -70,8 +73,9 @@ pub fn run(registry_url: Option<String>, use_wizard: bool) -> Result<()> {
     // Ensure ~/.claude/agents/ exists
     fs::create_dir_all(&paths.claude_agents)?;
 
-    // Auto-enable agent teams env var in settings.json
-    match settings::enable_teams_env_var(&paths.claude_dir) {
+    // Auto-enable agent teams env var in ~/.claude/settings.json (always global)
+    let global_claude = ForjaPaths::global_claude_dir()?;
+    match settings::enable_teams_env_var(&global_claude) {
         Ok(_) => {}
         Err(e) => {
             eprintln!(
@@ -82,17 +86,33 @@ pub fn run(registry_url: Option<String>, use_wizard: bool) -> Result<()> {
         }
     }
 
-    // In project mode, create .gitignore
+    // In project mode, create .gitignore files
     if mode == ForjaMode::Project {
         let gitignore_path = paths.forja_root.join(".gitignore");
         fs::write(
             &gitignore_path,
             "# Managed by forja - do not edit\nregistry/\nplans/\n",
         )?;
+
+        // Exclude symlinked dirs from version control
+        let claude_gitignore = paths.claude_dir.join(".gitignore");
+        if !claude_gitignore.exists() {
+            fs::create_dir_all(&paths.claude_dir)?;
+            fs::write(
+                &claude_gitignore,
+                "# Managed by forja\nagents/\ncommands/\n",
+            )?;
+        }
     }
 
     // Install skills filtered by selected phases
     let (installed, _skipped) = super::install::install_by_phases(&paths, &selected_phases)?;
+
+    // Core skills always installed (regardless of phase selection)
+    crate::symlink::auto_install::auto_install_missing(
+        &paths,
+        &["review/documentation/chronicler"],
+    )?;
 
     // Sync symlinks to ~/.claude/
     sync::sync_symlinks(&paths)?;
@@ -177,7 +197,10 @@ fn restore_flow(cwd: &Path, registry_url: Option<String>) -> Result<()> {
     sync::sync_symlinks(&paths)?;
 
     output::print_section_header("Results");
-    output::print_success("Restored — symlinks synced to ~/.claude/");
+    output::print_success(&format!(
+        "Restored — symlinks synced to {}",
+        paths.claude_dir.display()
+    ));
 
     output::print_section_header("Next Steps");
     output::print_command_hint("forja doctor", "Verify your setup");

@@ -148,6 +148,23 @@ EXAMPLES:
         skill: String,
     },
 
+    /// Generate project documentation (CLAUDE.md, AGENTS.md, README.md)
+    #[command(
+        long_about = "Generate or update project documentation by analyzing the codebase. \
+            Auto-installs the doc-gen skill and launches Claude Code.",
+        after_help = "\
+EXAMPLES:
+  forja docs                          # Generate all docs
+  forja docs --scope claude-md        # Only CLAUDE.md
+  forja docs --scope readme           # Only README.md
+  forja docs --scope agents-md        # Only AGENTS.md"
+    )]
+    Docs {
+        /// Scope to a single doc: claude-md, agents-md, readme
+        #[arg(long)]
+        scope: Option<String>,
+    },
+
     /// Verify installation health
     #[command(
         long_about = "Run diagnostic checks on your forja installation: directory structure, \
@@ -179,12 +196,13 @@ EXAMPLES:
             interactive interview. The plan is saved for later execution with `forja execute`.",
         after_help = "\
 EXAMPLES:
+  forja plan                              # Open interactive TUI
   forja plan \"add user auth with JWT\"
   forja plan \"refactor the database layer\""
     )]
     Plan {
-        /// Task description (e.g. "add user auth with JWT")
-        task: String,
+        /// Task description (omit to open interactive TUI)
+        task: Option<String>,
     },
 
     /// Run a task directly in Claude Code (no plan needed)

@@ -25,6 +25,11 @@ pub struct TaskOutput {
     pub profile: Profile,
 }
 
+/// Output produced by the plan TUI when the user presses create.
+pub struct PlanOutput {
+    pub description: String,
+}
+
 /// Open the interactive TUI for task configuration.
 /// Returns `Some(TaskOutput)` on launch, `None` on Esc/quit.
 pub fn launch() -> Result<Option<TaskOutput>> {
@@ -73,6 +78,43 @@ pub fn launch() -> Result<Option<TaskOutput>> {
             description: app.description(),
             team: app.selected_team().map(|s| s.to_string()),
             profile,
+        }))
+    } else {
+        Ok(None)
+    }
+}
+
+/// Open the interactive TUI for plan creation (textarea only, no team/profile).
+/// Returns `Some(PlanOutput)` on create, `None` on Esc/quit.
+pub fn launch_plan() -> Result<Option<PlanOutput>> {
+    use std::io::IsTerminal;
+    if !io::stdin().is_terminal() {
+        return Err(ForjaError::Dialoguer(
+            "TUI requires an interactive terminal. Use: forja plan \"description\"".to_string(),
+        ));
+    }
+
+    let mut app = App::new_plan();
+
+    enable_raw_mode().map_err(|e| ForjaError::Dialoguer(format!("raw mode: {e}")))?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen)
+        .map_err(|e| ForjaError::Dialoguer(format!("alternate screen: {e}")))?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal =
+        Terminal::new(backend).map_err(|e| ForjaError::Dialoguer(format!("terminal: {e}")))?;
+
+    let result = run_loop(&mut terminal, &mut app);
+
+    disable_raw_mode().ok();
+    execute!(terminal.backend_mut(), LeaveAlternateScreen).ok();
+    terminal.show_cursor().ok();
+
+    result?;
+
+    if app.should_launch {
+        Ok(Some(PlanOutput {
+            description: app.description(),
         }))
     } else {
         Ok(None)

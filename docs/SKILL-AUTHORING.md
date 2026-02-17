@@ -4,7 +4,7 @@ How to create a new forja agent from scratch.
 
 ## How Agents Work
 
-A forja agent is a directory containing a `.claude-plugin/plugin.json` manifest and one or more content files (agents, skills, commands). When you run `forja install <skill-id>`, forja symlinks the `.md` files from `agents/` and `commands/` into `~/.claude/agents/` and `~/.claude/commands/`, making them available to Claude Code.
+A forja agent is a directory containing a `skill.json` manifest and one or more content files (agents, skills, commands). When you run `forja install <skill-id>`, forja symlinks the `.md` files from `agents/` and `commands/` into `~/.claude/agents/` and `~/.claude/commands/`, making them available to Claude Code.
 
 Symlinks are prefixed with `forja--` to avoid name collisions. For example, installing `deploy/git/commit` creates:
 
@@ -35,14 +35,13 @@ The skill ID is derived from this path: `<phase>/<tech>/<name>`. For example:
 | `skills/deploy/git/commit/` | `deploy/git/commit` |
 | `skills/teams/solo-sprint/team/` | `teams/solo-sprint/team` |
 
-## Required: plugin.json
+## Required: skill.json
 
-Every skill must have a `.claude-plugin/plugin.json` file. This is the only required file -- without it, forja will not detect the skill.
+Every skill should have a `skill.json` file at the root of the skill directory. This is the only required file -- without it (or the legacy fallback), forja will not detect the skill.
 
 ```
 <name>/
-  .claude-plugin/
-    plugin.json     # REQUIRED
+  skill.json     # REQUIRED (preferred)
 ```
 
 ### Schema
@@ -227,8 +226,7 @@ Here is every possible file in a skill package:
 
 ```
 skills/<phase>/<tech>/<name>/
-  .claude-plugin/
-    plugin.json           # REQUIRED -- skill manifest
+  skill.json              # REQUIRED -- skill manifest
   agents/
     agent-name.md         # Agent persona (symlinked to ~/.claude/agents/)
   skills/
@@ -238,14 +236,14 @@ skills/<phase>/<tech>/<name>/
     command-name.md       # Slash command (symlinked to ~/.claude/commands/)
 ```
 
-Most skills only use one or two of these content types. A typical skill has `plugin.json` + one agent file.
+Most skills only use one or two of these content types. A typical skill has `skill.json` + one agent file.
 
 ## Naming Conventions
 
 - **Directories**: kebab-case (`code-quality`, `tdd-workflow`, `solo-sprint`)
 - **Agent files**: kebab-case matching the agent name (`researcher.md`, `lint-fixer.md`)
 - **Skill IDs**: derived from path, slash-separated (`code/typescript/feature`, `review/security/auditor`)
-- **plugin.json name**: kebab-case display name (`git-commit`, `code-reviewer`, `tdd-workflow`)
+- **skill.json name**: kebab-case display name (`git-commit`, `code-reviewer`, `tdd-workflow`)
 - **Agent names in frontmatter**: kebab-case (`committer`, `researcher`, `security-auditor`)
 
 ## Concrete Example: Creating a Linting Skill
@@ -256,13 +254,12 @@ Let's walk through creating a new skill that runs linting and auto-fixes issues.
 
 ```
 skills/review/linting/fixer/
-  .claude-plugin/
-    plugin.json
+  skill.json
   agents/
     lint-fixer.md
 ```
 
-### 2. Write plugin.json
+### 2. Write skill.json
 
 ```json
 {
@@ -366,7 +363,7 @@ cargo run -- doctor                  # Check symlink health
 Before submitting a new skill:
 
 - [ ] Directory follows `skills/<phase>/<tech>/<name>/` structure
-- [ ] `.claude-plugin/plugin.json` exists with all required fields (`name`, `description`, `version`, `author`, `keywords`)
+- [ ] `skill.json` exists with all required fields (`name`, `description`, `version`, `author`, `keywords`)
 - [ ] Agent `.md` files have valid frontmatter (`name`, `description`, `tools`, `model`)
 - [ ] Agent prompt includes a clear role statement, workflow, and rules
 - [ ] `cargo run -- install <skill-id>` succeeds without errors

@@ -56,7 +56,8 @@ skills/               # Agent catalog (31 skills across 6 phases)
   deploy/             # 3 skills
   teams/              # 7 team configurations
   <phase>/<tech>/<name>/
-    .claude-plugin/plugin.json  # Required manifest
+    skill.json                  # Required manifest (preferred)
+    .claude-plugin/plugin.json  # Legacy fallback (supported)
     agents/*.md                 # Agent definitions (optional)
     skills/*/SKILL.md           # Skill prompts (optional)
     commands/*.md               # Slash commands (optional)
@@ -76,7 +77,7 @@ For a detailed breakdown, see [docs/ARCHITECTURE.md](./ARCHITECTURE.md).
 
 1. Pick the phase (`research`, `code`, `test`, `review`, `deploy`, `teams`) and a tech category.
 2. Create the directory: `skills/<phase>/<tech>/<name>/`
-3. Add `.claude-plugin/plugin.json` with name, description, version, author, and keywords.
+3. Add `skill.json` with name, description, version, author, and keywords.
 4. Add at least one content type: `agents/*.md`, `skills/*/SKILL.md`, or `commands/*.md`.
 5. Test with `cargo run -- list --available` to verify the catalog scanner picks it up.
 6. Install it with `cargo run -- install <phase>/<tech>/<name>` and test in Claude Code.

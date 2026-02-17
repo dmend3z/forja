@@ -6,6 +6,19 @@ use crate::registry::catalog;
 use crate::symlink::manager::{SymlinkManager, load_installed_ids, save_installed_ids};
 use colored::Colorize;
 
+/// Resolve paths based on --global flag: force global or auto-detect.
+fn resolve_paths(force_global: bool) -> Result<ForjaPaths> {
+    if force_global {
+        let paths = ForjaPaths::global()?;
+        if !paths.forja_root.exists() {
+            return Err(ForjaError::NotInitialized);
+        }
+        Ok(paths)
+    } else {
+        ForjaPaths::ensure_initialized()
+    }
+}
+
 struct InstallCounts {
     installed: usize,
     skipped: usize,
@@ -52,8 +65,8 @@ fn install_all_skills(paths: &ForjaPaths, verbose: bool) -> Result<InstallCounts
 }
 
 /// Install all available skills by creating symlinks for their agents and commands.
-pub fn run_all() -> Result<()> {
-    let paths = ForjaPaths::ensure_initialized()?;
+pub fn run_all(force_global: bool) -> Result<()> {
+    let paths = resolve_paths(force_global)?;
     let counts = install_all_skills(&paths, true)?;
 
     println!();
@@ -108,8 +121,8 @@ pub fn install_by_phases(
 }
 
 /// Install a single skill by creating symlinks for its agents and commands.
-pub fn run(skill_path: &str) -> Result<()> {
-    let paths = ForjaPaths::ensure_initialized()?;
+pub fn run(skill_path: &str, force_global: bool) -> Result<()> {
+    let paths = resolve_paths(force_global)?;
 
     let mut installed_ids = load_installed_ids(&paths.state);
     let registry = catalog::scan(&paths.registry, &installed_ids)?;

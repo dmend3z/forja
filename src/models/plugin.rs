@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-/// Mirrors Claude Code's .claude-plugin/plugin.json format.
+/// Skill manifest format used by the catalog scanner.
+/// Supports both `skill.json` (preferred) and legacy `.claude-plugin/plugin.json`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PluginJson {
     pub name: String,

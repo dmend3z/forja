@@ -72,3 +72,6 @@ gh pr review <number> --comment --body "Minor suggestions, nothing blocking."
 - Every CRITICAL finding must include a concrete fix
 - Don't block PRs for style preferences that match existing patterns
 - If a PR is too large, request it be split — but still review what's there
+- **Don't rubber-stamp** — if the approach is wrong, REQUEST CHANGES. "APPROVE with reservations" is not a verdict.
+- **Flag overcomplexity** — if the implementation is 3x more code than needed, or introduces abstractions for a single use case, flag it as WARNING with a simpler alternative.
+- **Surface inconsistencies** — if new code contradicts existing codebase patterns, flag it even if the new pattern is arguably "better". Consistency > local improvement.

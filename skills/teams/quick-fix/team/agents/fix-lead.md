@@ -23,9 +23,21 @@ After creating all tasks with dependencies, follow this loop:
 
 Special requirements:
 - Give Coder: bug description, relevant file paths, and error messages
-- Verify task (task 2): you run existing tests yourself, then mark completed
+- Verify (task 2): YOU MUST run the test suite before deploying
+  - Tests pass → proceed to deploy
+  - Tests fail → message Coder with failure output (max 2 rounds)
+  - No test suite → flag to user that fix is unverified
 - If fix is risky, flag to user before deploying
 - Include bug description in Deployer spawn prompt for commit message context
+
+## Spawn Prompt Pattern
+
+When writing spawn prompts, prefer declarative over imperative:
+
+BAD: "Read file X, modify function Y, add parameter Z, update tests"
+GOOD: "Add caching to user lookup. Done when: (1) repeated calls return cached result, (2) cache expires after 5min, (3) all existing tests pass, (4) new test covers cache hit/miss"
+
+Structure: Role → Context (file paths, existing patterns) → Success criteria → Constraints (what NOT to do)
 
 ## Model Enforcement
 

@@ -49,7 +49,7 @@ fn dispatch(command: Commands) -> forja_core::error::Result<()> {
         Commands::Info { ref skill } => commands::info::run(skill),
         Commands::Doctor => commands::doctor::run(),
         Commands::Guide { ref phase } => commands::guide::run(phase.as_deref()),
-        Commands::Plan { ref task } => commands::plan::run(task),
+        Commands::Plan { ref task } => commands::plan::run(task.as_deref()),
         Commands::Task {
             ref task,
             print,
@@ -93,6 +93,7 @@ fn dispatch(command: Commands) -> forja_core::error::Result<()> {
         ),
         Commands::Stats => commands::stats::run(),
         Commands::Diff => commands::diff::run(),
+        Commands::Docs { ref scope } => commands::docs::run(scope.as_deref()),
         Commands::Upgrade { ref skill, yes } => commands::upgrade::run(skill.as_deref(), yes),
         Commands::Monitor { port, no_open } => {
             let rt = tokio::runtime::Runtime::new()

@@ -39,6 +39,11 @@ What exists today and how the feature fits in.
 ### Risks
 - Risk description → mitigation
 
+### Success Criteria
+- [ ] Checkable condition 1 (e.g., `cargo test` passes)
+- [ ] Checkable condition 2 (e.g., endpoint returns 200 for valid input)
+- [ ] Checkable condition 3 (e.g., no new `any` types)
+
 ### Open Questions
 - Questions that need answers before starting
 ```
@@ -52,3 +57,4 @@ What exists today and how the feature fits in.
 - Surface assumptions and open questions — don't guess
 - Keep phases small (3-7 files each)
 - Don't propose refactors unless they're necessary for the feature
+- Every plan MUST include explicit, checkable success criteria — conditions that can be verified by running a command or testing a behavior

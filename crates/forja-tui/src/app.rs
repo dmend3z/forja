@@ -7,7 +7,14 @@ pub enum Focus {
     Profile,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TuiMode {
+    Task,
+    Plan,
+}
+
 pub struct App<'a> {
+    pub mode: TuiMode,
     pub focus: Focus,
     pub team_labels: Vec<String>,
     pub team_names: Vec<String>,
@@ -28,6 +35,7 @@ impl<'a> App<'a> {
         let mut textarea = TextArea::default();
         textarea.set_placeholder_text("Describe your task here...");
         Self {
+            mode: TuiMode::Task,
             focus: Focus::Textarea,
             team_labels,
             team_names,
@@ -41,7 +49,28 @@ impl<'a> App<'a> {
         }
     }
 
+    pub fn new_plan() -> Self {
+        let mut textarea = TextArea::default();
+        textarea.set_placeholder_text("Describe what you want to plan...");
+        Self {
+            mode: TuiMode::Plan,
+            focus: Focus::Textarea,
+            team_labels: vec!["_".to_string()],
+            team_names: vec!["_".to_string()],
+            team_index: 0,
+            profile_options: vec!["_".to_string()],
+            profile_index: 0,
+            textarea,
+            should_quit: false,
+            should_launch: false,
+            error_message: None,
+        }
+    }
+
     pub fn next_focus(&mut self) {
+        if self.mode == TuiMode::Plan {
+            return; // Only textarea in Plan mode
+        }
         self.focus = match self.focus {
             Focus::Textarea => Focus::Team,
             Focus::Team => Focus::Profile,
@@ -50,6 +79,9 @@ impl<'a> App<'a> {
     }
 
     pub fn prev_focus(&mut self) {
+        if self.mode == TuiMode::Plan {
+            return; // Only textarea in Plan mode
+        }
         self.focus = match self.focus {
             Focus::Textarea => Focus::Profile,
             Focus::Team => Focus::Textarea,
@@ -231,5 +263,36 @@ mod tests {
         assert_eq!(app.team_index, 0);
         app.select_prev();
         assert_eq!(app.team_index, 1); // wraps to last
+    }
+
+    #[test]
+    fn plan_mode_initial_state() {
+        let app = App::new_plan();
+        assert_eq!(app.mode, TuiMode::Plan);
+        assert_eq!(app.focus, Focus::Textarea);
+    }
+
+    #[test]
+    fn plan_mode_focus_stays_on_textarea() {
+        let mut app = App::new_plan();
+        app.next_focus();
+        assert_eq!(app.focus, Focus::Textarea);
+        app.prev_focus();
+        assert_eq!(app.focus, Focus::Textarea);
+    }
+
+    #[test]
+    fn task_mode_is_default() {
+        let app = App::new(vec!["Solo".into()], vec!["solo".into()], vec!["balanced".into()]);
+        assert_eq!(app.mode, TuiMode::Task);
+    }
+
+    #[test]
+    fn plan_mode_try_launch_works() {
+        let mut app = App::new_plan();
+        app.textarea.insert_str("refactor the auth module");
+        app.try_launch();
+        assert!(app.should_launch);
+        assert_eq!(app.description(), "refactor the auth module");
     }
 }

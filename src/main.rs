@@ -5,15 +5,18 @@
 //! into `~/.claude/agents/` and `~/.claude/commands/`, and can be composed
 //! into multi-agent teams.
 
+mod analytics;
 mod cli;
 mod commands;
 mod error;
+mod lint;
 mod models;
 mod output;
 mod paths;
 mod registry;
 mod settings;
 mod symlink;
+mod templates;
 mod tips;
 mod wizard;
 
@@ -34,16 +37,21 @@ fn dispatch(command: Commands) -> error::Result<()> {
         Commands::Init {
             registry_url,
             wizard,
-        } => commands::init::run(registry_url, wizard),
-        Commands::Install { skill, all } => {
+            global,
+        } => commands::init::run(registry_url, wizard, global),
+        Commands::Install { skill, all, global } => {
             if all {
-                commands::install::run_all()
+                commands::install::run_all(global)
             } else {
                 // safe: clap enforces `skill` is present when `--all` is not used
-                commands::install::run(&skill.unwrap())
+                commands::install::run(&skill.unwrap(), global)
             }
         }
-        Commands::Uninstall { ref skill, yes } => commands::uninstall::run(skill, yes),
+        Commands::Uninstall {
+            ref skill,
+            yes,
+            global,
+        } => commands::uninstall::run(skill, yes, global),
         Commands::Search { ref query } => commands::search::run(query),
         Commands::List { available } => commands::list::run(available),
         Commands::Update => commands::update::run(),
@@ -62,6 +70,40 @@ fn dispatch(command: Commands) -> error::Result<()> {
             ref profile,
             resume,
         } => commands::execute::run(plan_id.as_deref(), profile, resume),
+        Commands::Fix {
+            ref description,
+            ref profile,
+        } => commands::fix::run(description, profile.as_deref()),
+        Commands::Build {
+            ref description,
+            ref profile,
+        } => commands::build::run(description, profile.as_deref()),
+        Commands::Chronicle { ref from } => commands::chronicle::run(from),
+        Commands::Review {
+            ref path,
+            no_chronicle,
+        } => commands::review::run(path.as_deref(), no_chronicle),
+        Commands::Ship {
+            ref message,
+            commit_only,
+            no_chronicle,
+        } => commands::ship::run(message.as_deref(), commit_only, no_chronicle),
+        Commands::Lint { ref path, warnings } => commands::lint::run(path.as_deref(), warnings),
+        Commands::New {
+            ref name,
+            ref phase,
+            ref tech,
+            no_wizard,
+        } => commands::new::run(
+            name.as_deref(),
+            phase.as_deref(),
+            tech.as_deref(),
+            no_wizard,
+        ),
+        Commands::Stats => commands::stats::run(),
+        Commands::Diff => commands::diff::run(),
+        Commands::Docs { ref scope } => commands::docs::run(scope.as_deref()),
+        Commands::Upgrade { ref skill, yes } => commands::upgrade::run(skill.as_deref(), yes),
         Commands::Monitor { port, no_open } => {
             let rt = tokio::runtime::Runtime::new()
                 .map_err(|e| error::ForjaError::Monitor(format!("Failed to start runtime: {e}")))?;
