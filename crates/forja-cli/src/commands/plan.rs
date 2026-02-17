@@ -30,7 +30,7 @@ pub fn run(task: Option<&str>) -> Result<()> {
         .map_err(|_| ForjaError::SkillNotFound("research/planning/forja-plan".into()))?;
 
     // 3. Strip frontmatter and replace $ARGUMENTS
-    let prompt = strip_frontmatter(&template).replace("$ARGUMENTS", &task);
+    let prompt = forja_core::frontmatter::strip_frontmatter(&template).replace("$ARGUMENTS", &task);
 
     // 4. Check claude CLI
     if Command::new("claude").arg("--version").output().is_err() {
@@ -54,44 +54,34 @@ pub fn run(task: Option<&str>) -> Result<()> {
     Ok(())
 }
 
-fn strip_frontmatter(content: &str) -> &str {
-    if let Some(stripped) = content.strip_prefix("---")
-        && let Some(end) = stripped.find("---")
-    {
-        return stripped[end + 3..].trim_start();
-    }
-    content
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn strip_frontmatter_removes_yaml_block() {
         let input = "---\ndescription: some desc\nargument-hint: a hint\n---\n\n# Title\n\nBody";
-        let result = strip_frontmatter(input);
+        let result = forja_core::frontmatter::strip_frontmatter(input);
         assert_eq!(result, "# Title\n\nBody");
     }
 
     #[test]
     fn strip_frontmatter_returns_full_content_without_frontmatter() {
         let input = "# Title\n\nBody without frontmatter";
-        let result = strip_frontmatter(input);
+        let result = forja_core::frontmatter::strip_frontmatter(input);
         assert_eq!(result, input);
     }
 
     #[test]
     fn strip_frontmatter_handles_empty_frontmatter() {
         let input = "---\n---\n\n# Title";
-        let result = strip_frontmatter(input);
+        let result = forja_core::frontmatter::strip_frontmatter(input);
         assert_eq!(result, "# Title");
     }
 
     #[test]
     fn prompt_replaces_arguments_placeholder() {
         let template = "---\ndescription: test\n---\n\nTask: $ARGUMENTS\n\nDo the thing.";
-        let prompt = strip_frontmatter(template).replace("$ARGUMENTS", "add user auth");
+        let prompt = forja_core::frontmatter::strip_frontmatter(template)
+            .replace("$ARGUMENTS", "add user auth");
         assert!(prompt.contains("Task: add user auth"));
         assert!(!prompt.contains("$ARGUMENTS"));
     }

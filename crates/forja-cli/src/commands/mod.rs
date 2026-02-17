@@ -17,6 +17,7 @@ pub mod plan;
 pub mod review;
 pub mod search;
 pub mod ship;
+pub mod sparks;
 pub mod stats;
 pub mod status;
 pub mod task;

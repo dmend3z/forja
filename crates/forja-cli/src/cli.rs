@@ -456,6 +456,24 @@ EXAMPLES:
         yes: bool,
     },
 
+    /// Spec-driven execution pipeline
+    #[command(
+        long_about = "Read spec files from docs/specs/, generate AI-driven plans, and execute \
+            them with agent teams. Specs use YAML frontmatter for structured metadata and \
+            markdown bodies for context.",
+        after_help = "\
+EXAMPLES:
+  forja sparks list                   # List all specs with status
+  forja sparks show user-auth         # Display full spec details
+  forja sparks plan user-auth         # Generate execution plan from spec
+  forja sparks execute user-auth      # Run the plan
+  forja sparks status                 # Show execution progress"
+    )]
+    Sparks {
+        #[command(subcommand)]
+        command: SparksCommands,
+    },
+
     /// Manage multi-agent teams
     #[command(
         long_about = "Create, configure, and manage multi-agent teams for complex tasks. \
@@ -512,5 +530,47 @@ pub enum TeamCommands {
         /// Skip confirmation prompt
         #[arg(long, short = 'y')]
         yes: bool,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum SparksCommands {
+    /// List all specs with status
+    List {
+        /// Path to specs directory (defaults to docs/specs/)
+        #[arg(long)]
+        path: Option<String>,
+    },
+
+    /// Display full spec details
+    Show {
+        /// Spec ID
+        spec_id: String,
+    },
+
+    /// Generate execution plan from spec
+    Plan {
+        /// Spec ID
+        spec_id: String,
+    },
+
+    /// Execute a spec's plan
+    Execute {
+        /// Spec ID
+        spec_id: String,
+
+        /// Model profile: fast, balanced, max
+        #[arg(long, default_value = "balanced")]
+        profile: String,
+
+        /// Resume from last checkpoint
+        #[arg(long)]
+        resume: bool,
+    },
+
+    /// Show execution progress
+    Status {
+        /// Spec ID (omit to show all specs)
+        spec_id: Option<String>,
     },
 }

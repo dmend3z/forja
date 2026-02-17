@@ -22,9 +22,10 @@ src/
 │   ├── registry.rs      # Registry: in-memory skill index with find_by_id() and search()
 │   ├── state.rs         # ForjaState, TeamEntry, TeamMember + load/save/migration
 │   ├── profile.rs       # Profile enum (Fast, Balanced, Max) + model resolution per phase
-│   ├── plan.rs          # PlanMetadata, PlanPhase, PlanStatus + find_latest_pending()
+│   ├── plan.rs          # PlanMetadata, PlanPhase, PlanStatus + find_latest_pending() + find_plan_for_spec()
 │   ├── config.rs        # ForjaConfig: version, mode, project_name, registry URL, local flag
 │   ├── active_project.rs # Active project tracking for project-scoped state
+│   ├── spec.rs          # SpecFile, SpecStatus, SpecFrontmatter + parse/discover/find/build_task_description
 │   └── claude.rs        # Claude Code integration models
 │
 ├── registry/            # Catalog scanning and git operations
@@ -51,6 +52,7 @@ src/
     ├── execute.rs       # Load plan JSON, auto-install agents, build prompt, launch Claude Code
     ├── task.rs          # Direct task execution: solo or team mode with interactive picker
     ├── team.rs          # Team CRUD: create (wizard), preset, list, info, delete
+    ├── sparks.rs        # Spec-driven pipeline: list/show/plan/execute/status for specs
     └── monitor/         # Real-time dashboard for agent teams
         ├── mod.rs       # forja monitor entry point
         ├── server.rs    # Axum HTTP server
@@ -146,6 +148,40 @@ commands/execute.rs::run(plan_id, profile)
   8. On success: mark plan status as "executed", save JSON
 ```
 
+### `forja sparks plan <spec-id>`
+
+```
+commands/sparks.rs::plan(spec_id)
+    ↓
+  1. spec::find_spec(docs/specs/, spec_id)   → loads and parses the spec .md file
+  2. spec::build_task_description(&spec)      → concatenates title, description, requirements, constraints, criteria, body
+  3. Load forja-plan template from registry   → skills/research/planning/forja-plan/commands/forja-plan.md
+  4. frontmatter::strip_frontmatter(&template) → removes YAML frontmatter from template
+  5. Replace $ARGUMENTS with task description → inject spec content into plan prompt
+  6. Append "source_spec" instruction         → tells Claude to link the plan back to the spec ID
+  7. Launch: claude -- <prompt>               → generates plan JSON + plan .md in ~/.forja/plans/
+```
+
+### `forja sparks execute <spec-id>`
+
+```
+commands/sparks.rs::execute(spec_id, profile, resume)
+    ↓
+  1. spec::find_spec(docs/specs/, spec_id)      → validate spec exists
+  2. plan::find_plan_for_spec(plans_dir, spec_id) → find linked plan by source_spec field
+  3. auto_install_missing(&paths, &skill_ids)     → install any missing agents
+  4. settings::enable_teams_env_var() if missing  → ensure CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+  5. If no phases:                                → exec_monolithic(): single claude session
+     If phases exist:                             → exec_phased():
+       a. Load or initialize checkpoint (--resume to continue)
+       b. For each phase:
+          - Skip if completed or dependency-failed
+          - run_phase_with_retry(): 2 attempts, then handle_phase_failure() → Retry/Skip/Abort
+          - run_quality_gates(): cargo test + cargo clippy (non-blocking)
+       c. Save checkpoint at every state transition
+  6. On all phases complete: mark plan as executed
+```
+
 ### `forja monitor`
 
 ```
@@ -211,7 +247,7 @@ Determines whether forja operates on the global `~/.forja/` or a project-scoped 
 
 ### `ForjaError` (`src/error.rs`)
 
-Centralized error enum with `thiserror`. Variants: `Io`, `Json`, `NoHomeDir`, `NotInitialized`, `SkillNotFound`, `AlreadyInstalled`, `NotInstalled`, `Git`, `TeamNotFound`, `TeamAlreadyExists`, `InvalidSettings`, `PromptCancelled`, `Dialoguer`, `NoPlansFound`, `PlanNotFound`, `ClaudeCliNotFound`, `AmbiguousSkillName`, `PhaseExecutionFailed`, `Monitor`.
+Centralized error enum with `thiserror`. Variants: `Io`, `Json`, `NoHomeDir`, `NotInitialized`, `SkillNotFound`, `AlreadyInstalled`, `NotInstalled`, `Git`, `TeamNotFound`, `TeamAlreadyExists`, `InvalidSettings`, `PromptCancelled`, `Dialoguer`, `NoPlansFound`, `PlanNotFound`, `ClaudeCliNotFound`, `AmbiguousSkillName`, `PhaseExecutionFailed`, `Monitor`, `NoChangesToReview`, `InvalidSkillName`, `LintFailed`, `InvalidArgument`, `Yaml`, `InvalidSpec`, `SpecNotFound`.
 
 Module defines `type Result<T> = std::result::Result<T, ForjaError>`.
 
@@ -292,6 +328,24 @@ struct PlanMetadata {
 ```
 
 `find_latest_pending()` scans `~/.forja/plans/`, sorts by filename (timestamp prefix), returns newest with status `Pending`.
+
+`find_plan_for_spec(plans_dir, spec_id)` scans all plan JSON files and returns the most recent one with `source_spec` matching the given spec ID.
+
+### `SpecFile` (`src/models/spec.rs`)
+
+```rust
+struct SpecFile {
+    frontmatter: SpecFrontmatter,  // id, title, description, priority?, tags, requirements, constraints, success_criteria
+    body: String,                  // markdown content after frontmatter
+    status: SpecStatus,            // Draft | Planning | Ready | Executing | Complete | Failed
+}
+```
+
+Parsed from markdown files in `docs/specs/` via `parse_spec()` which splits YAML frontmatter from the body. Discovery functions:
+- `discover_specs(dir)` — finds all `.md` files in a directory, returns sorted by ID
+- `find_spec(dir, id)` — discovers all specs then filters by ID
+- `load_spec(path)` — loads a single spec file from disk
+- `build_task_description(spec)` — concatenates all spec fields into a structured prompt for plan generation
 
 ### `ForjaConfig` (`src/models/config.rs`)
 
@@ -405,6 +459,18 @@ Team slash commands are written to `~/.claude/commands/` with the pattern `forja
 ### No-args contextual status
 
 Running `forja` with no subcommand shows a status dashboard (initialized) or welcome pitch (not initialized). Implemented by making the clap `command` field `Option<Commands>`. `--help` is unaffected since clap handles it before our code.
+
+### Sparks: spec-to-plan linkage
+
+Specs are linked to plans via the `source_spec` field on `PlanMetadata`. When `forja sparks plan` generates a plan, it injects an instruction for Claude to include `"source_spec": "<spec-id>"` in the plan JSON. The `find_plan_for_spec()` function scans the plans directory in reverse chronological order and returns the first match, so the most recent plan wins when a spec has been re-planned.
+
+### Sparks: retry-then-ask error handling
+
+Phase execution uses a two-tier retry strategy: first failure retries automatically (no user interaction); second failure pauses and prompts the user with three options via `dialoguer::Select`: Retry (fresh attempt), Skip (mark as skipped, continue), or Abort (halt execution). This balances resilience (transient failures auto-recover) with control (persistent failures require a human decision). Checkpoints are saved at every state transition so `--resume` works after any interruption.
+
+### Sparks: non-blocking quality gates
+
+After each completed phase, `cargo test --workspace` and `cargo clippy --workspace` run as quality gates. Results are reported (pass/fail with colored indicators) but do not block execution. The rationale: the user already chose to proceed past any phase failures, and test regressions may be addressed by subsequent phases.
 
 ### Real-time monitoring
 

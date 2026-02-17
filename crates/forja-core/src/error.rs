@@ -73,6 +73,15 @@ pub enum ForjaError {
 
     #[error("Invalid argument: {0}")]
     InvalidArgument(String),
+
+    #[error("YAML error: {0}")]
+    Yaml(#[from] serde_yaml::Error),
+
+    #[error("Invalid spec: {0}")]
+    InvalidSpec(String),
+
+    #[error("Spec not found: {0}")]
+    SpecNotFound(String),
 }
 
 impl ForjaError {
@@ -108,6 +117,9 @@ impl ForjaError {
             Self::InvalidSkillName(_) => "Use lowercase letters, numbers, and hyphens only (e.g. my-skill)",
             Self::LintFailed(_) => "Fix the errors listed above and run: forja lint",
             Self::InvalidArgument(_) => "Check the command help: forja <command> --help",
+            Self::Yaml(_) => "Check the YAML frontmatter syntax in the spec file",
+            Self::InvalidSpec(_) => "Spec files need YAML frontmatter between --- delimiters",
+            Self::SpecNotFound(_) => "Check the path and run: forja sparks list",
         }
     }
 
@@ -124,6 +136,9 @@ impl ForjaError {
             Self::NoChangesToReview => 6,
             Self::LintFailed(_) => 7,
             Self::InvalidArgument(_) => 8,
+            Self::Yaml(_) => 4,
+            Self::InvalidSpec(_) => 9,
+            Self::SpecNotFound(_) => 3,
             _ => 1,
         }
     }
@@ -161,6 +176,9 @@ mod tests {
             ForjaError::InvalidSkillName("test".into()),
             ForjaError::LintFailed(1),
             ForjaError::InvalidArgument("test".into()),
+            ForjaError::Yaml(serde_yaml::from_str::<String>("invalid: [").unwrap_err()),
+            ForjaError::InvalidSpec("test".into()),
+            ForjaError::SpecNotFound("test".into()),
         ];
 
         for variant in &variants {

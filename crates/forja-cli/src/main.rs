@@ -12,7 +12,7 @@ mod tips;
 mod wizard;
 
 use clap::Parser;
-use cli::{Cli, Commands, TeamCommands};
+use cli::{Cli, Commands, SparksCommands, TeamCommands};
 
 fn run() -> forja_core::error::Result<()> {
     let cli = Cli::parse();
@@ -100,6 +100,19 @@ fn dispatch(command: Commands) -> forja_core::error::Result<()> {
                 .map_err(|e| forja_core::error::ForjaError::Monitor(format!("Failed to start runtime: {e}")))?;
             rt.block_on(commands::monitor::run(port, !no_open))
         }
+        Commands::Sparks { command } => match command {
+            SparksCommands::List { ref path } => commands::sparks::list(path.as_deref()),
+            SparksCommands::Show { ref spec_id } => commands::sparks::show(spec_id),
+            SparksCommands::Plan { ref spec_id } => commands::sparks::plan(spec_id),
+            SparksCommands::Execute {
+                ref spec_id,
+                ref profile,
+                resume,
+            } => commands::sparks::execute(spec_id, profile, resume),
+            SparksCommands::Status { ref spec_id } => {
+                commands::sparks::status(spec_id.as_deref())
+            }
+        },
         Commands::Team { command } => match command {
             TeamCommands::Create { name } => commands::team::create(&name),
             TeamCommands::Preset { name, ref profile } => commands::team::preset(&name, profile),

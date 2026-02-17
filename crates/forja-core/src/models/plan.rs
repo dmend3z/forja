@@ -53,6 +53,8 @@ pub struct PlanMetadata {
     pub quality_gates: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub phases: Vec<PlanPhase>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_spec: Option<String>,
 }
 
 pub fn load_plan(path: &Path) -> Result<PlanMetadata> {
@@ -93,6 +95,33 @@ pub fn find_latest_pending(plans_dir: &Path) -> Result<PlanMetadata> {
     }
 
     Err(ForjaError::NoPlansFound)
+}
+
+/// Find the most recent plan linked to a spec ID via `source_spec`.
+pub fn find_plan_for_spec(plans_dir: &Path, spec_id: &str) -> Result<PlanMetadata> {
+    if !plans_dir.exists() {
+        return Err(ForjaError::NoPlansFound);
+    }
+
+    let mut json_files: Vec<_> = fs::read_dir(plans_dir)?
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|ext| ext == "json"))
+        .collect();
+
+    json_files.sort();
+
+    for path in json_files.into_iter().rev() {
+        if let Ok(plan) = load_plan(&path)
+            && plan.source_spec.as_deref() == Some(spec_id)
+        {
+            return Ok(plan);
+        }
+    }
+
+    Err(ForjaError::PlanNotFound(format!(
+        "no plan found for spec '{spec_id}'"
+    )))
 }
 
 // --- Execution Checkpoints ---
@@ -206,6 +235,7 @@ mod tests {
             }),
             quality_gates: vec![],
             phases: vec![],
+            source_spec: None,
         }
     }
 
@@ -268,5 +298,56 @@ mod tests {
                 .iter()
                 .all(|p| p.status == PhaseStatus::Pending)
         );
+    }
+
+    #[test]
+    fn find_plan_for_spec_finds_linked_plan() {
+        let dir = TempDir::new().unwrap();
+
+        let mut plan = sample_plan("20260210-120000-from-spec", PlanStatus::Pending);
+        plan.source_spec = Some("user-auth".to_string());
+        save_plan(
+            &dir.path().join("20260210-120000-from-spec.json"),
+            &plan,
+        )
+        .unwrap();
+
+        let unlinked = sample_plan("20260209-100000-unlinked", PlanStatus::Pending);
+        save_plan(
+            &dir.path().join("20260209-100000-unlinked.json"),
+            &unlinked,
+        )
+        .unwrap();
+
+        let found = find_plan_for_spec(dir.path(), "user-auth").unwrap();
+        assert_eq!(found.id, "20260210-120000-from-spec");
+        assert_eq!(found.source_spec.as_deref(), Some("user-auth"));
+    }
+
+    #[test]
+    fn find_plan_for_spec_returns_most_recent() {
+        let dir = TempDir::new().unwrap();
+
+        let mut old = sample_plan("20260201-100000-old", PlanStatus::Pending);
+        old.source_spec = Some("my-spec".to_string());
+        save_plan(&dir.path().join("20260201-100000-old.json"), &old).unwrap();
+
+        let mut new = sample_plan("20260210-120000-new", PlanStatus::Pending);
+        new.source_spec = Some("my-spec".to_string());
+        save_plan(&dir.path().join("20260210-120000-new.json"), &new).unwrap();
+
+        let found = find_plan_for_spec(dir.path(), "my-spec").unwrap();
+        assert_eq!(found.id, "20260210-120000-new");
+    }
+
+    #[test]
+    fn find_plan_for_spec_not_found() {
+        let dir = TempDir::new().unwrap();
+
+        let plan = sample_plan("20260210-120000-other", PlanStatus::Pending);
+        save_plan(&dir.path().join("20260210-120000-other.json"), &plan).unwrap();
+
+        let err = find_plan_for_spec(dir.path(), "nonexistent").unwrap_err();
+        assert!(matches!(err, ForjaError::PlanNotFound(_)));
     }
 }

@@ -260,7 +260,7 @@ fn run_phased(
 }
 
 /// Check if any dependency of a phase has failed.
-fn has_failed_dependency(
+pub fn has_failed_dependency(
     phase: &PlanPhase,
     all_phases: &[PlanPhase],
     checkpoint: &ExecutionCheckpoint,
@@ -277,7 +277,7 @@ fn has_failed_dependency(
 }
 
 /// Build the prompt for a specific phase, including context from previous phases.
-fn build_phase_prompt(
+pub fn build_phase_prompt(
     plan: &PlanMetadata,
     phase_index: usize,
     plan_md: &str,
@@ -487,6 +487,7 @@ mod tests {
             }),
             quality_gates: vec![],
             phases: vec![],
+            source_spec: None,
         }
     }
 

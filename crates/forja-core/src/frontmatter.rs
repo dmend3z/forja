@@ -19,6 +19,19 @@ pub fn split_frontmatter(content: &str) -> Result<(&str, &str)> {
     Ok((yaml, body))
 }
 
+/// Strip YAML frontmatter from content, returning only the body.
+///
+/// Unlike [`split_frontmatter`], this is lenient: if no frontmatter is found,
+/// the full content is returned unchanged.
+pub fn strip_frontmatter(content: &str) -> &str {
+    if let Some(stripped) = content.strip_prefix("---")
+        && let Some(end) = stripped.find("---")
+    {
+        return stripped[end + 3..].trim_start();
+    }
+    content
+}
+
 /// Parse an agent `.md` file: extract YAML frontmatter into `AgentFrontmatter` and return the body.
 pub fn parse_agent_frontmatter(content: &str) -> Result<(AgentFrontmatter, String)> {
     let (yaml, body) = split_frontmatter(content)?;
@@ -56,6 +69,24 @@ mod tests {
     fn split_fails_without_closing() {
         let err = split_frontmatter("---\nno closing").unwrap_err();
         assert!(err.to_string().contains("missing closing ---"));
+    }
+
+    #[test]
+    fn strip_removes_frontmatter() {
+        let input = "---\ndescription: some desc\n---\n\n# Title\n\nBody";
+        assert_eq!(strip_frontmatter(input), "# Title\n\nBody");
+    }
+
+    #[test]
+    fn strip_returns_full_content_without_frontmatter() {
+        let input = "# Title\n\nNo frontmatter";
+        assert_eq!(strip_frontmatter(input), input);
+    }
+
+    #[test]
+    fn strip_handles_empty_frontmatter() {
+        let input = "---\n---\n\n# Title";
+        assert_eq!(strip_frontmatter(input), "# Title");
     }
 
     #[test]
