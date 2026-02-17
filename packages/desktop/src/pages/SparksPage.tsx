@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/EmptyState";
+import { ProjectTabBar } from "@/components/ProjectTabBar";
 import {
   listProjects,
   listSparks,
   startSpark,
+  stopSpark,
   type Project,
   type SparkInfo,
   type SparkType,
@@ -32,12 +34,21 @@ function isTerminal(status: string) {
 
 export function SparksPage() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const [project, setProject] = useState<Project | null>(null);
   const [sparks, setSparks] = useState<SparkInfo[]>([]);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const pollingRef = useRef(true);
+
+  // Prefill description from location state (e.g. from SpecsPage "Run as Spark")
+  useEffect(() => {
+    const prefill = (location.state as { prefill?: string } | null)?.prefill;
+    if (prefill) {
+      setDescription(prefill);
+    }
+  }, [location.state]);
 
   // Load project on mount
   useEffect(() => {
@@ -95,6 +106,19 @@ export function SparksPage() {
     }
   }
 
+  async function handleStop(sparkId: string) {
+    try {
+      await stopSpark(sparkId);
+      pollingRef.current = true;
+      if (id) {
+        const updated = await listSparks(id);
+        setSparks(updated);
+      }
+    } catch (e) {
+      console.error("Failed to stop spark:", e);
+    }
+  }
+
   function toggleExpanded(sparkId: string) {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -117,9 +141,11 @@ export function SparksPage() {
       <h2 className="text-xl font-bold mb-1">
         {project ? project.name : "Loading..."}
       </h2>
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className="text-sm text-muted-foreground mb-4">
         Run a spark to execute a task in this project.
       </p>
+
+      <ProjectTabBar />
 
       {/* Input form */}
       <div className="mb-8">
@@ -186,6 +212,19 @@ export function SparksPage() {
                       <span className="text-xs font-medium px-2 py-0.5 rounded bg-secondary text-secondary-foreground">
                         {SPARK_TYPE_LABELS[spark.spark_type]}
                       </span>
+                      {(spark.status === "starting" || spark.status === "running") && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStop(spark.id);
+                          }}
+                        >
+                          Stop
+                        </Button>
+                      )}
                       <span className="text-xs text-muted-foreground">
                         {style.label}
                       </span>

@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/forja-core", "crates/forja-cli", "crates/forja-spark", "crates/forja-tui", "app/src-tauri"]
+members = ["crates/forja-core", "crates/forja-cli", "crates/forja-spark", "crates/forja-tui", "packages/desktop/src-tauri"]
 resolver = "2"
 
 [workspace.package]
@@ -17,4 +17,5 @@ chrono = "0.4"
 dirs = "6"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "io-util", "process", "signal"] }
 uuid = { version = "1", features = ["v4"] }
+serde_yaml = "0.9"
 tempfile = "3"

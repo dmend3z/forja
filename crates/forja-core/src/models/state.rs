@@ -5,11 +5,21 @@ use std::path::Path;
 
 use crate::error::Result;
 
+/// Lightweight install tracking metadata per skill.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstallMeta {
+    pub install_date: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_used: Option<String>,
+}
+
 /// Persistent state stored in `~/.forja/state.json`. Tracks installed skills and team configs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ForjaState {
     pub version: u32,
     pub installed: Vec<String>,
+    #[serde(default)]
+    pub install_metadata: HashMap<String, InstallMeta>,
     #[serde(default)]
     pub teams: HashMap<String, TeamEntry>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -36,6 +46,7 @@ impl Default for ForjaState {
         Self {
             version: 2,
             installed: Vec::new(),
+            install_metadata: HashMap::new(),
             teams: HashMap::new(),
             active_profile: None,
         }
@@ -63,6 +74,7 @@ pub fn load_state(state_path: &Path) -> ForjaState {
         return ForjaState {
             version: 2,
             installed: ids,
+            install_metadata: HashMap::new(),
             teams: HashMap::new(),
             active_profile: None,
         };

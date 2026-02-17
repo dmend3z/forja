@@ -1,4 +1,5 @@
 pub mod active_project;
+pub mod agent_file;
 pub mod analytics;
 pub mod claude;
 pub mod config;
@@ -9,4 +10,5 @@ pub mod plugin;
 pub mod profile;
 pub mod registry;
 pub mod skill;
+pub mod spec;
 pub mod state;

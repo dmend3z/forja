@@ -11,8 +11,8 @@ repository.workspace = true
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-forja-core = { path = "../../crates/forja-core" }
-forja-spark = { path = "../../crates/forja-spark" }
+forja-core = { path = "../../../crates/forja-core" }
+forja-spark = { path = "../../../crates/forja-spark" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }

@@ -6,6 +6,7 @@
 
 pub mod analytics;
 pub mod error;
+pub mod frontmatter;
 pub mod lint;
 pub mod models;
 pub mod paths;
