@@ -1,0 +1,7 @@
+{
+  "name": "spec-generator",
+  "description": "Generate structured spec files from meeting transcripts — extracts action items, groups into specs with YAML frontmatter, and saves to docs/specs/",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["specs", "planning", "transcripts", "meetings", "requirements"]
+}

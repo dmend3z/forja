@@ -21,6 +21,11 @@ pub fn handle_key(app: &mut App, key: KeyEvent) {
             app.try_launch();
             return;
         }
+        // macOS terminals often send Ctrl+Enter as Ctrl+J (linefeed = ASCII 10)
+        KeyCode::Char('j') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            app.try_launch();
+            return;
+        }
         _ => {}
     }
 
@@ -37,5 +42,10 @@ pub fn handle_key(app: &mut App, key: KeyEvent) {
             KeyCode::Enter => app.try_launch(),
             _ => {}
         },
+        Focus::Submit => {
+            if key.code == KeyCode::Enter {
+                app.try_launch();
+            }
+        }
     }
 }

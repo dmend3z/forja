@@ -101,6 +101,8 @@ When all results are ready, read each output file and produce:
 
 ## Best Practices
 
+- **Pre-approve permissions**: Before dispatching, suggest the user allow: file reads. Council members analyze — they should never need write or execute permissions.
 - **Provide context**: The more context you give in your question, the better the council's analysis. Include: product stage, user base, market position, constraints, team size.
 - **One question at a time**: Don't bundle multiple decisions. Each council session should focus on a single decision point.
 - **Model enforcement**: Council members MUST use `opus` (deep thinking). Facilitator uses `sonnet` (coordination). ALWAYS pass `model` explicitly in Task tool calls.
+- **Self-contained prompts**: Each council member receives no context from this conversation or from other members. Everything they need — the question, product context, constraints — must be in their individual spawn prompt.

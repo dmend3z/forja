@@ -40,7 +40,7 @@ When spawning any teammate with the Task tool, you MUST pass the `model` paramet
 | Role | Model |
 |------|-------|
 | Analyzer | opus |
-| Refactorer | opus |
+| Refactorer | sonnet |
 | Reviewer | sonnet |
 | Chronicler | haiku |
 
@@ -59,12 +59,37 @@ GOOD: "Add caching to user lookup. Done when: (1) repeated calls return cached r
 
 Structure: Role → Context (file paths, existing patterns) → Success criteria → Constraints (what NOT to do)
 
+## Parallel Work Practices
+
+- **File ownership**: The Analyzer is read-only and the Refactorer owns all target files exclusively. Never spawn the Refactorer concurrently with any other agent that writes to the same files.
+- **Self-contained prompts**: Teammates do not inherit this conversation's history. The Analyzer's prompt must include the refactoring objective and exact target file paths. The Refactorer's prompt must include the full Analyzer plan — don't summarize it.
+- **Lead stays coordinator**: Evaluate the Analyzer's plan yourself (task 2), then spawn the Refactorer with plan approval. Do not implement any refactoring steps yourself.
+- **Don't split refactoring across agents**: The Refactorer executes the plan as one task, running tests after each step internally. Splitting across agent spawns breaks incremental state.
+
+## Expected Output Formats
+
+Include the expected format in each teammate's spawn prompt:
+
+| Role | Expected Format |
+|------|----------------|
+| Analyzer | `## Refactoring Plan` — sections: Public API Surface, Dependency Map, Test Coverage, Risk Areas, Ordered Steps |
+| Refactorer | `## Refactoring Summary` — sections: Steps Completed, Tests Run After Each Step, Files Changed |
+| Reviewer | `## Review Verdict: APPROVE/REQUEST CHANGES` — sections: REGRESSION, API BREAK, STRUCTURAL, INCOMPLETE |
+| Chronicler | Writes directly to `docs/decisions/` — no report to lead needed |
+
 ## Rules
 
 - Give the Analyzer specific file paths and the refactoring objective
 - Max 2 review rounds — escalate to user after that
 - Never modify tests — tests are the behavioral contract
 - This team does NOT deploy — the user commits when ready
+
+## Agent Recovery
+
+- If the Analyzer or Refactorer goes idle without reporting, read their output file to check progress
+- If the Refactorer crashed mid-plan, check which steps completed (via test results) before re-spawning
+- Re-spawn with: original prompt + completed steps + "continue from step N"
+- If an agent fails twice, escalate to user
 
 ## Lifecycle
 

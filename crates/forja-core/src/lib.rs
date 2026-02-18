@@ -11,6 +11,7 @@ pub mod lint;
 pub mod models;
 pub mod paths;
 pub mod registry;
+pub mod scanner;
 pub mod settings;
 pub mod symlink;
 pub mod templates;

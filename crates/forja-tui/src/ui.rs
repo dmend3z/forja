@@ -14,8 +14,9 @@ pub fn render(frame: &mut Frame, app: &mut App) {
     if app.mode == TuiMode::Plan {
         let chunks = Layout::vertical([
             Constraint::Length(1),  // title
-            Constraint::Min(9),    // textarea (gets extra space from missing config)
+            Constraint::Min(8),    // textarea
             Constraint::Min(4),    // preview
+            Constraint::Length(1), // submit button
             Constraint::Length(1), // help bar
         ])
         .split(area);
@@ -23,7 +24,8 @@ pub fn render(frame: &mut Frame, app: &mut App) {
         render_title(frame, app, chunks[0]);
         render_textarea(frame, app, chunks[1]);
         render_preview(frame, app, chunks[2]);
-        render_help(frame, app, chunks[3]);
+        render_submit(frame, app, chunks[3]);
+        render_help(frame, app, chunks[4]);
     } else {
         let chunks = Layout::vertical([
             Constraint::Length(1),  // title
@@ -134,6 +136,21 @@ fn render_config(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     frame.render_widget(Paragraph::new(Line::from(profile_spans)), rows[1]);
 }
 
+fn render_submit(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+    let style = if app.focus == Focus::Submit {
+        Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD)
+    } else {
+        Style::default().fg(Color::Green)
+    };
+    let hint = if app.focus == Focus::Submit { "  press Enter" } else { "" };
+    let spans = vec![
+        Span::raw("  "),
+        Span::styled(" Create Plan ", style),
+        Span::styled(hint, Style::default().fg(Color::DarkGray)),
+    ];
+    frame.render_widget(Paragraph::new(Line::from(spans)), area);
+}
+
 fn render_preview(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     let preview_text = build_preview(app);
     let block = Block::default()
@@ -149,8 +166,8 @@ fn render_preview(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 fn render_help(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     let mut spans = if app.mode == TuiMode::Plan {
         vec![
-            Span::styled(" Ctrl+Enter", Style::default().fg(Color::Green)),
-            Span::raw(": create plan  "),
+            Span::styled(" Tab", Style::default().fg(Color::Cyan)),
+            Span::raw(": select button  "),
             Span::styled("Esc", Style::default().fg(Color::Red)),
             Span::raw(": quit"),
         ]

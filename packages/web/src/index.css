@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg:          #ffffff;
+  --color-bg-subtle:   #fafaf9;
+  --color-bg-card:     #ffffff;
+  --color-bg-elevated: #fff7ed;
+  --color-bg-code:     #1a1a1a;
+
+  --color-border:       rgba(249, 115, 22, 0.25);
+  --color-border-strong: rgba(249, 115, 22, 0.5);
+
+  --color-text:        #111111;
+  --color-text-muted:  #525252;
+  --color-text-subtle: #a1a1a1;
+
+  --color-accent:      #f97316;
+  --color-accent-dim:  rgba(249, 115, 22, 0.08);
+
+  --color-sparks:      #7c3aed;
+  --color-scan:        #0891b2;
+  --color-desktop:     #f97316;
+  --color-monitor:     #059669;
+
+  --color-bg-terminal-header: #111111;
+  --color-border-terminal:    #2a2a2a;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+section + section {
+  border-top: 1px dashed var(--color-border);
+}
+
+.terminal-body {
+  --color-text: #fafafa;
+  --color-text-muted: #a1a1a1;
+  --color-text-subtle: #636363;
+  --color-border: #2a2a2a;
+}

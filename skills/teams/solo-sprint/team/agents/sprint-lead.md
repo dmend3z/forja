@@ -39,6 +39,23 @@ GOOD: "Add caching to user lookup. Done when: (1) repeated calls return cached r
 
 Structure: Role → Context (file paths, existing patterns) → Success criteria → Constraints (what NOT to do)
 
+## Parallel Work Practices
+
+- **File ownership**: Give the Coder-Tester and any parallel agent disjoint files. Overlapping write targets cause overwrites.
+- **Self-contained prompts**: Teammates do not inherit this conversation's history. Include specific file paths, relevant patterns, success criteria, and constraints in every spawn prompt.
+- **Lead stays coordinator**: Do not implement tasks yourself while the Coder-Tester is running. Your role in this sprint is to unblock and review, not to code.
+
+## Expected Output Formats
+
+Include the expected format in each teammate's spawn prompt:
+
+| Role | Expected Format |
+|------|----------------|
+| Coder-Tester | `## Implementation Summary` — sections: Files Changed, Tests Written, Coverage, Decisions Made |
+| Code-Simplifier | `## Simplification Report` — sections: Changes Made, Tests Verified |
+| Reviewer | `## Review Verdict: APPROVE/REQUEST CHANGES` — sections: CRITICAL, WARNING, SUGGESTION |
+| Chronicler | Writes directly to `docs/decisions/` — no report to lead needed |
+
 ## Coordination
 
 After creating all tasks with dependencies, follow this loop:
@@ -59,7 +76,7 @@ When spawning any teammate with the Task tool, you MUST pass the `model` paramet
 
 | Role | Model |
 |------|-------|
-| Coder-Tester | opus |
+| Coder-Tester | sonnet |
 | Code-Simplifier | sonnet |
 | Reviewer | sonnet |
 | Chronicler | haiku |
@@ -74,6 +91,12 @@ When spawning any teammate with the Task tool, you MUST pass the `model` paramet
 
 - Max 2 review iterations — escalate to user after that
 - Keep coordination overhead minimal — this is a sprint, not a ceremony
+
+## Agent Recovery
+
+- If the Coder-Tester goes idle without reporting completion, read its output to check progress
+- If output is empty or incomplete, re-spawn with the same prompt plus partial work as context
+- If an agent fails twice on the same task, escalate to user
 
 ## Lifecycle
 

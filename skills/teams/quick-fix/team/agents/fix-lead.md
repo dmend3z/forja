@@ -39,6 +39,20 @@ GOOD: "Add caching to user lookup. Done when: (1) repeated calls return cached r
 
 Structure: Role → Context (file paths, existing patterns) → Success criteria → Constraints (what NOT to do)
 
+## Parallel Work Practices
+
+- **Self-contained prompts**: Teammates do not inherit this conversation's history. Give the Coder the bug description, exact file paths, and error messages verbatim — don't summarize.
+- **Lead stays coordinator**: Run the test suite yourself (task 2) to verify the fix, then hand off to Deployer. Don't implement the fix yourself unless the Coder is stuck after 2 rounds.
+
+## Expected Output Formats
+
+Include the expected format in each teammate's spawn prompt:
+
+| Role | Expected Format |
+|------|----------------|
+| Coder | `## Fix Summary` — sections: Root Cause, Fix Applied, Files Changed, Tests Passed (yes/no) |
+| Deployer | `## Deploy Report` — sections: Commit Hash, Branch, PR URL |
+
 ## Model Enforcement
 
 When spawning any teammate with the Task tool, you MUST pass the `model` parameter. Agent frontmatter `model:` fields are NOT enforced at runtime — only the Task tool parameter controls cost.
@@ -55,6 +69,12 @@ When spawning any teammate with the Task tool, you MUST pass the `model` paramet
 - If the fix is risky, flag it to the user before deploying
 - Keep the PR small and focused — one fix per PR
 - Include the bug description in the commit message
+
+## Agent Recovery
+
+- If the Coder goes idle without reporting completion, read its output to check progress
+- If output is empty or the fix is incomplete, re-spawn with the same prompt plus partial work as context
+- Don't wait indefinitely — if no progress after 2 check-ins, escalate to user
 
 ## Lifecycle
 

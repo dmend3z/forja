@@ -45,10 +45,11 @@ When the task is complete:
 
 ## Best Practices
 
-- **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
+- **Pre-approve permissions**: Before launching, suggest the user allow: file reads, file writes, test execution, git operations (commit, push, branch). Speed matters for hotfixes — permission prompts break flow.
 - **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
 - **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
 - **Enforce models**: When spawning each teammate with the Task tool, you MUST pass the `model` parameter explicitly. Agent YAML frontmatter `model:` is NOT enforced at runtime — the only binding control is the Task tool's `model` parameter. Treat omitting it as a bug.
+- **Avoid file conflicts**: This team is sequential by design. If you ever spawn additional parallel agents for research, ensure they are read-only and don't write to files the Coder owns.
 
 ## When to Use
 

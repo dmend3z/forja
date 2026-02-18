@@ -8,7 +8,7 @@ Lightweight 2-agent team: combined coder-tester and quick reviewer. For medium f
 
 | Role | Phase | Model |
 |------|-------|-------|
-| Coder-Tester | Code + Test | opus |
+| Coder-Tester | Code + Test | sonnet |
 | Code-Simplifier | Review | sonnet |
 | Reviewer | Review | sonnet |
 

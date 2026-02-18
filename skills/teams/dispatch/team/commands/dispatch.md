@@ -27,8 +27,8 @@ Separate independent tasks (parallel) from dependent tasks (sequential). If ALL 
 |-----------|---------------|-------|
 | Codebase exploration | Explore | opus |
 | External research | Explore | opus |
-| Implementation | coder or stack-specific | opus |
-| Test writing | general-purpose | opus |
+| Implementation | coder or stack-specific | sonnet |
+| Test writing | general-purpose | sonnet |
 | Code review | code-reviewer | sonnet |
 | Architecture planning | Plan | opus |
 | Deployment / git ops | general-purpose | sonnet |
@@ -45,7 +45,7 @@ Critical rules for each spawn:
 Example dispatch pattern:
 ```
 Task 1: { subagent_type: "Explore", model: "opus", run_in_background: true, prompt: "..." }
-Task 2: { subagent_type: "coder", model: "opus", run_in_background: true, prompt: "..." }
+Task 2: { subagent_type: "coder", model: "sonnet", run_in_background: true, prompt: "..." }
 Task 3: { subagent_type: "code-reviewer", model: "sonnet", run_in_background: true, prompt: "..." }
 ```
 
@@ -72,9 +72,10 @@ No explicit shutdown needed. Background agents self-terminate when their task co
 
 ## Best Practices
 
-- **Pre-approve permissions**: Suggest the user configure permission settings to auto-approve common operations before dispatching, to avoid N agents each waiting for approval.
+- **Pre-approve permissions**: Before dispatching, suggest the user allow: file reads, and any write/execute operations relevant to the dispatched tasks. N agents × M permission prompts = frustration.
 - **Self-contained prompts**: The #1 cause of bad agent output is insufficient context in the prompt. Include: the goal, relevant file paths, error messages, constraints, and what format to return results in.
 - **Right-size the work**: Each dispatched task should be substantial enough to justify a separate agent (not a 2-line change) but focused enough to complete independently.
+- **Avoid file conflicts**: If multiple agents write to the filesystem, give each a disjoint set of target files. Two agents writing the same file will overwrite each other — there is no merge step in background agent dispatch.
 - **Max 5 agents**: More creates diminishing returns. Permission approval fatigue alone makes >5 impractical.
 - **Model enforcement**: ALWAYS pass `model` in the Task tool call. This is non-negotiable.
 

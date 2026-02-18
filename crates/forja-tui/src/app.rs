@@ -5,6 +5,7 @@ pub enum Focus {
     Textarea,
     Team,
     Profile,
+    Submit,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -68,24 +69,30 @@ impl<'a> App<'a> {
     }
 
     pub fn next_focus(&mut self) {
-        if self.mode == TuiMode::Plan {
-            return; // Only textarea in Plan mode
-        }
-        self.focus = match self.focus {
-            Focus::Textarea => Focus::Team,
-            Focus::Team => Focus::Profile,
-            Focus::Profile => Focus::Textarea,
+        self.focus = match self.mode {
+            TuiMode::Plan => match self.focus {
+                Focus::Textarea => Focus::Submit,
+                _ => Focus::Textarea,
+            },
+            TuiMode::Task => match self.focus {
+                Focus::Textarea => Focus::Team,
+                Focus::Team => Focus::Profile,
+                _ => Focus::Textarea,
+            },
         };
     }
 
     pub fn prev_focus(&mut self) {
-        if self.mode == TuiMode::Plan {
-            return; // Only textarea in Plan mode
-        }
-        self.focus = match self.focus {
-            Focus::Textarea => Focus::Profile,
-            Focus::Team => Focus::Textarea,
-            Focus::Profile => Focus::Team,
+        self.focus = match self.mode {
+            TuiMode::Plan => match self.focus {
+                Focus::Textarea => Focus::Submit,
+                _ => Focus::Textarea,
+            },
+            TuiMode::Task => match self.focus {
+                Focus::Textarea => Focus::Profile,
+                Focus::Team => Focus::Textarea,
+                _ => Focus::Team,
+            },
         };
     }
 
@@ -97,7 +104,7 @@ impl<'a> App<'a> {
             Focus::Profile => {
                 self.profile_index = (self.profile_index + 1) % self.profile_options.len();
             }
-            Focus::Textarea => {}
+            Focus::Textarea | Focus::Submit => {}
         }
     }
 
@@ -117,7 +124,7 @@ impl<'a> App<'a> {
                     self.profile_index - 1
                 };
             }
-            Focus::Textarea => {}
+            Focus::Textarea | Focus::Submit => {}
         }
     }
 
@@ -273,10 +280,15 @@ mod tests {
     }
 
     #[test]
-    fn plan_mode_focus_stays_on_textarea() {
+    fn plan_mode_focus_cycles_textarea_submit() {
         let mut app = App::new_plan();
         app.next_focus();
+        assert_eq!(app.focus, Focus::Submit);
+        app.next_focus();
         assert_eq!(app.focus, Focus::Textarea);
+        // prev_focus also toggles
+        app.prev_focus();
+        assert_eq!(app.focus, Focus::Submit);
         app.prev_focus();
         assert_eq!(app.focus, Focus::Textarea);
     }

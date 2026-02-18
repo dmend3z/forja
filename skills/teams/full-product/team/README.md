@@ -9,10 +9,10 @@
 | Role | Phase | Model |
 |------|-------|-------|
 | Researcher | Research | opus |
-| Coder | Code | opus |
-| Tester | Test | opus |
-| Code-Simplifier | Review | opus |
-| Reviewer | Review | opus |
+| Coder | Code | sonnet |
+| Tester | Test | sonnet |
+| Code-Simplifier | Review | sonnet |
+| Reviewer | Review | sonnet |
 | Chronicler | Document | haiku |
 | Deployer | Deploy | sonnet |
 

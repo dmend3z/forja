@@ -1,5 +1,8 @@
 pub mod app;
 pub mod input;
+pub mod scan_app;
+pub mod scan_input;
+pub mod scan_ui;
 pub mod ui;
 
 use std::io;
@@ -135,6 +138,70 @@ fn run_loop(
         }
 
         if app.should_quit || app.should_launch {
+            break;
+        }
+    }
+    Ok(())
+}
+
+/// Open the interactive TUI for scan result selection (checkboxes).
+/// Returns `Some(selected_skill_ids)` on confirm, `None` on Esc/quit.
+pub fn launch_scan(
+    recommendations: Vec<forja_core::scanner::models::SkillRecommendation>,
+    show_installed: bool,
+    tech_count: usize,
+) -> Result<Option<Vec<String>>> {
+    use std::io::IsTerminal;
+    if !io::stdin().is_terminal() {
+        return Err(ForjaError::Dialoguer(
+            "TUI requires an interactive terminal. Use: forja scan --yes".to_string(),
+        ));
+    }
+
+    let mut app = scan_app::ScanApp::new(recommendations, show_installed);
+    app.tech_count = tech_count;
+
+    if app.is_empty() {
+        return Ok(None);
+    }
+
+    enable_raw_mode().map_err(|e| ForjaError::Dialoguer(format!("raw mode: {e}")))?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen)
+        .map_err(|e| ForjaError::Dialoguer(format!("alternate screen: {e}")))?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal =
+        Terminal::new(backend).map_err(|e| ForjaError::Dialoguer(format!("terminal: {e}")))?;
+
+    let result = run_scan_loop(&mut terminal, &mut app);
+
+    disable_raw_mode().ok();
+    execute!(terminal.backend_mut(), LeaveAlternateScreen).ok();
+    terminal.show_cursor().ok();
+
+    result?;
+
+    if app.should_install {
+        Ok(Some(app.selected_skill_ids()))
+    } else {
+        Ok(None)
+    }
+}
+
+fn run_scan_loop(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    app: &mut scan_app::ScanApp,
+) -> Result<()> {
+    loop {
+        terminal
+            .draw(|frame| scan_ui::render(frame, app))
+            .map_err(|e| ForjaError::Dialoguer(format!("draw: {e}")))?;
+
+        if let Event::Key(key) = event::read().map_err(ForjaError::Io)? {
+            scan_input::handle_key(app, key);
+        }
+
+        if app.should_quit || app.should_install {
             break;
         }
     }

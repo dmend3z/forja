@@ -456,6 +456,38 @@ EXAMPLES:
         yes: bool,
     },
 
+    /// Scan the codebase and recommend skills
+    #[command(
+        long_about = "Analyze the current project to detect technologies and recommend relevant \
+            forja skills. Uses filesystem markers for instant results, with optional AI-powered \
+            deep analysis via Claude CLI. Presents an interactive TUI for selecting which skills \
+            to install.",
+        after_help = "\
+EXAMPLES:
+  forja scan                            # Interactive scan with AI
+  forja scan --basic                    # Deterministic only (no AI)
+  forja scan --yes                      # Auto-install all recommended
+  forja scan --json                     # Output JSON (for scripting)
+  forja scan --all                      # Include already-installed skills"
+    )]
+    Scan {
+        /// Auto-install all recommended skills without TUI
+        #[arg(long, short = 'y')]
+        yes: bool,
+
+        /// Output scan results as JSON
+        #[arg(long)]
+        json: bool,
+
+        /// Include already-installed skills in results
+        #[arg(long)]
+        all: bool,
+
+        /// Skip AI analysis, use deterministic scan only
+        #[arg(long)]
+        basic: bool,
+    },
+
     /// Spec-driven execution pipeline
     #[command(
         long_about = "Read spec files from docs/specs/, generate AI-driven plans, and execute \

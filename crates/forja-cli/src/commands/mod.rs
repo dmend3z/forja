@@ -15,6 +15,7 @@ pub mod monitor;
 pub mod new;
 pub mod plan;
 pub mod review;
+pub mod scan;
 pub mod search;
 pub mod ship;
 pub mod sparks;

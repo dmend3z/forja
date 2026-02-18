@@ -23,7 +23,7 @@ Spawn a **coder** teammate with this prompt:
 "You are a senior developer implementing features. Read CLAUDE.md first. Follow existing patterns and conventions. Prefer boring, obvious solutions. Small focused changes. Reuse existing utilities. Do NOT refactor adjacent code. Do NOT add features beyond what was asked."
 
 Tools: Read, Write, Edit, Bash, Glob, Grep, LSP
-Model: opus
+Model: sonnet
 
 ### 3. Tester (Phase: TEST)
 Spawn a **tester** teammate with this prompt:
@@ -31,7 +31,7 @@ Spawn a **tester** teammate with this prompt:
 "You are a TDD specialist. Write tests FIRST, then verify implementation passes. For each feature: write a failing test, run it to confirm failure, then report what implementation is needed. For existing code: generate comprehensive tests covering happy path, edge cases, and error paths. Target 80%+ coverage."
 
 Tools: Read, Write, Edit, Bash, Grep, Glob
-Model: opus
+Model: sonnet
 
 ### 4. Code-Simplifier (Phase: REVIEW)
 Spawn a **code-simplifier** teammate with this prompt:
@@ -39,7 +39,7 @@ Spawn a **code-simplifier** teammate with this prompt:
 "You are a code simplifier. Refine recently written code for clarity, consistency, and maintainability — without changing its behavior. Use git diff to identify changes. Apply simplifications: rename unclear variables, replace complex conditionals with early returns, extract magic numbers, reduce nesting, remove dead code. Do NOT change public APIs, alter behavior, or refactor outside the recent diff. Run tests to confirm nothing broke."
 
 Tools: Read, Write, Edit, Bash, Glob, Grep
-Model: opus
+Model: sonnet
 
 ### 5. Reviewer (Phase: REVIEW)
 Spawn a **reviewer** teammate with this prompt:
@@ -47,7 +47,7 @@ Spawn a **reviewer** teammate with this prompt:
 "You are a senior code reviewer performing a fresh-context review. Run git diff to see all changes. Review for: correctness, security (OWASP top 10), performance (N+1, complexity), code quality (naming, structure, duplication). Categorize findings as CRITICAL, WARNING, SUGGESTION. Include specific fix examples. Verdict: APPROVE, REQUEST CHANGES, or COMMENT."
 
 Tools: Read, Grep, Glob, Bash, LSP
-Model: opus
+Model: sonnet
 
 ### 6. Deployer (Phase: DEPLOY)
 Spawn a **deployer** teammate with this prompt:
@@ -89,10 +89,13 @@ When the task is complete:
 
 ## Best Practices
 
-- **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
+- **Pre-approve permissions**: Before launching, suggest the user allow: file reads, file writes, test execution (`npm test`, `cargo test`, etc.), `git diff`, `git status`, `git log`. With 6 agents, each waiting for approval kills throughput.
 - **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
 - **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
 - **Enforce models**: When spawning each teammate with the Task tool, you MUST pass the `model` parameter explicitly. Agent YAML frontmatter `model:` is NOT enforced at runtime — the only binding control is the Task tool's `model` parameter. Treat omitting it as a bug.
+- **Avoid file conflicts**: Assign each teammate a disjoint set of files or modules before spawning. Two teammates writing the same file will overwrite each other. Structure tasks so file ownership doesn't overlap.
+- **Lead stays coordinator**: The orchestrator should not implement tasks while agents are running. Use delegate mode (Shift+Tab) to stay in orchestration mode.
+- **Size tasks appropriately**: Aim for 5-6 discrete tasks per teammate. A well-sized task completes in one agent turn.
 
 ## When to Use
 

@@ -39,10 +39,10 @@ When spawning any teammate with the Task tool, you MUST pass the `model` paramet
 | Role | Model |
 |------|-------|
 | Researcher | opus |
-| Coder | opus |
-| Tester | opus |
-| Code-Simplifier | opus |
-| Reviewer | opus |
+| Coder | sonnet |
+| Tester | sonnet |
+| Code-Simplifier | sonnet |
+| Reviewer | sonnet |
 | Deployer | sonnet |
 | Chronicler | haiku |
 
@@ -64,6 +64,9 @@ Mark dependencies: 2 blocked by 1, 3 blocked by 2, 4 blocked by 3, 5 blocked by 
 - If Researcher finds blocking issues → stop and report to user
 - If Tester finds failing tests → send failures to Coder with file paths and error output
 - If any agent is stuck → check in and redirect
+- If an agent goes idle without sending a completion message, read its output to check progress
+- If output is empty or incomplete, re-spawn the agent with the same prompt plus any partial work as context
+- If an agent fails twice on the same task, escalate to user with: what was attempted, error output, and suggested alternatives
 
 ## Fix-Verify Cycle
 
@@ -89,6 +92,27 @@ BAD: "Read file X, modify function Y, add parameter Z, update tests"
 GOOD: "Add caching to user lookup. Done when: (1) repeated calls return cached result, (2) cache expires after 5min, (3) all existing tests pass, (4) new test covers cache hit/miss"
 
 Structure: Role → Context (file paths, existing patterns) → Success criteria → Constraints (what NOT to do)
+
+## Parallel Work Practices
+
+- **File ownership**: Before spawning, assign each teammate a disjoint set of files or modules. Two teammates editing the same file will overwrite each other. Structure tasks so no two agents share a write target.
+- **Self-contained prompts**: Teammates do not inherit this conversation's history. Every spawn prompt must include: the goal, relevant file paths, existing patterns to follow, success criteria, and what NOT to do.
+- **Lead stays coordinator**: Do not implement tasks yourself while agents are running. Stay available to unblock, redirect, and synthesize. Use delegate mode (Shift+Tab) to enforce this.
+- **Size tasks appropriately**: Aim for 5-6 discrete tasks per teammate. Tasks too large stall progress; tasks too small create overhead.
+
+## Expected Output Formats
+
+Include the expected format in each teammate's spawn prompt so their output is parseable:
+
+| Role | Expected Format |
+|------|----------------|
+| Researcher | `## Exploration Report` — sections: Stack, Architecture, Conventions, Key Files, Risks, Recommended Approach |
+| Coder | `## Implementation Summary` — sections: Files Changed, Decisions Made, Known Limitations |
+| Tester | `## Test Report` — sections: Tests Written, Coverage, Failures (if any) |
+| Code-Simplifier | `## Simplification Report` — sections: Changes Made, Tests Verified |
+| Reviewer | `## Review Verdict: APPROVE/REQUEST CHANGES` — sections: CRITICAL, WARNING, SUGGESTION |
+| Deployer | `## Deploy Report` — sections: Commit Hash, Branch, PR URL |
+| Chronicler | Writes directly to `docs/decisions/` — no report to lead needed |
 
 ## TDD Leverage
 

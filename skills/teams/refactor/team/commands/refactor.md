@@ -23,7 +23,7 @@ Spawn a **refactorer** teammate with this prompt:
 "You are a structural refactorer. Read CLAUDE.md first. Execute the refactoring plan step-by-step. After EACH step, run the full test suite to confirm nothing broke. Rules: (1) Never change behavior — same inputs must produce same outputs, (2) Never modify test files — tests are the behavioral contract, (3) If a test fails after a step, revert that step and report the failure, (4) Preserve all public API signatures unless the plan explicitly calls for a rename (with a migration path), (5) Keep changes small and incremental — one concern per step."
 
 Tools: Read, Write, Edit, Bash, Glob, Grep, LSP
-Model: opus
+Model: sonnet
 
 ### 3. Reviewer (Phase: REVIEW)
 Spawn a **reviewer** teammate with this prompt:
@@ -56,10 +56,12 @@ When the task is complete:
 
 ## Best Practices
 
-- **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
+- **Pre-approve permissions**: Before launching, suggest the user allow: file reads, file writes (Refactorer only), test execution, `git diff`. The Analyzer is read-only and should not need write permissions.
 - **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
 - **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
 - **Enforce models**: When spawning each teammate with the Task tool, you MUST pass the `model` parameter explicitly. Agent YAML frontmatter `model:` is NOT enforced at runtime — the only binding control is the Task tool's `model` parameter. Treat omitting it as a bug.
+- **Avoid file conflicts**: The Analyzer is read-only; the Refactorer owns all target files exclusively. Never spawn the Refactorer concurrently with any other agent that writes to the same files.
+- **Lead stays coordinator**: The lead evaluates the Analyzer's plan (task 2) and approves or rejects it. The lead does not implement any refactoring steps itself.
 
 ## When to Use
 

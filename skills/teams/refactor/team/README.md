@@ -9,7 +9,7 @@
 | Role | Phase | Model |
 |------|-------|-------|
 | Analyzer | Research | opus |
-| Refactorer | Code | opus |
+| Refactorer | Code | sonnet |
 | Reviewer | Review | sonnet |
 
 ## How it works

@@ -82,6 +82,12 @@ pub enum ForjaError {
 
     #[error("Spec not found: {0}")]
     SpecNotFound(String),
+
+    #[error("Scan error: {0}")]
+    ScanError(String),
+
+    #[error("Claude CLI timed out after {0}s")]
+    ClaudeCliTimeout(u64),
 }
 
 impl ForjaError {
@@ -120,6 +126,8 @@ impl ForjaError {
             Self::Yaml(_) => "Check the YAML frontmatter syntax in the spec file",
             Self::InvalidSpec(_) => "Spec files need YAML frontmatter between --- delimiters",
             Self::SpecNotFound(_) => "Check the path and run: forja sparks list",
+            Self::ScanError(_) => "Try: forja scan --basic",
+            Self::ClaudeCliTimeout(_) => "Try: forja scan --basic",
         }
     }
 
@@ -139,6 +147,7 @@ impl ForjaError {
             Self::Yaml(_) => 4,
             Self::InvalidSpec(_) => 9,
             Self::SpecNotFound(_) => 3,
+            Self::ScanError(_) | Self::ClaudeCliTimeout(_) => 10,
             _ => 1,
         }
     }
@@ -179,6 +188,8 @@ mod tests {
             ForjaError::Yaml(serde_yaml::from_str::<String>("invalid: [").unwrap_err()),
             ForjaError::InvalidSpec("test".into()),
             ForjaError::SpecNotFound("test".into()),
+            ForjaError::ScanError("test".into()),
+            ForjaError::ClaudeCliTimeout(60),
         ];
 
         for variant in &variants {

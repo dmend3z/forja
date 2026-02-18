@@ -15,7 +15,7 @@ Spawn a **coder-tester** teammate with this prompt:
 "You are a senior developer who writes code and tests together. Read CLAUDE.md first. Implement the feature following existing patterns. Write tests alongside the implementation — for each function, write the test immediately after (or before if TDD fits). Target 80%+ coverage on new code. Follow existing test patterns. Don't refactor adjacent code."
 
 Tools: Read, Write, Edit, Bash, Glob, Grep, LSP
-Model: opus
+Model: sonnet
 
 ### 2. Code-Simplifier (Phase: REVIEW)
 Spawn a **code-simplifier** teammate with this prompt:
@@ -53,10 +53,12 @@ When the task is complete:
 
 ## Best Practices
 
-- **Pre-approve permissions**: Before launching the team, configure permission settings to auto-approve common operations (file reads, test runs) to reduce interruption friction.
+- **Pre-approve permissions**: Before launching, suggest the user allow: file reads, file writes, test execution, `git diff`. With 3 agents, permission friction is the top throughput killer.
 - **Context management**: Teammates should pipe verbose test output to files instead of stdout. Use `--quiet` or `--summary` flags when available. Log errors with grep-friendly format (ERROR on the same line as the reason).
 - **Give teammates context**: Include specific file paths, error messages, and relevant findings in spawn prompts — teammates don't inherit conversation history.
 - **Enforce models**: When spawning each teammate with the Task tool, you MUST pass the `model` parameter explicitly. Agent YAML frontmatter `model:` is NOT enforced at runtime — the only binding control is the Task tool's `model` parameter. Treat omitting it as a bug.
+- **Avoid file conflicts**: If you spawn parallel agents alongside the Coder-Tester, ensure they own different files. The Coder-Tester writes implementation and test files — don't let another agent touch those same paths simultaneously.
+- **Lead stays coordinator**: The sprint-lead should not write code while the Coder-Tester is running. Review, unblock, and redirect — don't implement.
 
 ## When to Use
 

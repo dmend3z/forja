@@ -95,6 +95,7 @@ fn dispatch(command: Commands) -> forja_core::error::Result<()> {
         Commands::Diff => commands::diff::run(),
         Commands::Docs { ref scope } => commands::docs::run(scope.as_deref()),
         Commands::Upgrade { ref skill, yes } => commands::upgrade::run(skill.as_deref(), yes),
+        Commands::Scan { yes, json, all, basic } => commands::scan::run(yes, json, all, basic),
         Commands::Monitor { port, no_open } => {
             let rt = tokio::runtime::Runtime::new()
                 .map_err(|e| forja_core::error::ForjaError::Monitor(format!("Failed to start runtime: {e}")))?;
