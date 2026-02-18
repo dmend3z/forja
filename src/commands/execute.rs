@@ -43,13 +43,19 @@ pub fn run(plan_id: Option<&str>, profile: &str, resume: bool) -> Result<()> {
         plan.profile = profile.to_string();
     }
 
-    // 3. Auto-install missing agents
+    // 3. Auto-install missing agents and track analytics
     let skill_ids: Vec<&str> = plan.agents.iter().map(|a| a.skill_id.as_str()).collect();
     auto_install::auto_install_missing(&paths, &skill_ids)?;
 
-    // 4. Ensure agent teams env var
-    if !settings::has_teams_env_var(&paths.claude_dir) {
-        settings::enable_teams_env_var(&paths.claude_dir)?;
+    let analytics_path = crate::analytics::analytics_path(&paths.forja_root);
+    for agent in &plan.agents {
+        let _ = crate::analytics::track(&analytics_path, &agent.skill_id, "execute");
+    }
+
+    // 4. Ensure agent teams env var (always in ~/.claude/settings.json)
+    let global_claude = crate::paths::ForjaPaths::global_claude_dir()?;
+    if !settings::has_teams_env_var(&global_claude) {
+        settings::enable_teams_env_var(&global_claude)?;
         println!(
             "  {} Agent teams env var enabled in settings.json",
             "NOTE:".yellow().bold()

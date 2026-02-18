@@ -249,7 +249,8 @@ pub fn create(name: &str) -> Result<()> {
         return Err(ForjaError::TeamAlreadyExists(name.to_string()));
     }
 
-    ensure_teams_env_var(&paths.claude_dir)?;
+    let global_claude = ForjaPaths::global_claude_dir()?;
+    ensure_teams_env_var(&global_claude)?;
 
     // Scan catalog for installed skills (exclude Teams phase)
     let installed_ids = load_installed_ids(&paths.state);
@@ -417,7 +418,8 @@ pub fn preset(name: &str, profile_str: &str) -> Result<()> {
         ))
     })?;
 
-    ensure_teams_env_var(&paths.claude_dir)?;
+    let global_claude = ForjaPaths::global_claude_dir()?;
+    ensure_teams_env_var(&global_claude)?;
 
     // Map preset name to skill directory
     let preset_mapping: &[(&str, &str)] = &[

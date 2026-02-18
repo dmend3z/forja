@@ -1,0 +1,7 @@
+{
+  "name": "chronicler",
+  "description": "Documents all decisions and their rationale during the team workflow. Writes a structured decision log to docs/decisions/.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["review", "documentation", "decisions", "decision-log", "chronicler"]
+}

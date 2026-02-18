@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use crate::error::Result;
 use crate::models::state::load_state;
 use crate::paths::ForjaPaths;
@@ -67,6 +69,33 @@ fn print_status(paths: &ForjaPaths) -> Result<()> {
     println!("  Health:  {}", health);
     println!();
 
+    // Git context
+    let branch = git_branch();
+    let changes_count = git_changes_count();
+    let pending_plans = count_pending_plans(&paths.plans);
+
+    if let Some(ref b) = branch {
+        println!("  Branch:  {}", b.cyan());
+    }
+    if changes_count > 0 {
+        println!(
+            "  Changes: {}",
+            format!("{} uncommitted file(s)", changes_count).yellow()
+        );
+    }
+    if pending_plans > 0 {
+        println!(
+            "  Plans:   {}",
+            format!("{} pending", pending_plans).cyan()
+        );
+    }
+    println!();
+
+    // Smart suggestion
+    let suggestion = smart_suggestion(changes_count, pending_plans, &branch);
+    println!("  {} {}", "Next:".green().bold(), suggestion.dimmed());
+    println!();
+
     let ctx = tips::TipContext {
         installed_count: installed,
         total_skills: total,
@@ -77,4 +106,77 @@ fn print_status(paths: &ForjaPaths) -> Result<()> {
     println!();
 
     Ok(())
+}
+
+fn git_branch() -> Option<String> {
+    let output = Command::new("git")
+        .args(["branch", "--show-current"])
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let branch = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if branch.is_empty() {
+        None
+    } else {
+        Some(branch)
+    }
+}
+
+fn git_changes_count() -> usize {
+    let output = Command::new("git")
+        .args(["status", "--short"])
+        .output()
+        .ok();
+
+    match output {
+        Some(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
+            .lines()
+            .filter(|l| !l.is_empty())
+            .count(),
+        _ => 0,
+    }
+}
+
+fn count_pending_plans(plans_dir: &std::path::Path) -> usize {
+    if !plans_dir.exists() {
+        return 0;
+    }
+
+    std::fs::read_dir(plans_dir)
+        .into_iter()
+        .flatten()
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.path()
+                .extension()
+                .is_some_and(|ext| ext == "json")
+        })
+        .filter(|e| {
+            std::fs::read_to_string(e.path())
+                .ok()
+                .and_then(|content| serde_json::from_str::<serde_json::Value>(&content).ok())
+                .and_then(|v| v.get("status").and_then(|s| s.as_str().map(String::from)))
+                .is_some_and(|s| s == "pending")
+        })
+        .count()
+}
+
+fn smart_suggestion(changes: usize, plans: usize, branch: &Option<String>) -> &'static str {
+    if changes > 0 {
+        return "forja review  or  forja ship";
+    }
+    if plans > 0 {
+        return "forja execute";
+    }
+    let is_feature_branch = branch
+        .as_ref()
+        .is_some_and(|b| b != "main" && b != "master");
+    if is_feature_branch {
+        return "forja ship";
+    }
+    "forja plan  or  forja task"
 }

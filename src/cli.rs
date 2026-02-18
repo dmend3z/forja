@@ -22,14 +22,16 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Initialize forja (create ~/.forja/, set up registry)
+    /// Initialize forja (set up registry and install skills)
     #[command(
-        long_about = "Initialize forja by creating the ~/.forja/ directory, cloning the skills \
-            registry, and installing all skills. No questions asked — just works. Use --wizard \
-            for interactive setup (choose mode, phases, profile).",
+        long_about = "Initialize forja by creating a .forja/ directory, cloning the skills \
+            registry, and installing all skills. By default, installs into the current project \
+            (.forja/ + .claude/agents/). Use --global to install into ~/.forja/ + ~/.claude/agents/ \
+            instead. Use --wizard for interactive setup (choose mode, phases, profile).",
         after_help = "\
 EXAMPLES:
-  forja init                          # Install everything (global, all phases, balanced)
+  forja init                          # Project-local install (default)
+  forja init --global                 # Global install (~/.forja/)
   forja init --wizard                 # Interactive setup wizard
   forja init --registry-url <url>     # Use a custom registry"
     )]
@@ -41,16 +43,21 @@ EXAMPLES:
         /// Run the interactive setup wizard (choose mode, phases, profile)
         #[arg(long)]
         wizard: bool,
+
+        /// Install globally (~/.forja/ + ~/.claude/) instead of project-local
+        #[arg(long)]
+        global: bool,
     },
 
     /// Install a skill via symlink
     #[command(
-        long_about = "Install a skill by creating symlinks from the registry into \
-            ~/.claude/agents/ and ~/.claude/commands/. Skills are referenced by their \
-            full path: phase/tech/name.",
+        long_about = "Install a skill by creating symlinks from the registry into the project's \
+            .claude/agents/ and .claude/commands/. Use --global to install into ~/.claude/ instead. \
+            Skills are referenced by their full path: phase/tech/name.",
         after_help = "\
 EXAMPLES:
-  forja install code/rust/coder       # Install a specific skill
+  forja install code/rust/coder       # Install into project .claude/
+  forja install --global code/rust/coder  # Install into ~/.claude/
   forja install --all                 # Install every available skill
   forja install review/general/reviewer"
     )]
@@ -62,15 +69,21 @@ EXAMPLES:
         /// Install all available skills
         #[arg(long)]
         all: bool,
+
+        /// Install into ~/.claude/ instead of project-local .claude/
+        #[arg(long)]
+        global: bool,
     },
 
     /// Remove an installed skill
     #[command(
-        long_about = "Remove a skill by deleting its symlinks from ~/.claude/agents/ \
-            and ~/.claude/commands/. Prompts for confirmation unless --yes is passed.",
+        long_about = "Remove a skill by deleting its symlinks from .claude/agents/ \
+            and .claude/commands/. Use --global to remove from ~/.claude/ instead. \
+            Prompts for confirmation unless --yes is passed.",
         after_help = "\
 EXAMPLES:
-  forja uninstall code/rust/coder     # Remove with confirmation
+  forja uninstall code/rust/coder     # Remove from project .claude/
+  forja uninstall --global coder      # Remove from ~/.claude/
   forja uninstall coder -y            # Skip confirmation"
     )]
     Uninstall {
@@ -80,6 +93,10 @@ EXAMPLES:
         /// Skip confirmation prompt
         #[arg(long, short = 'y')]
         yes: bool,
+
+        /// Remove from ~/.claude/ instead of project-local .claude/
+        #[arg(long)]
+        global: bool,
     },
 
     /// Search the catalog
@@ -129,6 +146,23 @@ EXAMPLES:
     Info {
         /// Skill name or full path
         skill: String,
+    },
+
+    /// Generate project documentation (CLAUDE.md, AGENTS.md, README.md)
+    #[command(
+        long_about = "Generate or update project documentation by analyzing the codebase. \
+            Auto-installs the doc-gen skill and launches Claude Code.",
+        after_help = "\
+EXAMPLES:
+  forja docs                          # Generate all docs
+  forja docs --scope claude-md        # Only CLAUDE.md
+  forja docs --scope readme           # Only README.md
+  forja docs --scope agents-md        # Only AGENTS.md"
+    )]
+    Docs {
+        /// Scope to a single doc: claude-md, agents-md, readme
+        #[arg(long)]
+        scope: Option<String>,
     },
 
     /// Verify installation health
@@ -242,6 +276,183 @@ EXAMPLES:
         /// Don't auto-open the browser
         #[arg(long)]
         no_open: bool,
+    },
+
+    /// Quick bug fix (shortcut for: forja task --team quick-fix)
+    #[command(
+        long_about = "Quick bug fix shortcut. Launches a quick-fix team (coder + deployer) \
+            to fix the described issue.",
+        after_help = "\
+EXAMPLES:
+  forja fix \"login button not responding\"
+  forja fix \"null pointer in user service\" --profile fast"
+    )]
+    Fix {
+        /// Bug description
+        description: String,
+
+        /// Model profile override
+        #[arg(long)]
+        profile: Option<String>,
+    },
+
+    /// Build a feature (shortcut for: forja task --team solo-sprint)
+    #[command(
+        long_about = "Feature build shortcut. Launches a solo-sprint team (coder-tester + reviewer) \
+            to implement the described feature.",
+        after_help = "\
+EXAMPLES:
+  forja build \"add user profile page\"
+  forja build \"implement search API\" --profile max"
+    )]
+    Build {
+        /// Feature description
+        description: String,
+
+        /// Model profile override
+        #[arg(long)]
+        profile: Option<String>,
+    },
+
+    /// Document decisions from recent changes
+    #[command(
+        long_about = "Extract and document significant decisions from recent git changes or \
+            specific files. Auto-installs the chronicler skill and launches Claude Code to \
+            write a structured decision log to docs/decisions/.",
+        after_help = "\
+EXAMPLES:
+  forja chronicle                       # Extract decisions from recent git changes
+  forja chronicle --from src/auth.rs    # Extract from specific file(s)"
+    )]
+    Chronicle {
+        /// Extract decisions from specific file(s) instead of git changes
+        #[arg(long)]
+        from: Vec<String>,
+    },
+
+    /// Review uncommitted changes
+    #[command(
+        long_about = "Launch a code review of uncommitted changes. Auto-installs the reviewer \
+            skill and launches Claude Code with a review prompt.",
+        after_help = "\
+EXAMPLES:
+  forja review                          # Review all changes
+  forja review --path src/              # Review only src/ changes"
+    )]
+    Review {
+        /// Scope review to files matching this path filter
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Skip the decision chronicle step after review
+        #[arg(long)]
+        no_chronicle: bool,
+    },
+
+    /// Commit changes and create a PR
+    #[command(
+        long_about = "Ship your changes: commit with conventional commits, then create a PR. \
+            Uses the committer and pr-creator skills sequentially.",
+        after_help = "\
+EXAMPLES:
+  forja ship                            # Commit + PR (interactive)
+  forja ship -m \"add auth endpoint\"     # Commit with hint + PR
+  forja ship --commit-only              # Just commit, no PR"
+    )]
+    Ship {
+        /// Commit message hint
+        #[arg(short, long)]
+        message: Option<String>,
+
+        /// Only commit, don't create a PR
+        #[arg(long)]
+        commit_only: bool,
+
+        /// Skip the decision chronicle step after ship
+        #[arg(long)]
+        no_chronicle: bool,
+    },
+
+    /// Validate skill structure and manifests
+    #[command(
+        long_about = "Lint skills for structural issues: missing manifests, invalid JSON, \
+            malformed YAML frontmatter, naming conventions, and more.",
+        after_help = "\
+EXAMPLES:
+  forja lint                            # Lint all skills in registry
+  forja lint skills/code/rust/coder     # Lint a specific skill
+  forja lint --warnings                 # Show warnings too"
+    )]
+    Lint {
+        /// Path to a specific skill directory to lint
+        path: Option<String>,
+
+        /// Show warnings in addition to errors
+        #[arg(long)]
+        warnings: bool,
+    },
+
+    /// Scaffold a new skill
+    #[command(
+        long_about = "Create a new skill with the required directory structure and template files. \
+            Interactive wizard by default, or use flags for scripting.",
+        after_help = "\
+EXAMPLES:
+  forja new                             # Interactive wizard
+  forja new my-skill --phase code --tech rust  # With flags
+  forja new my-skill --phase code --tech rust --no-wizard"
+    )]
+    New {
+        /// Skill name (kebab-case)
+        name: Option<String>,
+
+        /// Workflow phase (research, code, test, review, deploy)
+        #[arg(long)]
+        phase: Option<String>,
+
+        /// Technology category (e.g. rust, nextjs, general)
+        #[arg(long)]
+        tech: Option<String>,
+
+        /// Skip interactive prompts
+        #[arg(long)]
+        no_wizard: bool,
+    },
+
+    /// Show skill usage analytics
+    #[command(
+        long_about = "Display usage statistics: most-used skills, phase distribution, \
+            recent activity, and installed-but-unused skills."
+    )]
+    Stats,
+
+    /// Show skill changes since last update
+    #[command(
+        long_about = "Compare the registry before and after the last `forja update` to show \
+            which skills were added, modified, or removed.",
+        after_help = "\
+EXAMPLES:
+  forja update && forja diff            # Update then see changes"
+    )]
+    Diff,
+
+    /// Reinstall modified skills after an update
+    #[command(
+        long_about = "Reinstall skills that were modified since the last `forja update`. \
+            Re-creates symlinks to pick up agent/command changes.",
+        after_help = "\
+EXAMPLES:
+  forja upgrade                         # Upgrade all modified installed skills
+  forja upgrade coder                   # Upgrade a specific skill
+  forja upgrade -y                      # Skip confirmation"
+    )]
+    Upgrade {
+        /// Filter to a specific skill (partial match)
+        skill: Option<String>,
+
+        /// Skip confirmation prompt
+        #[arg(long, short = 'y')]
+        yes: bool,
     },
 
     /// Manage multi-agent teams

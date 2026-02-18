@@ -24,7 +24,17 @@ fn help_contains_all_subcommands() {
             .and(predicate::str::contains("task"))
             .and(predicate::str::contains("execute"))
             .and(predicate::str::contains("team"))
-            .and(predicate::str::contains("guide")),
+            .and(predicate::str::contains("guide"))
+            .and(predicate::str::contains("fix"))
+            .and(predicate::str::contains("build"))
+            .and(predicate::str::contains("chronicle"))
+            .and(predicate::str::contains("review"))
+            .and(predicate::str::contains("ship"))
+            .and(predicate::str::contains("lint"))
+            .and(predicate::str::contains("new"))
+            .and(predicate::str::contains("stats"))
+            .and(predicate::str::contains("diff"))
+            .and(predicate::str::contains("upgrade")),
     );
 }
 
@@ -69,6 +79,17 @@ fn version_flag_works() {
         .assert()
         .success()
         .stdout(predicate::str::contains("forja"));
+}
+
+#[test]
+fn chronicle_help_shows_examples() {
+    forja()
+        .args(["chronicle", "--help"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("EXAMPLES:").and(predicate::str::contains("forja chronicle")),
+        );
 }
 
 #[test]

@@ -53,3 +53,4 @@ Structure your findings as:
 - Be thorough but concise — focus on what matters for upcoming work
 - Surface inconsistencies and potential risks early
 - If something is unclear, say so rather than guessing
+- Separate FACTS (found in code) from INFERENCES (your interpretation). Label inferences as "Inference:" so the team lead can evaluate them.

@@ -69,6 +69,10 @@ Create implementation phases. Each phase needs: `name`, `agent_role`, `files_to_
 
 Order: foundational work first (schema, types, config) → implementation → tests → review. Keep phases focused — one concern each. Reference actual file paths from research. Infer `quality_gates` from interview answers (default: `["All tests must pass"]`).
 
+Each phase MUST include:
+- **Success criteria** — 2-3 checkable conditions (e.g., "all tests pass", "endpoint returns 200")
+- **Assumptions** — listed explicitly, uncertain ones flagged with "⚠️ UNCERTAIN"
+
 ---
 
 ## Step 5 — Save Plan

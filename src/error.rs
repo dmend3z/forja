@@ -61,6 +61,18 @@ pub enum ForjaError {
 
     #[error("Monitor error: {0}")]
     Monitor(String),
+
+    #[error("No uncommitted changes to review")]
+    NoChangesToReview,
+
+    #[error("Invalid skill name '{0}': must be lowercase kebab-case (a-z, 0-9, hyphens)")]
+    InvalidSkillName(String),
+
+    #[error("Skill lint failed: {0} error(s) found")]
+    LintFailed(usize),
+
+    #[error("Invalid argument: {0}")]
+    InvalidArgument(String),
 }
 
 impl ForjaError {
@@ -92,6 +104,10 @@ impl ForjaError {
             }
             Self::PhaseExecutionFailed(_) => "Fix the issue and resume: forja execute --resume",
             Self::Monitor(_) => "Check if the port is already in use, try --port <other>",
+            Self::NoChangesToReview => "Make some changes first, then run: forja review",
+            Self::InvalidSkillName(_) => "Use lowercase letters, numbers, and hyphens only (e.g. my-skill)",
+            Self::LintFailed(_) => "Fix the errors listed above and run: forja lint",
+            Self::InvalidArgument(_) => "Check the command help: forja <command> --help",
         }
     }
 
@@ -105,6 +121,9 @@ impl ForjaError {
             | Self::PlanNotFound(_) => 3,
             Self::Io(_) | Self::Json(_) => 4,
             Self::Monitor(_) => 5,
+            Self::NoChangesToReview => 6,
+            Self::LintFailed(_) => 7,
+            Self::InvalidArgument(_) => 8,
             _ => 1,
         }
     }
@@ -138,6 +157,10 @@ mod tests {
             ForjaError::PhaseExecutionFailed("test".into()),
             ForjaError::ClaudeCliNotFound,
             ForjaError::Monitor("test".into()),
+            ForjaError::NoChangesToReview,
+            ForjaError::InvalidSkillName("test".into()),
+            ForjaError::LintFailed(1),
+            ForjaError::InvalidArgument("test".into()),
         ];
 
         for variant in &variants {

@@ -27,7 +27,7 @@ Focus only on **recently modified code** (use `git diff` to identify changes). D
 - Replace complex conditionals with early returns or guard clauses
 - Extract magic numbers/strings into named constants
 - Simplify nested logic (reduce nesting depth)
-- Remove dead code paths that are obviously unreachable
+- **Hunt dead code actively** — search for: unused imports, functions with zero callers (use Grep), variables assigned but never read, commented-out code blocks, unreachable branches. Remove what's safe, flag what's uncertain.
 - Consolidate duplicate logic within the same function
 - Align naming with existing project conventions
 - Flatten unnecessary wrapper functions
@@ -53,6 +53,11 @@ After making changes, provide a summary:
 - **file.ts:42** — Renamed `x` to `userCount` for clarity
 - **file.ts:58** — Replaced nested if/else with early return
 - **file.ts:72** — Extracted magic number `86400` to `SECONDS_PER_DAY`
+
+## Dead Code Found
+
+- **file.ts:15** — Unused import `parseDate` (0 references) → REMOVED
+- **file.ts:88** — Function `legacyValidate()` has no callers → FLAGGED
 
 ## Unchanged
 

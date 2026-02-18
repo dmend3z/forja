@@ -56,7 +56,8 @@ skills/               # Agent catalog (31 skills across 6 phases)
   deploy/             # 3 skills
   teams/              # 7 team configurations
   <phase>/<tech>/<name>/
-    .claude-plugin/plugin.json  # Required manifest
+    skill.json                  # Required manifest (preferred)
+    .claude-plugin/plugin.json  # Legacy fallback (supported)
     agents/*.md                 # Agent definitions (optional)
     skills/*/SKILL.md           # Skill prompts (optional)
     commands/*.md               # Slash commands (optional)
@@ -66,6 +67,8 @@ docs/                 # Documentation
   CONTRIBUTING.md     # This file
   SKILL-AUTHORING.md  # How to create new skills
   TEAMS.md            # Agent teams guide
+  SPARKS.md           # Spec-driven execution pipeline
+  specs/              # Spec files for forja sparks
 
 images/               # Banner images for README
 ```
@@ -76,7 +79,7 @@ For a detailed breakdown, see [docs/ARCHITECTURE.md](./ARCHITECTURE.md).
 
 1. Pick the phase (`research`, `code`, `test`, `review`, `deploy`, `teams`) and a tech category.
 2. Create the directory: `skills/<phase>/<tech>/<name>/`
-3. Add `.claude-plugin/plugin.json` with name, description, version, author, and keywords.
+3. Add `skill.json` with name, description, version, author, and keywords.
 4. Add at least one content type: `agents/*.md`, `skills/*/SKILL.md`, or `commands/*.md`.
 5. Test with `cargo run -- list --available` to verify the catalog scanner picks it up.
 6. Install it with `cargo run -- install <phase>/<tech>/<name>` and test in Claude Code.
@@ -137,4 +140,29 @@ test(models): add state serialization tests
 
 **Types**: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`
 
-**Scopes**: `cli`, `skills`, `registry`, `symlink`, `models`, or a specific skill name.
+**Scopes**: `cli`, `skills`, `registry`, `symlink`, `models`, `sparks`, or a specific skill name.
+
+## How to Write a Spec
+
+Specs define work items for `forja sparks`. They live in `docs/specs/` as markdown files with YAML frontmatter.
+
+1. Create `docs/specs/<id>.md` with required frontmatter: `id`, `title`, `description`.
+2. Add optional fields: `priority`, `tags`, `requirements`, `constraints`, `success_criteria`.
+3. Write the markdown body with context, design notes, and implementation details.
+4. Verify with `forja sparks list` and `forja sparks show <id>`.
+
+The `id` field must be unique across all specs. Convention: use kebab-case matching the filename (e.g., `user-auth` in `user-auth.md`).
+
+For the full format reference, see [docs/SPARKS.md](./SPARKS.md).
+
+## Testing Sparks Features
+
+Spec parsing and discovery are tested in `crates/forja-core/src/models/spec.rs` (unit tests with `#[cfg(test)]`). CLI integration tests live in `crates/forja-cli/tests/sparks_integration.rs`.
+
+```bash
+# Run all sparks-related tests
+cargo test -p forja-core -- spec
+cargo test -p forja-cli -- sparks
+```
+
+Tests use `tempfile` for isolated filesystem testing. When adding new spec parsing logic, add both a unit test in `spec.rs` and an integration test in `sparks_integration.rs` if it affects CLI output.

@@ -1,0 +1,7 @@
+{
+  "name": "doc-gen",
+  "description": "Generates and updates CLAUDE.md, AGENTS.md, and README.md by analyzing the codebase. Surgical updates preserve custom content.",
+  "version": "1.0.0",
+  "author": { "name": "forja" },
+  "keywords": ["review", "documentation", "claude-md", "readme", "agents-md", "doc-gen"]
+}

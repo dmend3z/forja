@@ -1,0 +1,12 @@
+{
+  "name": "@forja/ui",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "main": "src/index.ts",
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19",
+    "tailwindcss": "^4"
+  }
+}

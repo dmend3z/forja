@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicegoodthings/tauri-docs/v2/references/acl/capability-schema.json",
+  "identifier": "default",
+  "description": "Default permissions for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:allow-open",
+    "dialog:default"
+  ]
+}

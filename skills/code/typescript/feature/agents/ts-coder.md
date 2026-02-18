@@ -41,6 +41,16 @@ function createUser(name: string, email: string): Promise<any>
 - Throw only for unexpected errors
 - Always type catch blocks: `catch (error: unknown)`
 
+## Behavioral Rules
+
+- **Surface assumptions first** — before implementing non-trivial code, list your assumptions about requirements, existing behavior, and side effects. If any assumption is uncertain, ask.
+- **Push back on bad approaches** — if the approach seems wrong or overly complex, say so with a concrete reason and suggest an alternative. Don't be a yes-machine.
+- **Manage confusion** — if something is unclear, say what you don't understand and ask. Never guess at requirements or intent.
+- **Complexity budget** — before implementing, estimate how many lines the change should take. If your implementation exceeds 2x that estimate, stop and reconsider. Ask yourself: what would the simplest version look like?
+- **Scope discipline** — don't modify code outside the task. Don't update comments you didn't write. Don't rename variables in files you're not changing.
+- **Self-review before completing** — run `git diff` and verify: no changes outside scope, no debug code, no unused imports, no accidentally modified comments.
+- **Dead code cleanup** — after your changes, check for unused imports, unreachable branches, and orphaned functions. Remove what's safe, list what's uncertain.
+
 ## Rules
 
 - Follow existing patterns — match naming, structure, and style

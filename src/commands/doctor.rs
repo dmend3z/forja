@@ -65,17 +65,27 @@ pub fn run() -> Result<()> {
         remediation: Some("Run: forja init".into()),
     });
 
-    // Check ~/.claude/
+    // Check .claude/ (project-local or global depending on mode)
+    let claude_label = if paths.mode == crate::paths::ForjaMode::Project {
+        format!(".claude/ exists ({})", paths.display_name())
+    } else {
+        "~/.claude/ exists".to_string()
+    };
     results.push(CheckResult {
-        label: "~/.claude/ exists".into(),
+        label: claude_label,
         passed: paths.claude_dir.exists(),
-        remediation: Some("Install Claude Code from https://claude.ai/download".into()),
+        remediation: Some("Run: forja init".into()),
     });
 
+    let agents_label = if paths.mode == crate::paths::ForjaMode::Project {
+        format!(".claude/agents/ exists ({})", paths.display_name())
+    } else {
+        "~/.claude/agents/ exists".to_string()
+    };
     results.push(CheckResult {
-        label: "~/.claude/agents/ exists".into(),
+        label: agents_label,
         passed: paths.claude_agents.exists(),
-        remediation: Some("Run: mkdir -p ~/.claude/agents".into()),
+        remediation: Some("Run: forja init".into()),
     });
 
     // Check git is available
@@ -145,8 +155,9 @@ pub fn run() -> Result<()> {
         });
     }
 
-    // Check agent teams env var
-    let teams_env = settings::has_teams_env_var(&paths.claude_dir);
+    // Check agent teams env var (always in ~/.claude/settings.json)
+    let global_claude = ForjaPaths::global_claude_dir()?;
+    let teams_env = settings::has_teams_env_var(&global_claude);
     results.push(CheckResult {
         label: "Agent teams env var set".into(),
         passed: teams_env,

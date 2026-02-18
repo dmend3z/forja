@@ -1,0 +1,39 @@
+[package]
+name = "forja-cli"
+description = "Skills marketplace CLI for Claude Code"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["claude-code", "skills", "cli", "agents", "plugins"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "forja"
+path = "src/main.rs"
+
+[dependencies]
+forja-core = { path = "../forja-core" }
+forja-tui = { path = "../forja-tui" }
+clap = { version = "4", features = ["derive"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+colored = "2"
+chrono = { workspace = true }
+dirs = { workspace = true }
+dialoguer = "0.11"
+tokio = { workspace = true }
+axum = "0.8"
+tower-http = { version = "0.6", features = ["cors"] }
+notify = "7"
+notify-debouncer-mini = "0.5"
+rust-embed = "8"
+open = "5"
+mime_guess = "2"
+tokio-stream = { version = "0.1", features = ["sync"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+assert_cmd = "2"
+predicates = "3"

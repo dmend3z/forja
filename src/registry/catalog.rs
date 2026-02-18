@@ -6,8 +6,12 @@ use crate::models::skill::{ContentType, Skill};
 use std::fs;
 use std::path::Path;
 
+const MANIFEST_FILE: &str = "skill.json";
+const LEGACY_MANIFEST_FILE: &str = "plugin.json";
+const LEGACY_MANIFEST_DIR: &str = ".claude-plugin";
+
 /// Scan the skills/ directory and build a Registry of all available skills.
-/// Structure expected: skills/<phase>/<tech>/<skill-name>/.claude-plugin/plugin.json
+/// Structure expected: skills/<phase>/<tech>/<skill-name>/{skill.json|.claude-plugin/plugin.json}
 pub fn scan(registry_path: &Path, installed_ids: &[String]) -> Result<Registry> {
     let skills_dir = registry_path.join("skills");
     if !skills_dir.exists() {
@@ -70,9 +74,7 @@ fn parse_skill(
     tech: &str,
     installed_ids: &[String],
 ) -> Option<Skill> {
-    let plugin_json_path = path.join(".claude-plugin").join("plugin.json");
-    let plugin_json_str = fs::read_to_string(&plugin_json_path).ok()?;
-    let plugin: PluginJson = serde_json::from_str(&plugin_json_str).ok()?;
+    let plugin = load_manifest(path)?;
 
     let mut content_types = Vec::new();
     if path.join("agents").exists() {
@@ -95,6 +97,19 @@ fn parse_skill(
         installed: installed_ids.contains(&id.to_string()),
         content_types,
         keywords: plugin.keywords.unwrap_or_default(),
+    })
+}
+
+/// Load skill metadata from `skill.json` (preferred) or legacy `.claude-plugin/plugin.json`.
+fn load_manifest(path: &Path) -> Option<PluginJson> {
+    let candidates = [
+        path.join(MANIFEST_FILE),
+        path.join(LEGACY_MANIFEST_DIR).join(LEGACY_MANIFEST_FILE),
+    ];
+
+    candidates.iter().find_map(|candidate| {
+        let manifest = fs::read_to_string(candidate).ok()?;
+        serde_json::from_str::<PluginJson>(&manifest).ok()
     })
 }
 
@@ -124,7 +139,7 @@ mod tests {
     use tempfile::TempDir;
 
     /// Helper: create the minimum directory structure for a valid skill.
-    /// skills/<phase>/<tech>/<name>/.claude-plugin/plugin.json
+    /// skills/<phase>/<tech>/<name>/skill.json
     fn create_skill(root: &Path, phase: &str, tech: &str, name: &str, description: &str) {
         create_skill_with_keywords(root, phase, tech, name, description, &[]);
     }
@@ -138,8 +153,7 @@ mod tests {
         keywords: &[&str],
     ) {
         let skill_dir = root.join("skills").join(phase).join(tech).join(name);
-        let plugin_dir = skill_dir.join(".claude-plugin");
-        fs::create_dir_all(&plugin_dir).unwrap();
+        fs::create_dir_all(&skill_dir).unwrap();
 
         let keywords_json = if keywords.is_empty() {
             String::new()
@@ -152,7 +166,7 @@ mod tests {
             r#"{{ "name": "{}", "description": "{}"{} }}"#,
             name, description, keywords_json
         );
-        fs::write(plugin_dir.join("plugin.json"), plugin).unwrap();
+        fs::write(skill_dir.join(MANIFEST_FILE), plugin).unwrap();
 
         // Create agents/ so content_types includes Agent
         fs::create_dir_all(skill_dir.join("agents")).unwrap();
@@ -189,9 +203,9 @@ mod tests {
     }
 
     #[test]
-    fn scan_missing_plugin_json_skips_skill() {
+    fn scan_missing_manifest_skips_skill() {
         let dir = TempDir::new().unwrap();
-        // Create dir structure but no plugin.json
+        // Create dir structure but no manifest
         let skill_dir = dir.path().join("skills/code/general/broken");
         fs::create_dir_all(&skill_dir).unwrap();
 
@@ -200,15 +214,32 @@ mod tests {
     }
 
     #[test]
-    fn scan_invalid_plugin_json_skips_skill() {
+    fn scan_invalid_manifest_skips_skill() {
         let dir = TempDir::new().unwrap();
         let skill_dir = dir.path().join("skills/code/general/broken");
-        let plugin_dir = skill_dir.join(".claude-plugin");
-        fs::create_dir_all(&plugin_dir).unwrap();
-        fs::write(plugin_dir.join("plugin.json"), "not valid json").unwrap();
+        fs::create_dir_all(&skill_dir).unwrap();
+        fs::write(skill_dir.join(MANIFEST_FILE), "not valid json").unwrap();
 
         let registry = scan(dir.path(), &[]).unwrap();
         assert!(registry.skills.is_empty());
+    }
+
+    #[test]
+    fn scan_legacy_plugin_json_is_supported() {
+        let dir = TempDir::new().unwrap();
+        let skill_dir = dir.path().join("skills/code/general/legacy");
+        let plugin_dir = skill_dir.join(LEGACY_MANIFEST_DIR);
+        fs::create_dir_all(&plugin_dir).unwrap();
+        fs::write(
+            plugin_dir.join(LEGACY_MANIFEST_FILE),
+            r#"{ "name": "legacy", "description": "Legacy manifest" }"#,
+        )
+        .unwrap();
+        fs::create_dir_all(skill_dir.join("agents")).unwrap();
+
+        let registry = scan(dir.path(), &[]).unwrap();
+        assert_eq!(registry.skills.len(), 1);
+        assert_eq!(registry.skills[0].id, "code/general/legacy");
     }
 
     #[test]
@@ -223,10 +254,9 @@ mod tests {
     fn scan_unknown_phase_is_skipped() {
         let dir = TempDir::new().unwrap();
         let skill_dir = dir.path().join("skills/unknown_phase/general/thing");
-        let plugin_dir = skill_dir.join(".claude-plugin");
-        fs::create_dir_all(&plugin_dir).unwrap();
+        fs::create_dir_all(&skill_dir).unwrap();
         fs::write(
-            plugin_dir.join("plugin.json"),
+            skill_dir.join(MANIFEST_FILE),
             r#"{ "name": "thing", "description": "test" }"#,
         )
         .unwrap();
@@ -258,10 +288,9 @@ mod tests {
 
         // Create a hidden directory at phase level
         let hidden = dir.path().join("skills/.hidden/general/secret");
-        let plugin_dir = hidden.join(".claude-plugin");
-        fs::create_dir_all(&plugin_dir).unwrap();
+        fs::create_dir_all(&hidden).unwrap();
         fs::write(
-            plugin_dir.join("plugin.json"),
+            hidden.join(MANIFEST_FILE),
             r#"{ "name": "secret", "description": "hidden" }"#,
         )
         .unwrap();
@@ -310,7 +339,7 @@ mod tests {
     }
 
     #[test]
-    fn scan_reads_keywords_from_plugin_json() {
+    fn scan_reads_keywords_from_manifest() {
         let dir = TempDir::new().unwrap();
         create_skill_with_keywords(
             dir.path(),

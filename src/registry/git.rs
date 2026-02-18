@@ -17,6 +17,22 @@ pub fn clone(url: &str, target: &Path) -> Result<()> {
     Ok(())
 }
 
+pub fn head_sha(repo_path: &Path) -> Result<String> {
+    let output = Command::new("git")
+        .args(["-C"])
+        .arg(repo_path)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .map_err(ForjaError::Io)?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(ForjaError::Git(format!("git rev-parse HEAD failed: {stderr}")));
+    }
+
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
 pub fn pull(repo_path: &Path) -> Result<String> {
     let output = Command::new("git")
         .args(["-C"])

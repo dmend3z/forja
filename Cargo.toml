@@ -1,35 +1,21 @@
-[package]
-name = "forja"
-version = "0.3.0"
+[workspace]
+members = ["crates/forja-core", "crates/forja-cli", "crates/forja-spark", "crates/forja-tui", "packages/desktop/src-tauri"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.1"
 edition = "2024"
-description = "Skills marketplace CLI for Claude Code"
 license = "MIT"
 authors = ["Daniel Mendes"]
 repository = "https://github.com/dmend3z/forja"
-homepage = "https://github.com/dmend3z/forja"
-keywords = ["claude-code", "skills", "cli", "agents", "plugins"]
-categories = ["command-line-utilities", "development-tools"]
 
-[dependencies]
-clap = { version = "4", features = ["derive"] }
+[workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
-colored = "2"
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
 dirs = "6"
-dialoguer = "0.11"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "signal"] }
-axum = "0.8"
-tower-http = { version = "0.6", features = ["cors"] }
-notify = "7"
-notify-debouncer-mini = "0.5"
-rust-embed = "8"
-open = "5"
-mime_guess = "2"
-tokio-stream = { version = "0.1", features = ["sync"] }
-
-[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "io-util", "process", "signal"] }
+uuid = { version = "1", features = ["v4"] }
+serde_yaml = "0.9"
 tempfile = "3"
-assert_cmd = "2"
-predicates = "3"

@@ -126,6 +126,14 @@ fn run_team(
     let paths = ForjaPaths::ensure_initialized()?;
     let state = load_state(&paths.state);
 
+    // Track usage analytics for team members
+    let analytics_path = crate::analytics::analytics_path(&paths.forja_root);
+    if let Some(entry) = state.teams.get(team_name) {
+        for member in &entry.members {
+            let _ = crate::analytics::track(&analytics_path, &member.skill_id, "task");
+        }
+    }
+
     // Resolve team members and profile: check state first, then try preset fallback
     let (members, profile) = if let Some(entry) = state.teams.get(team_name) {
         let profile_str = profile_override.unwrap_or(&entry.profile);
@@ -143,9 +151,10 @@ fn run_team(
     println!("  Profile: {}", profile.as_str().cyan());
     println!();
 
-    // Ensure agent teams env var
-    if !settings::has_teams_env_var(&paths.claude_dir) {
-        settings::enable_teams_env_var(&paths.claude_dir)?;
+    // Ensure agent teams env var (always in ~/.claude/settings.json)
+    let global_claude = crate::paths::ForjaPaths::global_claude_dir()?;
+    if !settings::has_teams_env_var(&global_claude) {
+        settings::enable_teams_env_var(&global_claude)?;
         println!(
             "  {} Agent teams env var enabled in settings.json",
             "NOTE:".yellow().bold()
