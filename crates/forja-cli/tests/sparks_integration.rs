@@ -46,12 +46,12 @@ fn sparks_help_shows_all_subcommands() {
 }
 
 #[test]
-fn sparks_help_shows_examples() {
+fn sparks_help_shows_legacy_alias() {
     forja()
         .args(["sparks", "--help"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("EXAMPLES:"));
+        .stdout(predicate::str::contains("Legacy alias"));
 }
 
 #[test]

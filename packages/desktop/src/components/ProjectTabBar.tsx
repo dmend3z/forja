@@ -1,8 +1,12 @@
 import { NavLink, useParams } from "react-router";
 
 const TABS = [
-  { label: "Sparks", path: "sparks" },
+  { label: "Dashboard", path: "dashboard" },
+  { label: "Tracks", path: "tracks" },
   { label: "Specs", path: "specs" },
+  { label: "Plans", path: "plans" },
+  { label: "Decisions", path: "decisions" },
+  { label: "Runs", path: "runs" },
 ];
 
 export function ProjectTabBar() {

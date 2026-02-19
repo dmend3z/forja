@@ -12,7 +12,7 @@ mod tips;
 mod wizard;
 
 use clap::Parser;
-use cli::{Cli, Commands, SparksCommands, TeamCommands};
+use cli::{Cli, Commands, DecisionsCommands, RunsCommands, SparksCommands, SpecsCommands, TeamCommands, TracksCommands};
 
 fn run() -> forja_core::error::Result<()> {
     let cli = Cli::parse();
@@ -101,6 +101,30 @@ fn dispatch(command: Commands) -> forja_core::error::Result<()> {
                 .map_err(|e| forja_core::error::ForjaError::Monitor(format!("Failed to start runtime: {e}")))?;
             rt.block_on(commands::monitor::run(port, !no_open))
         }
+        Commands::Validate => commands::validate::run(),
+        Commands::Specs { command } => match command {
+            SpecsCommands::List { ref path } => commands::sparks::list(path.as_deref()),
+            SpecsCommands::Show { ref spec_id } => commands::sparks::show(spec_id),
+            SpecsCommands::Plan { ref spec_id } => commands::sparks::plan(spec_id),
+            SpecsCommands::Status { ref spec_id } => {
+                commands::sparks::status(spec_id.as_deref())
+            }
+        },
+        Commands::Tracks { command } => match command {
+            TracksCommands::List => commands::tracks::list(),
+            TracksCommands::Show { ref track_id } => commands::tracks::show(track_id),
+        },
+        Commands::Decisions { command } => match command {
+            DecisionsCommands::List => commands::decisions::list(),
+            DecisionsCommands::Show { ref decision_id } => {
+                commands::decisions::show(decision_id)
+            }
+        },
+        Commands::Runs { command } => match command {
+            RunsCommands::List => commands::runs::list(),
+            RunsCommands::Show { ref run_id } => commands::runs::show(run_id),
+        },
+        // Legacy alias — routes to same code
         Commands::Sparks { command } => match command {
             SparksCommands::List { ref path } => commands::sparks::list(path.as_deref()),
             SparksCommands::Show { ref spec_id } => commands::sparks::show(spec_id),

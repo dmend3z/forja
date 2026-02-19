@@ -94,6 +94,170 @@ export async function getSpec(
   return invoke<SpecFile>("get_spec", { projectPath, specId });
 }
 
+// Tracks
+
+export type TrackStatus = "draft" | "in-progress" | "complete" | "archived";
+export type TrackPriority = "high" | "medium" | "low";
+
+export interface TrackItem {
+  id: string;
+  task: string;
+  status: string;
+  spec: string;
+}
+
+export interface TrackFile {
+  id: string;
+  title: string;
+  description: string;
+  status: TrackStatus;
+  owner: string | null;
+  priority: TrackPriority | null;
+  created: string;
+  body: string;
+  items: TrackItem[];
+}
+
+export async function listTracks(projectPath: string): Promise<TrackFile[]> {
+  return invoke<TrackFile[]>("list_tracks", { projectPath });
+}
+
+export async function getTrack(
+  projectPath: string,
+  trackId: string,
+): Promise<TrackFile> {
+  return invoke<TrackFile>("get_track", { projectPath, trackId });
+}
+
+// Decisions
+
+export type DecisionStatus =
+  | "proposed"
+  | "accepted"
+  | "deprecated"
+  | "superseded";
+
+export interface DecisionFile {
+  id: string;
+  title: string;
+  status: DecisionStatus;
+  date: string;
+  related_specs: string[];
+  superseded_by: string | null;
+  body: string;
+}
+
+export async function listDecisions(
+  projectPath: string,
+): Promise<DecisionFile[]> {
+  return invoke<DecisionFile[]>("list_decisions", { projectPath });
+}
+
+export async function getDecision(
+  projectPath: string,
+  decisionId: string,
+): Promise<DecisionFile> {
+  return invoke<DecisionFile>("get_decision", { projectPath, decisionId });
+}
+
+// Runs
+
+export type RunStatus = "running" | "complete" | "failed";
+
+export interface RunLog {
+  spec_id: string;
+  plan_id: string | null;
+  agent: string;
+  status: RunStatus;
+  started_at: string;
+  completed_at: string | null;
+  duration_seconds: number | null;
+  exit_code: number | null;
+  body: string;
+}
+
+export async function listRuns(projectPath: string): Promise<RunLog[]> {
+  return invoke<RunLog[]>("list_runs", { projectPath });
+}
+
+export async function getRun(
+  projectPath: string,
+  runId: string,
+): Promise<RunLog> {
+  return invoke<RunLog>("get_run", { projectPath, runId });
+}
+
+// Plans
+
+export type PlanStatus = "pending" | "executed" | "archived";
+
+export interface PlanAgent {
+  skill_id: string;
+  role: string;
+}
+
+export interface PlanStack {
+  language: string;
+  framework: string | null;
+}
+
+export interface PlanPhase {
+  name: string;
+  agent_role: string;
+  files_to_create: string[];
+  files_to_modify: string[];
+  instructions: string;
+  depends_on: string[];
+}
+
+export interface PlanMetadata {
+  id: string;
+  created: string;
+  status: PlanStatus;
+  task: string;
+  team_size: string;
+  profile: string;
+  agents: PlanAgent[];
+  stack: PlanStack | null;
+  quality_gates: string[];
+  phases: PlanPhase[];
+  source_spec: string | null;
+}
+
+export async function listPlans(
+  projectPath: string,
+): Promise<PlanMetadata[]> {
+  return invoke<PlanMetadata[]>("list_plans", { projectPath });
+}
+
+export async function getPlan(
+  projectPath: string,
+  planId: string,
+): Promise<PlanMetadata> {
+  return invoke<PlanMetadata>("get_plan", { projectPath, planId });
+}
+
+// Validation
+
+export interface ValidationError {
+  file: string;
+  message: string;
+  severity: "error" | "warning";
+}
+
+export interface ValidationResult {
+  is_valid: boolean;
+  error_count: number;
+  warning_count: number;
+  errors: ValidationError[];
+}
+
+export async function validateProject(
+  projectPath: string,
+): Promise<ValidationResult> {
+  return invoke<ValidationResult>("validate_project", { projectPath });
+}
+
 // Marketplace
 
 export type Phase =

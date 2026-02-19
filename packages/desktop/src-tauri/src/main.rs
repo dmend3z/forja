@@ -23,6 +23,15 @@ fn main() {
             commands::marketplace::create_skill,
             commands::specs::list_specs,
             commands::specs::get_spec,
+            commands::tracks::list_tracks,
+            commands::tracks::get_track,
+            commands::decisions::list_decisions,
+            commands::decisions::get_decision,
+            commands::runs::list_runs,
+            commands::runs::get_run,
+            commands::plans::list_plans,
+            commands::plans::get_plan,
+            commands::validate::validate_project,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

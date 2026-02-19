@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { Button } from "@/components/ui/button";
+import { useParams } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectTabBar } from "@/components/ProjectTabBar";
@@ -27,34 +26,8 @@ const PRIORITY_COLORS: Record<string, string> = {
   low: "bg-green-100 text-green-700",
 };
 
-function buildSparkPrompt(spec: SpecFile): string {
-  const parts = [`# ${spec.title}`, spec.description];
-
-  if (spec.requirements.length > 0) {
-    parts.push(
-      `\n## Requirements\n${spec.requirements.map((r) => `- ${r}`).join("\n")}`,
-    );
-  }
-  if (spec.constraints.length > 0) {
-    parts.push(
-      `\n## Constraints\n${spec.constraints.map((c) => `- ${c}`).join("\n")}`,
-    );
-  }
-  if (spec.success_criteria.length > 0) {
-    parts.push(
-      `\n## Success Criteria\n${spec.success_criteria.map((c) => `- ${c}`).join("\n")}`,
-    );
-  }
-  if (spec.body.trim()) {
-    parts.push(`\n## Details\n${spec.body.trim()}`);
-  }
-
-  return parts.join("\n");
-}
-
 export function SpecsPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [specs, setSpecs] = useState<SpecFile[]>([]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -85,12 +58,6 @@ export function SpecsPage() {
     });
   }
 
-  function handleRunAsSpark(spec: SpecFile) {
-    navigate(`/project/${id}/sparks`, {
-      state: { prefill: buildSparkPrompt(spec) },
-    });
-  }
-
   if (!id) {
     return (
       <div className="p-6">
@@ -113,7 +80,7 @@ export function SpecsPage() {
       {specs.length === 0 ? (
         <EmptyState
           title="No specs found"
-          description="Add markdown spec files to docs/specs/ in your project to see them here."
+          description="Add markdown spec files to .forja/specs/ or docs/specs/ in your project to see them here."
         />
       ) : (
         <div className="grid gap-3">
@@ -211,15 +178,6 @@ export function SpecsPage() {
                         {spec.body.trim()}
                       </pre>
                     )}
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRunAsSpark(spec);
-                      }}
-                    >
-                      Run as Spark
-                    </Button>
                   </CardContent>
                 )}
               </Card>

@@ -85,12 +85,15 @@ pub fn run(registry_url: Option<String>, use_wizard: bool, force_global: bool) -
         }
     }
 
-    // In project mode, create .gitignore files
+    // Detect project stack (used in scaffold and output)
+    let stack = detect_stack(&cwd);
+
+    // In project mode, create .gitignore files and scaffold the spec framework
     if mode == ForjaMode::Project {
         let gitignore_path = paths.forja_root.join(".gitignore");
         fs::write(
             &gitignore_path,
-            "# Managed by forja - do not edit\nregistry/\nplans/\n",
+            "# Managed by forja - do not edit\nregistry/\nplans/\nruns/\n",
         )?;
 
         // Exclude symlinked dirs from version control
@@ -102,6 +105,9 @@ pub fn run(registry_url: Option<String>, use_wizard: bool, force_global: bool) -
                 "# Managed by forja\nagents/\ncommands/\n",
             )?;
         }
+
+        // Scaffold .forja/ spec framework directories and template files
+        scaffold_framework(&paths.forja_root, &stack)?;
     }
 
     // Install skills filtered by selected phases
@@ -115,9 +121,6 @@ pub fn run(registry_url: Option<String>, use_wizard: bool, force_global: bool) -
 
     // Sync symlinks to ~/.claude/
     let _sync_result = forja_core::symlink::sync::sync_symlinks(&paths)?;
-
-    // Detect project stack
-    let stack = detect_stack(&cwd);
 
     // Output
     output::print_divider();
@@ -145,13 +148,14 @@ pub fn run(registry_url: Option<String>, use_wizard: bool, force_global: bool) -
     }
 
     output::print_section_header("Next Steps");
+    output::print_command_hint("forja specs list", "View your specs");
+    output::print_command_hint("forja validate", "Validate your .forja/ framework");
     output::print_command_hint("forja task \"your task\"", "Run a task with AI skills");
     output::print_command_hint("forja doctor", "Verify your setup");
-    output::print_command_hint("forja guide", "Learn the 5-phase workflow");
 
     if mode == ForjaMode::Project {
         println!();
-        output::print_tip(".forja/ created — commit config.json and state.json to git");
+        output::print_tip(".forja/ created — edit specs in .forja/specs/ and commit to git");
     }
 
     Ok(())
@@ -227,6 +231,99 @@ fn mode_label(mode: ForjaMode) -> &'static str {
         ForjaMode::Project => "project mode",
         ForjaMode::Global => "global mode",
     }
+}
+
+/// Scaffold the .forja/ spec-driven development framework directories and template files.
+fn scaffold_framework(forja_root: &Path, stack: &Option<String>) -> Result<()> {
+    // Create framework directories
+    fs::create_dir_all(forja_root.join("docs"))?;
+    fs::create_dir_all(forja_root.join("tracks"))?;
+    fs::create_dir_all(forja_root.join("specs"))?;
+    fs::create_dir_all(forja_root.join("decisions"))?;
+    fs::create_dir_all(forja_root.join("runs"))?;
+
+    let today = chrono::Utc::now().format("%Y-%m-%d").to_string();
+
+    // Generate vision.md
+    let project_name = std::env::current_dir()
+        .ok()
+        .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()))
+        .unwrap_or_else(|| "My Project".to_string());
+
+    let tech_stack_yaml = match stack {
+        Some(detected) => format!(
+            "tech_stack:\n  language: \"{detected}\"\n"
+        ),
+        None => "# tech_stack:\n#   language: \"\"\n#   framework: \"\"\n#   database: \"\"\n#   hosting: \"\"\n".to_string(),
+    };
+
+    let vision = format!(
+        r#"---
+project: "{project_name}"
+description: ""
+version: "0.1.0"
+{tech_stack_yaml}---
+# Product Vision
+
+Describe your product vision here.
+"#
+    );
+    fs::write(forja_root.join("docs").join("vision.md"), vision)?;
+
+    // Generate track template
+    let track = format!(
+        r#"---
+id: mvp
+title: "MVP"
+description: "Minimum viable product"
+status: draft
+created: "{today}"
+---
+# MVP
+
+| ID  | Task    | Status | Spec    |
+|-----|---------|--------|---------|
+| M1  | Example | todo   | example |
+"#
+    );
+    fs::write(
+        forja_root.join("tracks").join("track-mvp.md"),
+        track,
+    )?;
+
+    // Generate example spec
+    let spec = format!(
+        r#"---
+id: example
+title: "Example Spec"
+description: "A placeholder spec to get started"
+status: draft
+priority: medium
+track: mvp
+acceptance_criteria:
+  - "Replace this with real acceptance criteria"
+created: "{today}"
+---
+# Example Spec
+
+Replace this file with your first real spec.
+
+## Context
+
+Describe the problem or feature.
+
+## Approach
+
+Describe the implementation approach.
+"#
+    );
+    fs::write(forja_root.join("specs").join("example.md"), spec)?;
+
+    // Generate INDEX.md and CONTEXT.md
+    let _ = forja_core::models::index_gen::write_index(forja_root);
+    let _ = forja_core::models::context_gen::write_context(forja_root);
+
+    Ok(())
 }
 
 fn detect_stack(cwd: &Path) -> Option<String> {

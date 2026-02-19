@@ -35,7 +35,11 @@ fn help_contains_all_subcommands() {
             .and(predicate::str::contains("stats"))
             .and(predicate::str::contains("diff"))
             .and(predicate::str::contains("upgrade"))
-            .and(predicate::str::contains("sparks")),
+            .and(predicate::str::contains("validate"))
+            .and(predicate::str::contains("specs"))
+            .and(predicate::str::contains("tracks"))
+            .and(predicate::str::contains("decisions"))
+            .and(predicate::str::contains("runs")),
     );
 }
 

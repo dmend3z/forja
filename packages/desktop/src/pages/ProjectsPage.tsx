@@ -58,7 +58,7 @@ export function ProjectsPage() {
             <Card
               key={project.id}
               className="cursor-pointer hover:bg-card/80 transition-colors"
-              onClick={() => navigate(`/project/${project.id}/sparks`)}
+              onClick={() => navigate(`/project/${project.id}/dashboard`)}
             >
               <CardHeader className="py-4">
                 <div className="flex items-center justify-between">

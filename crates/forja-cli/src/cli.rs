@@ -488,19 +488,78 @@ EXAMPLES:
         basic: bool,
     },
 
-    /// Spec-driven execution pipeline
+    /// Validate all .forja/ files (schema, references, completeness)
     #[command(
-        long_about = "Read spec files from docs/specs/, generate AI-driven plans, and execute \
-            them with agent teams. Specs use YAML frontmatter for structured metadata and \
-            markdown bodies for context.",
+        long_about = "Lint and validate all files in the .forja/ directory: schema validation, \
+            reference integrity, completeness checks, and consistency rules. Must pass before \
+            execution.",
         after_help = "\
 EXAMPLES:
-  forja sparks list                   # List all specs with status
-  forja sparks show user-auth         # Display full spec details
-  forja sparks plan user-auth         # Generate execution plan from spec
-  forja sparks execute user-auth      # Run the plan
-  forja sparks status                 # Show execution progress"
+  forja validate                      # Validate the entire .forja/ framework"
     )]
+    Validate,
+
+    /// Spec-driven development pipeline
+    #[command(
+        long_about = "Manage implementation specs in .forja/specs/. Specs use YAML frontmatter \
+            for structured metadata (status, track, acceptance criteria) and markdown bodies \
+            for detailed context.",
+        after_help = "\
+EXAMPLES:
+  forja specs list                    # List all specs with status
+  forja specs show user-auth          # Display full spec details
+  forja specs plan user-auth          # Generate execution plan from spec
+  forja specs status                  # Show execution progress"
+    )]
+    Specs {
+        #[command(subcommand)]
+        command: SpecsCommands,
+    },
+
+    /// Manage work tracks
+    #[command(
+        long_about = "Work tracks group related specs into deliverable milestones. \
+            Each track has a progress table linking to specs.",
+        after_help = "\
+EXAMPLES:
+  forja tracks list                   # List all tracks with progress
+  forja tracks show mvp               # Show track details and items"
+    )]
+    Tracks {
+        #[command(subcommand)]
+        command: TracksCommands,
+    },
+
+    /// Manage architecture decisions
+    #[command(
+        long_about = "Architecture Decision Records (ADRs) document significant technical \
+            decisions linked to specs.",
+        after_help = "\
+EXAMPLES:
+  forja decisions list                # List all decisions
+  forja decisions show 001            # Show decision details"
+    )]
+    Decisions {
+        #[command(subcommand)]
+        command: DecisionsCommands,
+    },
+
+    /// View execution run history
+    #[command(
+        long_about = "Execution runs are logs of spec execution with full agent output. \
+            Created automatically by `forja execute`.",
+        after_help = "\
+EXAMPLES:
+  forja runs list                     # List all execution runs
+  forja runs show run-20260218-auth   # Show run details and output"
+    )]
+    Runs {
+        #[command(subcommand)]
+        command: RunsCommands,
+    },
+
+    /// (Legacy alias for 'specs')
+    #[command(hide = true)]
     Sparks {
         #[command(subcommand)]
         command: SparksCommands,
@@ -565,6 +624,71 @@ pub enum TeamCommands {
     },
 }
 
+#[derive(Subcommand)]
+pub enum SpecsCommands {
+    /// List all specs with status
+    List {
+        /// Path to specs directory (defaults to .forja/specs/)
+        #[arg(long)]
+        path: Option<String>,
+    },
+
+    /// Display full spec details
+    Show {
+        /// Spec ID
+        spec_id: String,
+    },
+
+    /// Generate execution plan from spec
+    Plan {
+        /// Spec ID
+        spec_id: String,
+    },
+
+    /// Show execution progress
+    Status {
+        /// Spec ID (omit to show all specs)
+        spec_id: Option<String>,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum TracksCommands {
+    /// List all tracks with progress
+    List,
+
+    /// Show track details and item table
+    Show {
+        /// Track ID
+        track_id: String,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum DecisionsCommands {
+    /// List all decisions
+    List,
+
+    /// Show decision details
+    Show {
+        /// Decision ID
+        decision_id: String,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum RunsCommands {
+    /// List execution run history
+    List,
+
+    /// Show run details and output
+    Show {
+        /// Run ID (filename stem)
+        run_id: String,
+    },
+}
+
+/// Legacy alias — hidden, routes to the same code as Specs
 #[derive(Subcommand)]
 pub enum SparksCommands {
     /// List all specs with status

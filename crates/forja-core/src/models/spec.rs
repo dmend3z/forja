@@ -5,16 +5,44 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::{ForjaError, Result};
 use crate::frontmatter;
+use crate::models::acceptance::AcceptanceCriterion;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub enum SpecStatus {
+    #[default]
     Draft,
-    Planning,
     Ready,
+    InProgress,
+    Review,
+    Done,
+    Blocked,
+    // Legacy variants kept for backward compat with existing specs
+    #[serde(alias = "planning")]
+    Planning,
+    #[serde(alias = "executing")]
     Executing,
+    #[serde(alias = "complete")]
     Complete,
+    #[serde(alias = "failed")]
     Failed,
+}
+
+impl SpecStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Draft => "draft",
+            Self::Ready => "ready",
+            Self::InProgress => "in-progress",
+            Self::Review => "review",
+            Self::Done => "done",
+            Self::Blocked => "blocked",
+            Self::Planning => "planning",
+            Self::Executing => "executing",
+            Self::Complete => "complete",
+            Self::Failed => "failed",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,15 +51,33 @@ pub struct SpecFrontmatter {
     pub title: String,
     pub description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<SpecStatus>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub priority: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub track: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assignee: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub blocked_by: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub depends_on: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub requirements: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub constraints: Vec<String>,
+    /// New structured acceptance criteria (supports simple strings and {description, test} objects).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub acceptance_criteria: Vec<AcceptanceCriterion>,
+    /// Legacy field kept for backward compatibility. Prefer `acceptance_criteria`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub success_criteria: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,25 +85,9 @@ pub struct SpecFile {
     #[serde(flatten)]
     pub frontmatter: SpecFrontmatter,
     pub body: String,
-    #[serde(default = "default_status")]
+    /// Effective status: from frontmatter if present, otherwise Draft.
+    #[serde(skip)]
     pub status: SpecStatus,
-}
-
-fn default_status() -> SpecStatus {
-    SpecStatus::Draft
-}
-
-impl SpecStatus {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Draft => "draft",
-            Self::Planning => "planning",
-            Self::Ready => "ready",
-            Self::Executing => "executing",
-            Self::Complete => "complete",
-            Self::Failed => "failed",
-        }
-    }
 }
 
 impl SpecFile {
@@ -67,6 +97,34 @@ impl SpecFile {
 
     pub fn title(&self) -> &str {
         &self.frontmatter.title
+    }
+
+    /// Return all acceptance criteria, merging both new `acceptance_criteria` and legacy `success_criteria`.
+    pub fn all_acceptance_criteria(&self) -> Vec<&AcceptanceCriterion> {
+        // If acceptance_criteria is populated, prefer it
+        if !self.frontmatter.acceptance_criteria.is_empty() {
+            return self.frontmatter.acceptance_criteria.iter().collect();
+        }
+        // Fallback: convert success_criteria to references via a collected vec
+        // (can't return references to temporary AcceptanceCriterion)
+        Vec::new()
+    }
+
+    /// Return legacy success_criteria strings (for backward compat display).
+    pub fn success_criteria_strings(&self) -> Vec<&str> {
+        if !self.frontmatter.acceptance_criteria.is_empty() {
+            self.frontmatter
+                .acceptance_criteria
+                .iter()
+                .map(|c| c.description())
+                .collect()
+        } else {
+            self.frontmatter
+                .success_criteria
+                .iter()
+                .map(|s| s.as_str())
+                .collect()
+        }
     }
 }
 
@@ -96,10 +154,19 @@ pub fn build_task_description(spec: &SpecFile) -> String {
         }
     }
 
-    if !spec.frontmatter.success_criteria.is_empty() {
-        desc.push_str("\nSuccess Criteria:\n");
-        for sc in &spec.frontmatter.success_criteria {
+    // Prefer acceptance_criteria, fallback to success_criteria
+    let criteria = spec.success_criteria_strings();
+    if !criteria.is_empty() {
+        desc.push_str("\nAcceptance Criteria:\n");
+        for sc in &criteria {
             desc.push_str(&format!("- {sc}\n"));
+        }
+    }
+
+    if !spec.frontmatter.depends_on.is_empty() {
+        desc.push_str("\nDepends On:\n");
+        for dep in &spec.frontmatter.depends_on {
+            desc.push_str(&format!("- {dep}\n"));
         }
     }
 
@@ -117,10 +184,12 @@ pub fn parse_spec(content: &str) -> Result<SpecFile> {
     let (yaml, body) = frontmatter::split_frontmatter(content)?;
     let fm: SpecFrontmatter = serde_yaml::from_str(yaml)?;
 
+    let status = fm.status.clone().unwrap_or(SpecStatus::Draft);
+
     Ok(SpecFile {
         frontmatter: fm,
         body: body.to_string(),
-        status: SpecStatus::Draft,
+        status,
     })
 }
 
@@ -160,6 +229,32 @@ pub fn discover_specs(dir: &Path) -> Result<Vec<SpecFile>> {
     Ok(specs)
 }
 
+/// Discover specs from .forja/specs/ first, falling back to docs/specs/.
+pub fn discover_specs_with_fallback(project_root: &Path) -> Result<Vec<SpecFile>> {
+    let forja_specs = project_root.join(".forja").join("specs");
+    if forja_specs.exists() {
+        return discover_specs(&forja_specs);
+    }
+
+    let docs_specs = project_root.join("docs").join("specs");
+    if docs_specs.exists() {
+        return discover_specs(&docs_specs);
+    }
+
+    Err(ForjaError::SpecNotFound(
+        "no specs directory found (.forja/specs/ or docs/specs/)".to_string(),
+    ))
+}
+
+/// Find a specific spec by ID, checking .forja/specs/ first then docs/specs/.
+pub fn find_spec_with_fallback(project_root: &Path, spec_id: &str) -> Result<SpecFile> {
+    let specs = discover_specs_with_fallback(project_root)?;
+    specs
+        .into_iter()
+        .find(|s| s.id() == spec_id)
+        .ok_or_else(|| ForjaError::SpecNotFound(spec_id.to_string()))
+}
+
 /// Find a specific spec by ID from a directory.
 pub fn find_spec(dir: &Path, spec_id: &str) -> Result<SpecFile> {
     let specs = discover_specs(dir)?;
@@ -167,6 +262,23 @@ pub fn find_spec(dir: &Path, spec_id: &str) -> Result<SpecFile> {
         .into_iter()
         .find(|s| s.id() == spec_id)
         .ok_or_else(|| ForjaError::SpecNotFound(spec_id.to_string()))
+}
+
+/// Update the status field in a spec's frontmatter on disk.
+pub fn update_spec_status(path: &Path, new_status: SpecStatus) -> Result<()> {
+    let content = fs::read_to_string(path).map_err(|e| {
+        ForjaError::SpecNotFound(format!("{}: {e}", path.display()))
+    })?;
+
+    let (yaml, body) = frontmatter::split_frontmatter(&content)?;
+    let mut fm: SpecFrontmatter = serde_yaml::from_str(yaml)?;
+    fm.status = Some(new_status);
+    fm.updated = Some(chrono::Utc::now().format("%Y-%m-%d").to_string());
+
+    let new_yaml = serde_yaml::to_string(&fm)?;
+    let new_content = format!("---\n{new_yaml}---\n{body}");
+    fs::write(path, new_content)?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -201,6 +313,36 @@ This spec describes the authentication system.
 Use bcrypt for password hashing.
 "#;
 
+    const SPEC_WITH_NEW_FIELDS: &str = r#"---
+id: auth
+title: "User Authentication"
+description: "JWT-based authentication"
+status: in-progress
+priority: high
+track: mvp
+assignee: "Daniel"
+tags:
+  - auth
+  - security
+blocked_by: []
+depends_on:
+  - database-setup
+requirements:
+  - "JWT token generation"
+  - "Login endpoint"
+constraints:
+  - "Must use existing user table"
+acceptance_criteria:
+  - "Users can log in and receive a token"
+  - description: "Protected routes reject unauthenticated"
+    test: "cargo test auth_reject"
+created: "2026-02-18"
+updated: "2026-02-18"
+---
+# User Authentication
+Context here.
+"#;
+
     #[test]
     fn parse_valid_spec() {
         let spec = parse_spec(VALID_SPEC).unwrap();
@@ -217,6 +359,62 @@ Use bcrypt for password hashing.
     }
 
     #[test]
+    fn parse_spec_with_new_fields() {
+        let spec = parse_spec(SPEC_WITH_NEW_FIELDS).unwrap();
+        assert_eq!(spec.id(), "auth");
+        assert_eq!(spec.status, SpecStatus::InProgress);
+        assert_eq!(spec.frontmatter.track.as_deref(), Some("mvp"));
+        assert_eq!(spec.frontmatter.assignee.as_deref(), Some("Daniel"));
+        assert_eq!(spec.frontmatter.depends_on, vec!["database-setup"]);
+        assert!(spec.frontmatter.blocked_by.is_empty());
+        assert_eq!(spec.frontmatter.acceptance_criteria.len(), 2);
+        assert_eq!(spec.frontmatter.created.as_deref(), Some("2026-02-18"));
+        assert_eq!(spec.frontmatter.updated.as_deref(), Some("2026-02-18"));
+    }
+
+    #[test]
+    fn acceptance_criteria_mixed_types() {
+        let spec = parse_spec(SPEC_WITH_NEW_FIELDS).unwrap();
+        let criteria = &spec.frontmatter.acceptance_criteria;
+
+        assert_eq!(criteria[0].description(), "Users can log in and receive a token");
+        assert!(criteria[0].test_command().is_none());
+
+        assert_eq!(criteria[1].description(), "Protected routes reject unauthenticated");
+        assert_eq!(criteria[1].test_command(), Some("cargo test auth_reject"));
+    }
+
+    #[test]
+    fn success_criteria_strings_prefers_acceptance() {
+        let spec = parse_spec(SPEC_WITH_NEW_FIELDS).unwrap();
+        let strings = spec.success_criteria_strings();
+        assert_eq!(strings.len(), 2);
+        assert_eq!(strings[0], "Users can log in and receive a token");
+    }
+
+    #[test]
+    fn success_criteria_strings_falls_back_to_legacy() {
+        let spec = parse_spec(VALID_SPEC).unwrap();
+        let strings = spec.success_criteria_strings();
+        assert_eq!(strings.len(), 2);
+        assert_eq!(strings[0], "Users can log in and receive a token");
+    }
+
+    #[test]
+    fn status_from_frontmatter() {
+        let content = "---\nid: s\ntitle: S\ndescription: D\nstatus: ready\n---\n";
+        let spec = parse_spec(content).unwrap();
+        assert_eq!(spec.status, SpecStatus::Ready);
+    }
+
+    #[test]
+    fn status_defaults_to_draft() {
+        let content = "---\nid: s\ntitle: S\ndescription: D\n---\n";
+        let spec = parse_spec(content).unwrap();
+        assert_eq!(spec.status, SpecStatus::Draft);
+    }
+
+    #[test]
     fn parse_minimal_spec() {
         let content = "---\nid: minimal\ntitle: Minimal\ndescription: A minimal spec\n---\n\nBody here.";
         let spec = parse_spec(content).unwrap();
@@ -224,6 +422,10 @@ Use bcrypt for password hashing.
         assert!(spec.frontmatter.priority.is_none());
         assert!(spec.frontmatter.tags.is_empty());
         assert!(spec.frontmatter.requirements.is_empty());
+        assert!(spec.frontmatter.track.is_none());
+        assert!(spec.frontmatter.assignee.is_none());
+        assert!(spec.frontmatter.depends_on.is_empty());
+        assert!(spec.frontmatter.acceptance_criteria.is_empty());
     }
 
     #[test]
@@ -256,25 +458,33 @@ Use bcrypt for password hashing.
     }
 
     #[test]
-    fn spec_status_serializes_lowercase() {
-        let json = serde_json::to_string(&SpecStatus::Planning).unwrap();
-        assert_eq!(json, "\"planning\"");
+    fn spec_status_serializes_kebab() {
+        let json = serde_json::to_string(&SpecStatus::InProgress).unwrap();
+        assert_eq!(json, "\"in-progress\"");
     }
 
     #[test]
     fn spec_status_roundtrip() {
         for status in [
             SpecStatus::Draft,
-            SpecStatus::Planning,
             SpecStatus::Ready,
-            SpecStatus::Executing,
-            SpecStatus::Complete,
-            SpecStatus::Failed,
+            SpecStatus::InProgress,
+            SpecStatus::Review,
+            SpecStatus::Done,
+            SpecStatus::Blocked,
         ] {
             let json = serde_json::to_string(&status).unwrap();
             let parsed: SpecStatus = serde_json::from_str(&json).unwrap();
             assert_eq!(parsed, status);
         }
+    }
+
+    #[test]
+    fn legacy_status_compat() {
+        // "complete" should still parse (aliased)
+        let content = "---\nid: s\ntitle: S\ndescription: D\nstatus: complete\n---\n";
+        let spec = parse_spec(content).unwrap();
+        assert_eq!(spec.status, SpecStatus::Complete);
     }
 
     #[test]
@@ -377,7 +587,7 @@ Use bcrypt for password hashing.
         assert!(desc.contains("- Login endpoint"));
         assert!(desc.contains("Constraints:"));
         assert!(desc.contains("- Must use existing user table"));
-        assert!(desc.contains("Success Criteria:"));
+        assert!(desc.contains("Acceptance Criteria:"));
         assert!(desc.contains("- Users can log in and receive a token"));
         assert!(desc.contains("Context:"));
         assert!(desc.contains("# User Authentication"));
@@ -397,6 +607,16 @@ Use bcrypt for password hashing.
     }
 
     #[test]
+    fn build_task_description_with_depends_on() {
+        let content = "---\nid: d\ntitle: D\ndescription: D\ndepends_on:\n  - auth\n  - db\n---\n";
+        let spec = parse_spec(content).unwrap();
+        let desc = build_task_description(&spec);
+        assert!(desc.contains("Depends On:"));
+        assert!(desc.contains("- auth"));
+        assert!(desc.contains("- db"));
+    }
+
+    #[test]
     fn parse_unicode_in_fields() {
         let content = "---\nid: café-api\ntitle: API café\ndescription: Gère les commandes\n---\n\nCorps en français.";
         let spec = parse_spec(content).unwrap();
@@ -409,7 +629,6 @@ Use bcrypt for password hashing.
     fn parse_trailing_whitespace_in_values() {
         let content = "---\nid: spaced   \ntitle: Spaced Title   \ndescription: A desc   \n---\n\nBody.";
         let spec = parse_spec(content).unwrap();
-        // serde_yaml trims trailing whitespace from string values
         assert_eq!(spec.id(), "spaced");
         assert_eq!(spec.title(), "Spaced Title");
     }
@@ -426,7 +645,6 @@ Use bcrypt for password hashing.
         let dir = tempfile::tempdir().unwrap();
         write_spec(dir.path(), "top.md", "top", "Top Spec");
 
-        // Nested dir with a spec — should NOT be discovered (no recursion)
         let nested = dir.path().join("nested");
         fs::create_dir_all(&nested).unwrap();
         write_spec(&nested, "deep.md", "deep", "Deep Spec");
@@ -472,5 +690,49 @@ Use bcrypt for password hashing.
         assert!(!desc.contains("Priority:"));
         assert!(desc.contains("Requirements:"));
         assert!(desc.contains("- one"));
+    }
+
+    #[test]
+    fn discover_specs_with_fallback_prefers_forja() {
+        let dir = tempfile::tempdir().unwrap();
+
+        // Create both directories
+        let forja_specs = dir.path().join(".forja").join("specs");
+        let docs_specs = dir.path().join("docs").join("specs");
+        fs::create_dir_all(&forja_specs).unwrap();
+        fs::create_dir_all(&docs_specs).unwrap();
+
+        write_spec(&forja_specs, "from-forja.md", "from-forja", "From Forja");
+        write_spec(&docs_specs, "from-docs.md", "from-docs", "From Docs");
+
+        let specs = discover_specs_with_fallback(dir.path()).unwrap();
+        assert_eq!(specs.len(), 1);
+        assert_eq!(specs[0].id(), "from-forja");
+    }
+
+    #[test]
+    fn discover_specs_with_fallback_uses_docs() {
+        let dir = tempfile::tempdir().unwrap();
+
+        let docs_specs = dir.path().join("docs").join("specs");
+        fs::create_dir_all(&docs_specs).unwrap();
+        write_spec(&docs_specs, "from-docs.md", "from-docs", "From Docs");
+
+        let specs = discover_specs_with_fallback(dir.path()).unwrap();
+        assert_eq!(specs.len(), 1);
+        assert_eq!(specs[0].id(), "from-docs");
+    }
+
+    #[test]
+    fn update_spec_status_on_disk() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.md");
+        fs::write(&path, "---\nid: t\ntitle: T\ndescription: D\nstatus: draft\n---\nBody.").unwrap();
+
+        update_spec_status(&path, SpecStatus::Done).unwrap();
+
+        let spec = load_spec(&path).unwrap();
+        assert_eq!(spec.status, SpecStatus::Done);
+        assert!(spec.frontmatter.updated.is_some());
     }
 }

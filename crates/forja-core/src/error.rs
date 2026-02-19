@@ -88,6 +88,15 @@ pub enum ForjaError {
 
     #[error("Claude CLI timed out after {0}s")]
     ClaudeCliTimeout(u64),
+
+    #[error("Validation failed: {0} error(s)")]
+    ValidationFailed(usize),
+
+    #[error("Track not found: {0}")]
+    TrackNotFound(String),
+
+    #[error("Decision not found: {0}")]
+    DecisionNotFound(String),
 }
 
 impl ForjaError {
@@ -125,9 +134,12 @@ impl ForjaError {
             Self::InvalidArgument(_) => "Check the command help: forja <command> --help",
             Self::Yaml(_) => "Check the YAML frontmatter syntax in the spec file",
             Self::InvalidSpec(_) => "Spec files need YAML frontmatter between --- delimiters",
-            Self::SpecNotFound(_) => "Check the path and run: forja sparks list",
+            Self::SpecNotFound(_) => "Check the path and run: forja specs list",
             Self::ScanError(_) => "Try: forja scan --basic",
             Self::ClaudeCliTimeout(_) => "Try: forja scan --basic",
+            Self::ValidationFailed(_) => "Fix the errors listed above and run: forja validate",
+            Self::TrackNotFound(_) => "List tracks with: forja tracks list",
+            Self::DecisionNotFound(_) => "List decisions with: forja decisions list",
         }
     }
 
@@ -148,6 +160,8 @@ impl ForjaError {
             Self::InvalidSpec(_) => 9,
             Self::SpecNotFound(_) => 3,
             Self::ScanError(_) | Self::ClaudeCliTimeout(_) => 10,
+            Self::ValidationFailed(_) => 11,
+            Self::TrackNotFound(_) | Self::DecisionNotFound(_) => 3,
             _ => 1,
         }
     }
@@ -190,6 +204,9 @@ mod tests {
             ForjaError::SpecNotFound("test".into()),
             ForjaError::ScanError("test".into()),
             ForjaError::ClaudeCliTimeout(60),
+            ForjaError::ValidationFailed(1),
+            ForjaError::TrackNotFound("test".into()),
+            ForjaError::DecisionNotFound("test".into()),
         ];
 
         for variant in &variants {

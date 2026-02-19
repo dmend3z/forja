@@ -9,6 +9,7 @@ use forja_core::models::plan::{
     find_latest_pending, initialize_checkpoint, load_checkpoint, load_plan, save_checkpoint,
     save_plan, workspace_dir,
 };
+use forja_core::models::{context_gen, index_gen, run_log, validate};
 use forja_core::paths::ForjaPaths;
 use forja_core::settings;
 use forja_core::symlink::auto_install;
@@ -30,6 +31,31 @@ pub fn run(plan_id: Option<&str>, profile: &str, resume: bool) -> Result<()> {
         }
         None => find_latest_pending(&paths.plans)?,
     };
+
+    // Validation gate: if .forja/ framework exists, validate before executing
+    let cwd = std::env::current_dir()?;
+    let forja_dir = cwd.join(".forja");
+    if forja_dir.join("specs").exists() {
+        let result = validate::validate_project(&forja_dir)?;
+        if !result.is_valid() {
+            println!(
+                "{} Validation failed with {} error(s). Fix them before executing.",
+                "ERROR:".red().bold(),
+                result.error_count()
+            );
+            for e in &result.errors {
+                if e.severity == validate::Severity::Error {
+                    println!("  {} {}: {}", "x".red(), e.file.dimmed(), e.message);
+                }
+            }
+            println!();
+            println!(
+                "{}",
+                "Run `forja validate` for full details.".dimmed()
+            );
+            return Err(ForjaError::ValidationFailed(result.error_count()));
+        }
+    }
 
     println!("{}", "forja execute".bold());
     println!();
@@ -88,6 +114,21 @@ pub fn run(plan_id: Option<&str>, profile: &str, resume: bool) -> Result<()> {
 fn run_legacy(paths: &ForjaPaths, plan: &mut PlanMetadata, plan_md: &str) -> Result<()> {
     let prompt = build_execution_prompt(plan, plan_md);
 
+    // Create run log
+    let spec_id = plan.source_spec.as_deref().unwrap_or(&plan.id);
+    let cwd = std::env::current_dir()?;
+    let runs_dir = cwd.join(".forja").join("runs");
+    let run_path = if runs_dir.exists() {
+        Some(run_log::create_run_log(
+            &runs_dir,
+            spec_id,
+            Some(&plan.id),
+            "claude-code",
+        )?)
+    } else {
+        None
+    };
+
     println!("{}", "Launching Claude Code session...".bold());
     println!();
 
@@ -96,6 +137,8 @@ fn run_legacy(paths: &ForjaPaths, plan: &mut PlanMetadata, plan_md: &str) -> Res
         .arg("--")
         .arg(&prompt)
         .status()?;
+
+    let exit_code = status.code().unwrap_or(-1);
 
     if status.success() {
         plan.status = PlanStatus::Executed;
@@ -107,6 +150,23 @@ fn run_legacy(paths: &ForjaPaths, plan: &mut PlanMetadata, plan_md: &str) -> Res
             "Done:".green().bold(),
             plan.id.cyan()
         );
+    }
+
+    // Complete run log
+    if let Some(ref rp) = run_path {
+        let run_status = if status.success() {
+            run_log::RunStatus::Complete
+        } else {
+            run_log::RunStatus::Failed
+        };
+        let _ = run_log::complete_run_log(rp, run_status, Some(exit_code), "");
+    }
+
+    // Regenerate INDEX.md and CONTEXT.md
+    let forja_dir = cwd.join(".forja");
+    if forja_dir.join("specs").exists() {
+        let _ = index_gen::write_index(&forja_dir);
+        let _ = context_gen::write_context(&forja_dir);
     }
 
     Ok(())
@@ -121,6 +181,21 @@ fn run_phased(
 ) -> Result<()> {
     let ckpt_path = checkpoint_path(&paths.plans, &plan.id);
     let ws_dir = workspace_dir(&paths.plans, &plan.id);
+
+    // Create run log
+    let spec_id = plan.source_spec.as_deref().unwrap_or(&plan.id);
+    let cwd_phased = std::env::current_dir()?;
+    let runs_dir = cwd_phased.join(".forja").join("runs");
+    let run_path = if runs_dir.exists() {
+        Some(run_log::create_run_log(
+            &runs_dir,
+            spec_id,
+            Some(&plan.id),
+            "claude-code",
+        )?)
+    } else {
+        None
+    };
 
     // Load or initialize checkpoint
     let mut checkpoint = if resume && ckpt_path.exists() {
@@ -235,6 +310,16 @@ fn run_phased(
             );
             println!();
 
+            // Complete run log on failure
+            if let Some(ref rp) = run_path {
+                let _ = run_log::complete_run_log(
+                    rp,
+                    run_log::RunStatus::Failed,
+                    Some(exit_code),
+                    "",
+                );
+            }
+
             return Err(ForjaError::PhaseExecutionFailed(format!(
                 "Phase '{}' failed with exit code {exit_code}",
                 phase.name
@@ -254,6 +339,23 @@ fn run_phased(
             plan.phases.len(),
             plan.id.cyan()
         );
+    }
+
+    // Complete run log
+    if let Some(ref rp) = run_path {
+        let run_status = if all_completed {
+            run_log::RunStatus::Complete
+        } else {
+            run_log::RunStatus::Failed
+        };
+        let _ = run_log::complete_run_log(rp, run_status, Some(0), "");
+    }
+
+    // Regenerate INDEX.md and CONTEXT.md
+    let forja_dir = cwd_phased.join(".forja");
+    if forja_dir.join("specs").exists() {
+        let _ = index_gen::write_index(&forja_dir);
+        let _ = context_gen::write_context(&forja_dir);
     }
 
     Ok(())

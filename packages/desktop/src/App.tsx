@@ -1,8 +1,12 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import { Sidebar } from "./components/Sidebar";
 import { ProjectsPage } from "./pages/ProjectsPage";
-import { SparksPage } from "./pages/SparksPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { TracksPage } from "./pages/TracksPage";
 import { SpecsPage } from "./pages/SpecsPage";
+import { PlansPage } from "./pages/PlansPage";
+import { DecisionsPage } from "./pages/DecisionsPage";
+import { RunsPage } from "./pages/RunsPage";
 import { AutomationsPage } from "./pages/AutomationsPage";
 import { MarketplacePage } from "./pages/MarketplacePage";
 import { SkillDetailPage } from "./pages/SkillDetailPage";
@@ -16,8 +20,12 @@ export default function App() {
         <main className="flex-1 overflow-auto">
           <Routes>
             <Route path="/" element={<ProjectsPage />} />
-            <Route path="/project/:id/sparks" element={<SparksPage />} />
+            <Route path="/project/:id/dashboard" element={<DashboardPage />} />
+            <Route path="/project/:id/tracks" element={<TracksPage />} />
             <Route path="/project/:id/specs" element={<SpecsPage />} />
+            <Route path="/project/:id/plans" element={<PlansPage />} />
+            <Route path="/project/:id/decisions" element={<DecisionsPage />} />
+            <Route path="/project/:id/runs" element={<RunsPage />} />
             <Route
               path="/project/:id/automations"
               element={<AutomationsPage />}
